@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resolve Timer — Slice 2: Menu Bar (Klokki-inspired)</title>
+<style>
+  :root {
+    --win: #0D0D0F;
+    --card: #17171A;
+    --card-2: #1C1C20;
+    --stroke: rgba(255,255,255,0.07);
+    --text: #F5F5F7;
+    --text-2: rgba(245,245,247,0.55);
+    --text-3: rgba(245,245,247,0.50);
+    --orange: #FF6B1A;
+    --orange-soft: rgba(255,107,26,0.14);
+    --green: #34C759;
+    --amber: #FEBC2E;
+    --gray-chip: #6E6E73;
+    --r-sm: 6px; --r-md: 8px; --r-lg: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    /* colorful desktop so the glass vibrancy is demonstrable */
+    background:
+      radial-gradient(60% 80% at 20% 20%, #2c5c8f 0%, transparent 60%),
+      radial-gradient(70% 70% at 85% 30%, #8f3a2c 0%, transparent 55%),
+      radial-gradient(80% 90% at 60% 90%, #5c2c8f 0%, transparent 60%),
+      #17171c;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* ================= Menu bar strip ================= */
+  .menubar {
+    width: 100%; height: 34px;
+    background: rgba(20,20,24,0.6);
+    backdrop-filter: blur(30px) saturate(160%);
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 14px; padding: 0 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .mb-etc { font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+
+  /* The pill — [chip][today][session] */
+  .pill {
+    display: flex; align-items: center; gap: 7px;
+    height: 24px; padding: 0 9px 0 3px;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  /* traffic-light borders: green = recording · amber = paused · red = no project */
+  .pill.on { border-color: rgba(52,199,89,0.6); background: rgba(52,199,89,0.09); }
+  .pill.paused-p { border-color: rgba(254,188,46,0.6); background: rgba(254,188,46,0.09); }
+  .pill.noproj { border-color: rgba(255,69,58,0.6); background: rgba(255,69,58,0.09); }
+  .pill.goal-on { border-color: rgba(52,199,89,0.6); background: rgba(52,199,89,0.09); }
+  .pill .chip {
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pill .today { font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .pill .sess { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+  .pill.paused-p .today { color: var(--text-2); }
+
+  .ringglyph { display: block; }
+
+  /* ================= Panel ================= */
+  .panel-wrap { margin-top: 10px; display: flex; gap: 24px; align-items: flex-start; }
+  .panel {
+    width: 340px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(13,13,15,0.80);
+    backdrop-filter: blur(34px) saturate(170%);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+  }
+
+  /* Hero header */
+  .hero { display: flex; }
+  .hero .chipbox {
+    width: 92px; height: 92px; flex-shrink: 0;
+    background: #000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero .right {
+    flex: 1; min-width: 0;
+    padding: 12px 16px 10px;
+    background: linear-gradient(180deg, rgba(255,107,26,0.12), rgba(255,107,26,0.03));
+    display: flex; flex-direction: column; justify-content: center; gap: 1px;
+  }
+  .hero.paused-h .right { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)); }
+  .hero.goal-h .right { background: linear-gradient(180deg, rgba(52,199,89,0.12), rgba(52,199,89,0.03)); }
+  .hero .time {
+    font-size: 38px; font-weight: 200; letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .hero .time .sec { font-size: 20px; color: var(--text-2); font-weight: 300; }
+  .hero .client {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--orange); text-transform: uppercase; margin-top: 3px;
+  }
+  .hero.paused-h .client { color: var(--text-3); }
+  .hero.goal-h .client { color: var(--green); }
+  .hero .proj {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Project list */
+  .list { max-height: 176px; overflow-y: auto; }
+  .list::-webkit-scrollbar { width: 5px; }
+  .list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+  }
+  .row:hover { background: rgba(255,255,255,0.04); }
+  .row.running { background: var(--orange-soft); }
+  .row .state {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 9px;
+  }
+  .row.running .state { background: var(--orange); color: #140A04; }
+  .row .name {
+    font-size: 13px; font-weight: 500; color: var(--text-2);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .row.running .name { color: var(--text); font-weight: 600; }
+  .row .t { font-size: 12.5px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .row.running .t { color: var(--text); font-weight: 700; }
+  .badge {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 5px; padding: 2px 7px;
+    flex-shrink: 0;
+  }
+  .badge .t2 { font-size: 11.5px; font-weight: 700; color: var(--orange); font-variant-numeric: tabular-nums; }
+
+  /* Footer */
+  .foot {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px;
+    background: rgba(0,0,0,0.35);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .fbtn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    height: 26px; padding: 0 12px;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-2); font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; font-family: inherit;
+  }
+  .fbtn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+  .fbtn.stats { flex: 1; }
+
+  .caption { margin-top: 14px; font-size: 11px; color: rgba(245,245,247,0.5); text-align: center; }
+  .hint { margin-top: 40px; font-size: 12px; color: rgba(245,245,247,0.65); }
+</style>
+</head>
+<body>
+
+  <!-- ================= Menu bar with the three pill states ================= -->
+  <div class="menubar">
+    <div class="pill on" onclick="setState('recording')" title="Recording">
+      <span class="chip"><svg class="ringglyph" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="rgba(52,199,89,0.25)" stroke-width="2.4" fill="none"/><path d="M 7 2 A 5 5 0 1 1 4.6 11.4" stroke="#34C759" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></span>
+      <span class="today">4:37:22</span>
+    </div>
+    <div class="pill paused-p" onclick="setState('paused')" title="Paused">
+      <span class="chip"><svg class="ringglyph" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="rgba(254,188,46,0.25)" stroke-width="2.4" fill="none"/><path d="M 7 2 A 5 5 0 1 1 4.6 11.4" stroke="#FEBC2E" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></span>
+      <span class="today">4:37:22</span>
+    </div>
+    <div class="pill goal-on" onclick="setState('goal')" title="Goal reached">
+      <span class="chip"><svg class="ringglyph" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="#34C759" stroke-width="2.4" fill="none"/></svg></span>
+      <span class="today">8:42:04</span>
+    </div>
+    <div class="pill noproj" title="No project selected">
+      <span class="chip"><svg class="ringglyph" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="rgba(255,69,58,0.45)" stroke-width="2.4" fill="none"/></svg></span>
+      <span class="today" style="color: var(--text-2)">0:00:00</span>
+    </div>
+    <span class="mb-etc">Fri 18 Jul&nbsp;&nbsp;09:41</span>
+  </div>
+
+  <!-- ================= The drop-down panel (state-driven) ================= -->
+  <div class="panel-wrap">
+    <div class="panel" id="panel">
+      <div class="hero" id="hero">
+        <div class="chipbox">
+          <svg id="heroRing" width="52" height="52" viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="19" stroke="rgba(255,255,255,0.10)" stroke-width="7" fill="none"/>
+            <path id="heroArc" d="M 26 7 A 19 19 0 1 1 16.9 42.7" stroke="#FF6B1A" stroke-width="7" stroke-linecap="round" fill="none" filter="drop-shadow(0 0 6px rgba(255,107,26,0.6))"/>
+          </svg>
+        </div>
+        <div class="right">
+          <div class="time" id="heroTime">4:37<span class="sec">:22</span></div>
+          <div class="client" id="heroClient">Nyx Studios</div>
+          <div class="proj" id="heroProj">Nyx Fashion Film</div>
+        </div>
+      </div>
+
+      <div class="list" id="list"></div>
+
+      <div class="foot">
+        <button class="fbtn" title="New Project">＋</button>
+        <button class="fbtn stats">Stats ↗</button>
+        <button class="fbtn" title="Settings">⚙</button>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Click the pills in the menu bar to preview states · click rows to switch project</div>
+  <div class="hint">Glass panel over the desktop — vibrancy demo</div>
+
+<script>
+  const PROJECTS = [
+    { key: 'nyx', name: 'Nyx Fashion Film', client: 'Nyx Studios', mode: 'HOURLY', today: '4:37', session: '42:10' },
+    { key: 'dec', name: '2026-07-16_Decathlon_Socials', client: 'Decathlon', mode: 'HOURLY', today: '1:12' },
+    { key: 'alp', name: 'Alpina Ski Promo', client: 'Alpina Sports', mode: 'BUDGET', today: '0:48' },
+    { key: 'caf', name: 'Café Bogotá Doc', client: 'Rincón Films', mode: 'HOURLY', today: '0:00' },
+    { key: 'ver', name: 'Vertex Corp Ident', client: 'Vertex GmbH', mode: 'HOURLY', today: '0:00' },
+  ];
+  let running = 'nyx';
+  let state = 'recording';
+
+  function renderList() {
+    document.getElementById('list').innerHTML = PROJECTS.map(p => {
+      const isRun = p.key === running && state !== 'paused';
+      const stateIcon = isRun
+        ? '<svg width="12" height="12" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="rgba(20,10,4,0.35)" stroke-width="2.6" fill="none"/><path d="M 7 2 A 5 5 0 1 1 4.6 11.4" stroke="#140A04" stroke-width="2.6" stroke-linecap="round" fill="none"/></svg>'
+        : '▶';
+      const badge = isRun && p.session ? `<span class="badge"><span class="t2">${p.session}</span></span>` : '';
+      return `<div class="row${isRun ? ' running' : ''}" onclick="pick('${p.key}')">
+        <span class="state">${stateIcon}</span>
+        <span class="name">${p.name}</span>
+        ${badge}
+        <span class="t">${p.today}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function pick(key) {
+    running = key;
+    const p = PROJECTS.find(x => x.key === key);
+    document.getElementById('heroClient').textContent = p.client;
+    document.getElementById('heroProj').textContent = p.name;
+    renderList();
+  }
+
+  function setState(s) {
+    state = s;
+    const hero = document.getElementById('hero');
+    const arc = document.getElementById('heroArc');
+    hero.classList.toggle('paused-h', s === 'paused');
+    hero.classList.toggle('goal-h', s === 'goal');
+    if (s === 'paused') {
+      arc.setAttribute('stroke', '#8E8E93');
+      arc.removeAttribute('filter');
+    } else if (s === 'goal') {
+      arc.setAttribute('stroke', '#34C759');
+      arc.setAttribute('filter', 'drop-shadow(0 0 6px rgba(52,199,89,0.6))');
+      document.getElementById('heroTime').innerHTML = '8:42<span class="sec">:04</span>';
+    } else {
+      arc.setAttribute('stroke', '#FF6B1A');
+      arc.setAttribute('filter', 'drop-shadow(0 0 6px rgba(255,107,26,0.6))');
+      document.getElementById('heroTime').innerHTML = '4:37<span class="sec">:22</span>';
+    }
+    renderList();
+  }
+  renderList();
+</script>
+</body>
+</html>

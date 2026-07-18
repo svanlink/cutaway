@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Timex — Slice 1: Dashboard (Timer + Stats)</title>
+<style>
+  :root {
+    /* color tokens */
+    --bg: #232323;
+    --win: #0D0D0F;
+    --card: #17171A;
+    --card-2: #1C1C20;
+    --pop: #202024;
+    --stroke: rgba(255,255,255,0.07);
+    --text: #F5F5F7;
+    --text-2: rgba(245,245,247,0.55);   /* secondary — AA on win (5.9:1) */
+    --text-3: rgba(245,245,247,0.50);   /* tertiary floor — AA on win (5.2:1) */
+    --orange: #FF6B1A;
+    --orange-soft: rgba(255,107,26,0.14);
+    --on-orange: #140A04;
+    --green: #34C759;
+    --amber: #FEBC2E;
+    --gray-ring: rgba(245,245,247,0.22);
+
+    /* spacing scale (4pt grid) */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+
+    /* type scale */
+    --f-caption: 11px; --f-tag: 10.5px; --f-small: 12px; --f-body: 13px; --f-emph: 15px;
+    --f-money: 17px; --f-stat: 16px; --f-hero: 48px; --f-hero-sec: 25px;
+
+    /* radius scale */
+    --r-sm: 6px; --r-md: 8px; --r-lg: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: var(--s6);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: var(--r-sm); }
+
+  /* One fixed canvas for BOTH views */
+  .window {
+    width: 480px; height: 660px;
+    background: var(--win);
+    border-radius: var(--r-lg);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ---------- Title bar ---------- */
+  .titlebar { display: flex; align-items: center; padding: var(--s4) var(--s4) var(--s2); flex-shrink: 0; }
+  .traffic { display: flex; gap: var(--s2); }
+  .traffic span { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .segmented { margin: 0 auto; display: flex; gap: 2px; background: rgba(255,255,255,0.06); border-radius: var(--r-md); padding: 2px; }
+  .seg {
+    font-size: var(--f-small); font-weight: 600; color: var(--text-3);
+    padding: var(--s1) var(--s4); border-radius: var(--r-sm); border: none; background: transparent;
+    cursor: pointer; transition: color 0.2s, background 0.2s; font-family: inherit;
+  }
+  .seg:hover:not(.on) { color: var(--text-2); }
+  .seg.on { background: var(--card-2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+  .titlebar .spacer { width: 56px; }
+
+  .view { flex: 1; min-height: 0; display: none; flex-direction: column; }
+  .view.on { display: flex; }
+
+  /* ================= VIEW 1 : TIMER ================= */
+  .timer-view { align-items: center; padding: var(--s1) var(--s5) var(--s4); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  .ring-wrap { position: relative; width: 240px; height: 240px; margin-top: var(--s1); }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 18; }
+  .ring-fg {
+    fill: none; stroke: var(--orange); stroke-width: 18; stroke-linecap: round;
+    stroke-dasharray: 697;
+    filter: drop-shadow(0 0 12px rgba(255,107,26,0.55));
+    transition: stroke 0.3s, filter 0.3s, stroke-dashoffset 0.3s;
+  }
+  .paused .ring-fg { stroke: var(--gray-ring); filter: none; }
+  .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+  .elapsed { font-size: var(--f-hero); font-weight: 200; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+  .elapsed .sec { font-size: var(--f-hero-sec); color: var(--text-2); font-weight: 300; }
+  .ring-sub { font-size: var(--f-caption); color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
+  .ring-money {
+    font-size: var(--f-money); font-weight: 600; color: var(--orange);
+    font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+  }
+  .paused .ring-money { color: var(--text-2); }
+  .ring-goal { font-size: var(--f-caption); color: var(--text-3); font-variant-numeric: tabular-nums; margin-top: 1px; }
+
+  .pause-btn {
+    margin-top: var(--s5); display: flex; align-items: center; gap: var(--s2);
+    background: var(--orange); color: var(--on-orange);
+    font-size: var(--f-body); font-weight: 700;
+    padding: 10px 26px; border-radius: var(--r-md); border: none;
+    cursor: pointer; font-family: inherit;
+  }
+  .pause-btn:hover { filter: brightness(1.1); }
+  .pause-btn:active { transform: scale(0.97); }
+  .pause-btn svg { width: 11px; height: 11px; fill: var(--on-orange); }
+  .paused .pause-btn { background: var(--card-2); color: var(--text); border: 1px solid rgba(255,255,255,0.14); }
+  .paused .pause-btn svg { fill: var(--text); }
+
+
+  /* Current project — bottom bar */
+  .proj-row { position: relative; display: flex; justify-content: center; }
+  .proj {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-radius: var(--r-md);
+    font-size: var(--f-body); font-weight: 500;
+    background: var(--orange-soft); color: var(--text);
+    border: none; cursor: pointer; font-family: inherit;
+    max-width: 340px;
+  }
+  .proj:hover { background: rgba(255,107,26,0.22); }
+  .proj .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 8px rgba(255,107,26,0.8); flex-shrink: 0; }
+  .proj .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proj .mode {
+    font-size: var(--f-tag); font-weight: 600; color: var(--orange);
+    border: 1px solid rgba(255,107,26,0.4);
+    padding: 2px 6px; border-radius: var(--r-sm); flex-shrink: 0;
+  }
+  .proj .chev { font-size: 9px; color: var(--text-3); flex-shrink: 0; }
+
+  .popover {
+    position: absolute; bottom: 46px; left: 50%; transform: translateX(-50%);
+    z-index: 10; min-width: 250px;
+    background: var(--pop);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--r-lg); padding: 5px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+    display: none;
+  }
+  .popover.open { display: block; }
+  .pop-list { max-height: 105px; overflow-y: auto; }
+  .pop-list::-webkit-scrollbar { width: 5px; }
+  .pop-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .pop-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: var(--r-sm);
+    font-size: var(--f-body); color: var(--text-2); cursor: pointer;
+  }
+  .pop-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .pop-item .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); flex-shrink: 0; }
+  .pop-item.current { color: var(--text); background: var(--orange-soft); }
+  .pop-item.current .dot { background: var(--orange); }
+  .pop-item .mode { margin-left: auto; font-size: var(--f-tag); font-weight: 600; color: var(--text-3); border: 1px solid var(--stroke); padding: 2px 5px; border-radius: var(--r-sm); }
+  .pop-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 5px var(--s1); }
+  .pop-item.new { color: var(--text-3); }
+  .pop-item.new:hover { color: var(--orange); }
+  .pop-item.new .plus { width: 7px; text-align: center; font-size: var(--f-body); }
+
+  /* ================= VIEW 2 : STATS ================= */
+  .stats-view { padding: var(--s1) 20px var(--s4); }
+  .stats-top { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); flex-shrink: 0; min-width: 0; position: relative; }
+  .title-switch {
+    display: flex; align-items: baseline; gap: var(--s2); min-width: 0;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    color: var(--text); padding: 4px 8px; margin-left: -8px; border-radius: var(--r-md);
+  }
+  .title-switch:hover { background: rgba(255,255,255,0.05); }
+  .title-switch h1 { font-size: var(--f-stat); font-weight: 700; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .title-switch .client { font-size: var(--f-caption); color: var(--text-3); white-space: nowrap; }
+  .title-switch .chev { font-size: 9px; color: var(--text-3); align-self: center; flex-shrink: 0; }
+  .popover.down { bottom: auto; top: 38px; left: 0; transform: none; }
+  /* budget burn-down stat row */
+  .stat.budget { flex-wrap: wrap; }
+  .stat .bbar { width: 100%; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); margin-top: var(--s2); overflow: hidden; }
+  .stat .bbar i { display: block; height: 100%; border-radius: 3px; background: var(--orange); }
+  .stat .bbar.warn i { background: var(--amber); }
+  .stat .bbar.over i { background: #FF453A; }
+  .stat .fc { width: 100%; margin-top: 6px; font-size: var(--f-caption); color: var(--text-3); font-variant-numeric: tabular-nums; }
+  .stat .fc.warn { color: var(--amber); }
+  /* goal reached — ring turns green; paused still wins (declared after) */
+  .goal-done .ring-fg { stroke: var(--green); filter: drop-shadow(0 0 12px rgba(52,199,89,0.5)); }
+  .goal-done .ring-goal { color: var(--green); }
+  .paused .ring-fg { stroke: var(--gray-ring); filter: none; }
+  .csv-btn {
+    margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    background: var(--card-2); border: 1px solid var(--stroke);
+    color: var(--text-2); font-size: var(--f-small); font-weight: 500;
+    padding: 6px var(--s3); border-radius: var(--r-md); cursor: pointer; font-family: inherit;
+  }
+  .csv-btn:hover { color: var(--text); border-color: rgba(255,107,26,0.4); }
+  .csv-btn svg { width: 12px; height: 12px; stroke: currentColor; }
+
+  .stat-stack { display: flex; flex-direction: column; gap: var(--s2); margin-bottom: var(--s3); flex-shrink: 0; }
+  .stat {
+    display: flex; align-items: baseline;
+    background: var(--card); border: 1px solid var(--stroke); border-radius: var(--r-lg);
+    padding: 11px 14px;
+  }
+  .stat .k { font-size: var(--f-caption); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+  .stat .v { margin-left: auto; font-size: var(--f-stat); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stat .v small { font-size: var(--f-small); color: var(--text-2); font-weight: 500; }
+  .stat .sub { font-size: var(--f-caption); color: var(--text-3); margin-left: var(--s2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .days { background: var(--card); border: 1px solid var(--stroke); border-radius: var(--r-lg); flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .days-head { display: flex; align-items: center; padding: 11px 14px 9px; border-bottom: 1px solid var(--stroke); flex-shrink: 0; }
+  .days-head .t { font-size: var(--f-small); font-weight: 600; }
+  .days-head .range { margin-left: auto; font-size: var(--f-caption); color: var(--text-3); }
+  .days-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+  .days-scroll::-webkit-scrollbar { width: 8px; }
+  .days-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: var(--r-sm); }
+  .drow {
+    display: grid; grid-template-columns: 96px 46px 1fr 88px; align-items: center;
+    padding: var(--s2) 14px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: var(--f-small); font-variant-numeric: tabular-nums;
+  }
+  .drow:hover { background: rgba(255,255,255,0.025); }
+  .drow .d { color: var(--text); font-weight: 500; white-space: nowrap; }
+  .drow .wd { color: var(--text-3); font-size: var(--f-caption); }
+  .drow .h { color: var(--text-2); }
+  .spark { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.07); margin: 0 var(--s3) 0 var(--s1); overflow: hidden; }
+  .spark i { display: block; height: 100%; background: var(--orange); border-radius: 3px; opacity: 0.85; }
+  .drow .money { text-align: right; font-weight: 600; }
+  .drow.today { background: rgba(255,107,26,0.05); border-left: 2px solid var(--orange); padding-left: 12px; }
+  .drow.today .d { color: var(--orange); }
+  .days-foot { display: flex; align-items: center; padding: 10px 14px; border-top: 1px solid var(--stroke); font-size: var(--f-caption); color: var(--text-2); flex-shrink: 0; }
+  .days-foot b { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .days-foot .total { margin-left: auto; font-size: var(--f-body); }
+</style>
+</head>
+<body>
+
+<div class="window" id="win">
+
+  <div class="titlebar">
+    <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <div class="segmented">
+      <button class="seg on" id="segTimer" onclick="show('timer')">Timer</button>
+      <button class="seg" id="segStats" onclick="show('stats')">Stats</button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ================= VIEW 1 : TIMER ================= -->
+  <section class="view timer-view on" id="viewTimer">
+
+    <div class="ring-wrap" style="margin-top: auto;">
+      <svg width="240" height="240" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="111"/>
+        <circle class="ring-fg" id="ringFg" cx="120" cy="120" r="111" stroke-dashoffset="293"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-sub">Today</div>
+        <div class="elapsed" id="clock">4:37<span class="sec">:22</span></div>
+        <div class="ring-money" id="ringMoney">CHF 393.75</div>
+        <div class="ring-goal" id="goal">58% of 8h goal</div>
+      </div>
+    </div>
+
+    <button class="pause-btn" id="pauseBtn" onclick="togglePause()">
+      <svg viewBox="0 0 12 12" id="pauseIcon"><rect x="1" y="1" width="3.5" height="10" rx="1"/><rect x="7.5" y="1" width="3.5" height="10" rx="1"/></svg>
+      <span id="pauseLabel">Pause</span>
+    </button>
+
+    <div style="height: 28px; margin-bottom: auto;"></div>
+
+    <div class="proj-row">
+      <button class="proj" onclick="togglePop()">
+        <span class="dot"></span>
+        <span class="name" id="pillName">Nyx Fashion Film</span>
+        <span class="mode" id="pillMode">HOURLY</span>
+        <span class="chev">▲</span>
+      </button>
+
+      <div class="popover" id="pop">
+        <div class="pop-list">
+          <div class="pop-item" data-p="nyx" onclick="pick('nyx')"><span class="dot"></span> Nyx Fashion Film <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="alpina" onclick="pick('alpina')"><span class="dot"></span> Alpina Ski Promo <span class="mode">BUDGET</span></div>
+          <div class="pop-item" data-p="cafe" onclick="pick('cafe')"><span class="dot"></span> Café Bogotá Doc <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="vertex" onclick="pick('vertex')"><span class="dot"></span> Vertex Corp Ident <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="milan" onclick="pick('milan')"><span class="dot"></span> Milan Wedding Film <span class="mode">BUDGET</span></div>
+        </div>
+        <div class="pop-sep"></div>
+        <div class="pop-item new"><span class="plus">＋</span> New Project…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 2 : STATS ================= -->
+  <section class="view stats-view" id="viewStats">
+
+    <div class="stats-top">
+      <button class="title-switch" onclick="togglePop2()">
+        <h1 id="statsTitle">Nyx Fashion Film</h1>
+        <span class="client" id="statsClient">· Nyx Studios</span>
+        <span class="chev">▼</span>
+      </button>
+      <button class="csv-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        Export CSV
+      </button>
+
+      <div class="popover down" id="pop2">
+        <div class="pop-list">
+          <div class="pop-item" data-p="nyx" onclick="pick('nyx')"><span class="dot"></span> Nyx Fashion Film <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="alpina" onclick="pick('alpina')"><span class="dot"></span> Alpina Ski Promo <span class="mode">BUDGET</span></div>
+          <div class="pop-item" data-p="cafe" onclick="pick('cafe')"><span class="dot"></span> Café Bogotá Doc <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="vertex" onclick="pick('vertex')"><span class="dot"></span> Vertex Corp Ident <span class="mode">HOURLY</span></div>
+          <div class="pop-item" data-p="milan" onclick="pick('milan')"><span class="dot"></span> Milan Wedding Film <span class="mode">BUDGET</span></div>
+        </div>
+        <div class="pop-sep"></div>
+        <div class="pop-item new"><span class="plus">＋</span> New Project…</div>
+      </div>
+    </div>
+
+    <div class="stat-stack" id="statStack"></div>
+
+    <div class="days">
+      <div class="days-head">
+        <span class="t">Daily Breakdown</span>
+        <span class="range" id="dayRange"></span>
+      </div>
+
+      <div class="days-scroll" id="dayRows"></div>
+
+      <div class="days-foot" id="dayFoot"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const DAILY_GOAL_S = 8 * 3600; // ring = progress toward daily goal (hourly mode); budget mode will use budget-% instead
+  const CIRC = 697;
+
+  function show(which) {
+    const isTimer = which === 'timer';
+    document.getElementById('viewTimer').classList.toggle('on', isTimer);
+    document.getElementById('viewStats').classList.toggle('on', !isTimer);
+    document.getElementById('segTimer').classList.toggle('on', isTimer);
+    document.getElementById('segStats').classList.toggle('on', !isTimer);
+    document.getElementById('pop').classList.remove('open');
+  }
+  function togglePop() { document.getElementById('pop').classList.toggle('open'); }
+  function togglePop2() { document.getElementById('pop2').classList.toggle('open'); }
+
+  /* ---------- Stats view: data-driven project switching ---------- */
+  const PROJECTS = {
+    nyx: {
+      name: 'Nyx Fashion Film', client: '· Nyx Studios', mode: 'HOURLY', todayMoney: 'CHF 393.75',
+      stats: [
+        { k: 'Project Total', v: '27.4 <small>h</small>', sub: '· 5 days' },
+        { k: 'Earned', v: "CHF 2'329", sub: '@ 85.00 / h' },
+        { k: 'Avg per Day', v: '5.5 <small>h</small>', sub: 'CHF 466 / day' },
+      ],
+      range: 'Jul 11 – 17, 2026',
+      rows: [
+        ['Today', 'Thu', '4.6h', 60, 'CHF 393.75', true],
+        ['Jul 16', 'Wed', '6.9h', 91, 'CHF 586.50'],
+        ['Jul 15', 'Tue', '5.2h', 68, 'CHF 442.00'],
+        ['Jul 14', 'Mon', '3.1h', 41, 'CHF 263.50'],
+        ['Jul 11', 'Fri', '7.6h', 100, 'CHF 646.00'],
+      ],
+      foot: ["<b>5 days</b> · <b>27.4 h</b> active", "Total &nbsp;<b>CHF 2'329.25</b>"],
+    },
+    alpina: {
+      name: 'Alpina Ski Promo', client: '· Alpina Sports', mode: 'BUDGET', todayMoney: 'CHF 204.00',
+      stats: [
+        { k: 'Project Total', v: '41.3 <small>h</small>', sub: '· 9 days' },
+        { k: 'Used', v: "CHF 3'510", sub: '@ 85.00 / h' },
+        { k: 'Budget', v: "CHF 990 <small>left</small>", sub: "of 4'500 · 78% used", bar: 78,
+          fc: '≈ 2.5 working days left at current pace (4.6 h/day)' },
+      ],
+      range: 'Jul 1 – 17, 2026',
+      rows: [
+        ['Today', 'Thu', '2.4h', 41, 'CHF 204.00', true],
+        ['Jul 15', 'Tue', '5.8h', 100, 'CHF 493.00'],
+        ['Jul 12', 'Sat', '4.9h', 84, 'CHF 416.50'],
+        ['Jul 9',  'Wed', '5.1h', 88, 'CHF 433.50'],
+      ],
+      foot: ["<b>9 days</b> · <b>41.3 h</b> active", "Used &nbsp;<b>CHF 3'510.00</b> / 4'500"],
+    },
+    vertex: {
+      name: 'Vertex Corp Ident', client: '· Vertex GmbH', mode: 'HOURLY', todayMoney: '€ 108.00',
+      stats: [
+        { k: 'Project Total', v: '12.5 <small>h</small>', sub: '· 4 days' },
+        { k: 'Earned', v: '€ 900', sub: '@ 72.00 / h' },
+        { k: 'Avg per Day', v: '3.1 <small>h</small>', sub: '€ 225 / day' },
+      ],
+      range: 'Jul 8 – 17, 2026',
+      rows: [
+        ['Today', 'Thu', '1.5h', 30, '€ 108.00', true],
+        ['Jul 15', 'Tue', '4.0h', 80, '€ 288.00'],
+        ['Jul 10', 'Fri', '5.0h', 100, '€ 360.00'],
+        ['Jul 8', 'Wed', '2.0h', 40, '€ 144.00'],
+      ],
+      foot: ["<b>4 days</b> · <b>12.5 h</b> active", 'Total &nbsp;<b>€ 900.00</b>'],
+    },
+    milan: {
+      name: 'Milan Wedding Film', client: '· Private client', mode: 'BUDGET', todayMoney: 'CHF 195.50',
+      stats: [
+        { k: 'Project Total', v: '6.8 <small>h</small>', sub: '· 2 days' },
+        { k: 'Used', v: 'CHF 578', sub: '@ 85.00 / h' },
+        { k: 'Budget', v: "CHF 1'422 <small>left</small>", sub: "of 2'000 · 29% used", bar: 29,
+          fc: '≈ 4.3 working days left at current pace (3.4 h/day)' },
+      ],
+      range: 'Jul 16 – 17, 2026',
+      rows: [
+        ['Today', 'Thu', '2.3h', 51, 'CHF 195.50', true],
+        ['Jul 16', 'Wed', '4.5h', 100, 'CHF 382.50'],
+      ],
+      foot: ["<b>2 days</b> · <b>6.8 h</b> active", "Used &nbsp;<b>CHF 578.00</b> / 2'000"],
+    },
+    cafe: {
+      name: 'Café Bogotá Doc', client: '· Rincón Films', mode: 'HOURLY', todayMoney: 'COP 180.000',
+      stats: [
+        { k: 'Project Total', v: '9.3 <small>h</small>', sub: '· 3 days' },
+        { k: 'Earned', v: 'COP 1.395.000', sub: '@ 150.000 / h' },
+        { k: 'Avg per Day', v: '3.1 <small>h</small>', sub: 'COP 465.000 / day' },
+      ],
+      range: 'Jul 13 – 17, 2026',
+      rows: [
+        ['Today', 'Thu', '1.2h', 27, 'COP 180.000', true],
+        ['Jul 14', 'Mon', '3.6h', 80, 'COP 540.000'],
+        ['Jul 13', 'Sun', '4.5h', 100, 'COP 675.000'],
+      ],
+      foot: ["<b>3 days</b> · <b>9.3 h</b> active", 'Total &nbsp;<b>COP 1.395.000</b>'],
+    },
+  };
+
+  function pick(key) {
+    const p = PROJECTS[key];
+    // stats view
+    document.getElementById('statsTitle').textContent = p.name;
+    document.getElementById('statsClient').textContent = p.client;
+    document.getElementById('statStack').innerHTML = p.stats.map(s => {
+      const barCls = s.bar >= 90 ? 'bbar over' : s.bar >= 75 ? 'bbar warn' : 'bbar';
+      const bar = s.bar != null ? `<span class="${barCls}"><i style="width:${s.bar}%"></i></span>` : '';
+      const fc = s.fc ? `<span class="fc${s.bar >= 75 ? ' warn' : ''}">${s.fc}</span>` : '';
+      return `<div class="stat${s.bar != null ? ' budget' : ''}">
+        <span class="k">${s.k}</span><span class="v">${s.v}</span><span class="sub">${s.sub}</span>${bar}${fc}</div>`;
+    }).join('');
+    document.getElementById('dayRange').textContent = p.range;
+    document.getElementById('dayRows').innerHTML = p.rows.map(r =>
+      `<div class="drow${r[5] ? ' today' : ''}">
+        <span class="d">${r[0]} <span class="wd">${r[1]}</span></span>
+        <span class="h">${r[2]}</span>
+        <span class="spark"><i style="width:${r[3]}%"></i></span>
+        <span class="money">${r[4]}</span></div>`).join('');
+    document.getElementById('dayFoot').innerHTML =
+      `<span>${p.foot[0]}</span><span class="total">${p.foot[1]}</span>`;
+    // timer view — shared selection
+    document.getElementById('pillName').textContent = p.name;
+    document.getElementById('pillMode').textContent = p.mode;
+    document.getElementById('ringMoney').textContent = p.todayMoney;
+    // both popovers agree on the current item
+    document.querySelectorAll('.pop-item[data-p]').forEach(it =>
+      it.classList.toggle('current', it.dataset.p === key));
+    closePops();
+  }
+
+  function closePops() {
+    document.getElementById('pop').classList.remove('open');
+    document.getElementById('pop2').classList.remove('open');
+  }
+  // HIG: transient popovers dismiss on outside click and Esc
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.popover') && !e.target.closest('.proj') && !e.target.closest('.title-switch')) closePops();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePops(); });
+
+  pick('nyx');
+
+  let paused = false;
+  function togglePause() {
+    paused = !paused;
+    document.getElementById('viewTimer').classList.toggle('paused', paused);
+    document.getElementById('pauseLabel').textContent = paused ? 'Resume' : 'Pause';
+    document.getElementById('pauseIcon').innerHTML = paused
+      ? '<path d="M2.5 1.5v9l8-4.5z"/>'
+      : '<rect x="1" y="1" width="3.5" height="10" rx="1"/><rect x="7.5" y="1" width="3.5" height="10" rx="1"/>';
+    // detect line stays "Resolve Studio" / "Resolve Free" — edition only; the pill owns run-state
+  }
+
+  // ponytail: cosmetic ticking clock; real app drives this from the detection engine
+  const el = document.getElementById('clock');
+  const ring = document.getElementById('ringFg');
+  const goal = document.getElementById('goal');
+  let s = 4*3600 + 37*60 + 22;
+  function paint() {
+    const h = Math.floor(s/3600), m = String(Math.floor(s%3600/60)).padStart(2,'0'), sec = String(s%60).padStart(2,'0');
+    el.innerHTML = `${h}:${m}<span class="sec">:${sec}</span>`;
+    const p = Math.min(s / DAILY_GOAL_S, 1);
+    ring.setAttribute('stroke-dashoffset', String(Math.round(CIRC * (1 - p))));
+    const done = s >= DAILY_GOAL_S;
+    document.getElementById('viewTimer').classList.toggle('goal-done', done);
+    if (done) {
+      const ot = s - DAILY_GOAL_S;
+      const oh = Math.floor(ot/3600), om = String(Math.floor(ot%3600/60)).padStart(2,'0');
+      goal.textContent = `Goal ✓ · +${oh}:${om}`;
+    } else {
+      goal.textContent = `${Math.round(p*100)}% of 8h`;
+    }
+  }
+  paint();
+  setInterval(() => { if (!paused) { s++; paint(); } }, 1000);
+</script>
+</body>
+</html>

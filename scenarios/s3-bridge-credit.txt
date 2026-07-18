@@ -1,0 +1,5 @@
+# S3: 60s detour to a non-work app inside grace → gap credited once (~120s total)
+project Demo Project
+30 resolve 0
+60 spotify 0
+30 resolve 0

@@ -1,0 +1,9 @@
+# S6: manual pause during an away-gap → paused time never credited
+project Demo Project
+30 resolve 0
+10 spotify 0
+pause
+60 spotify 0
+resume
+10 spotify 0
+20 resolve 0

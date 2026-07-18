@@ -1,0 +1,3 @@
+# S1: zero-state boot — detection creates and selects the open project
+project Demo Project
+30 resolve 0

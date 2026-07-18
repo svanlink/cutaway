@@ -1,0 +1,74 @@
+name: Timex
+options:
+  bundleIdPrefix: com.vaneickelen
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+targets:
+  Cutaway:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Timex
+      - path: Resources
+        buildPhase: resources
+    info:
+      path: Sources/Timex/Info.plist
+      properties:
+        CFBundleDisplayName: Cutaway
+        CFBundleName: Cutaway
+        CFBundleIconFile: AppIcon
+        LSMinimumSystemVersion: "14.0"
+        NSHumanReadableCopyright: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vaneickelen.cutaway
+        PRODUCT_NAME: Cutaway
+        SWIFT_VERSION: "6.0"
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: false
+        GENERATE_INFOPLIST_FILE: false
+      configs:
+        Release:
+          SWIFT_COMPILATION_MODE: wholemodule
+          COPY_PHASE_STRIP: true
+          DEAD_CODE_STRIPPING: true
+          DEPLOYMENT_POSTPROCESSING: true
+
+  TimexTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/TimexTests
+    dependencies:
+      - target: Cutaway
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: true
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Cutaway.app/Contents/MacOS/Cutaway"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+  TimexUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - Tests/TimexUITests
+    dependencies:
+      - target: Cutaway
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  Cutaway:
+    build:
+      targets:
+        Cutaway: all
+    test:
+      targets:
+        - TimexTests
+        - TimexUITests

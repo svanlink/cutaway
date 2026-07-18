@@ -1,0 +1,4 @@
+# S7: 90s of work spanning midnight → two sessions, two days, total preserved
+clock-before-midnight 30
+project Demo Project
+90 resolve 0

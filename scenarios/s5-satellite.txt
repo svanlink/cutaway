@@ -1,0 +1,6 @@
+# S5: research sustains inside the window, stops outside (window=60)
+project Demo Project
+set satelliteWindow 60
+30 resolve 0
+50 chrome 0
+60 chrome 0

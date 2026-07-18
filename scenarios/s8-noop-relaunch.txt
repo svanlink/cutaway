@@ -1,0 +1,2 @@
+# S8 (second launch over S2's data): relaunch must not duplicate or lose anything
+5 none 0

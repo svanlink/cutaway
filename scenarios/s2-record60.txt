@@ -1,0 +1,3 @@
+# S2: one clean minute of Resolve work → exactly one session, ~60s
+project Demo Project
+60 resolve 0

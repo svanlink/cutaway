@@ -1,0 +1,5 @@
+# S4: away 200s > grace(180) → session closes at ~30s, gap never counted, fresh session after
+project Demo Project
+30 resolve 0
+200 spotify 0
+30 resolve 0
