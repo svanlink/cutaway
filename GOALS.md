@@ -16,29 +16,25 @@ Rules of the loop (Karpathy-style):
 
 ## Open
 
-1. [stability] Project rename/delete UI — the audit flagged crash-recovery
-   assumes projects never disappear; there is no way to fix a typo'd
-   auto-created project. Add rename + delete (with session reassignment
-   prompt) to the Stats context.
-   VERIFY: new unit tests for reassignment; smoke gate; rename survives
-   relaunch.
-2. [stability] Editable workflow/satellite app lists — `workApps` and
+1. [stability] Editable workflow/satellite app lists — `workApps` and
    `satelliteApps` keys are read-only today; Settings shows static text.
    Add add/remove UI writing those keys; engine picks changes up live.
    VERIFY: defaults round-trip test; engine honors an added bundle id in
    a new engine test.
-3. [robustness] Live Tier-1 proof — scripted check that fuscript detection
+2. [robustness] Live Tier-1 proof — scripted check that fuscript detection
    works against a running Resolve (skips cleanly when Resolve absent).
    VERIFY: new optional harness scenario R-tier1 passes when Resolve is up.
-4. [polish] Session detail view — clicking a day row shows its sessions
+3. [polish] Session detail view — clicking a day row shows its sessions
    (start/end/duration) read-only. Foundation for future editing.
    VERIFY: UI renders sessions matching sqlite for the demo fixture.
-5. [hardening] Idle-during-render product question — add per-app idle
+4. [hardening] Idle-during-render product question — add per-app idle
    exemption toggle ("count renders") for anchor apps, default OFF.
    VERIFY: engine test: idle in exempted app keeps recording.
-6. [quality] Localize number/date formatting audit for non-CH locales.
+5. [quality] Localize number/date formatting audit for non-CH locales.
    VERIFY: formatter tests pass under en_US, de_DE, es_CO locales.
 
 ## Done
 
 (The loop moves completed goals here with the commit hash.)
+
+- [stability] Project rename/delete UI with session reassignment — 210003c
