@@ -47,6 +47,14 @@ struct TimexApp: App {
                     NewProjectSheet(model: model)
                         .preferredColorScheme(.dark)
                 }
+                .sheet(item: Bindable(model).renameTarget) { p in
+                    RenameProjectSheet(model: model, project: p)
+                        .preferredColorScheme(.dark)
+                }
+                .sheet(item: Bindable(model).deleteTarget) { p in
+                    DeleteProjectSheet(model: model, project: p)
+                        .preferredColorScheme(.dark)
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)

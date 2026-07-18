@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import Cutaway
 
 @MainActor
@@ -43,6 +44,37 @@ final class SessionStoreTests: XCTestCase {
         let days = store.dayTotals(for: p, calendar: cal)
         XCTAssertEqual(days.count, 2)
         XCTAssertEqual(store.totalActiveSeconds(for: p), 7200, accuracy: 1)
+    }
+
+    func testRenamePersists() throws {
+        let p = try store.createProject(name: "Typo Nmae", client: "", mode: .hourly,
+                                        hourlyRate: 85, currency: .chf)
+        try store.rename(p, to: "Fixed Name")
+        let fetched = try store.projects()
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched[0].name, "Fixed Name")
+    }
+
+    func testDeleteWithReassignmentMovesSessions() throws {
+        let a = try store.createProject(name: "A", client: "", mode: .hourly,
+                                        hourlyRate: 85, currency: .chf)
+        let b = try store.createProject(name: "B", client: "", mode: .hourly,
+                                        hourlyRate: 85, currency: .chf)
+        try store.record(SessionRecord(start: date(2026, 7, 17, 10), end: date(2026, 7, 17, 11), activeSeconds: 3600), to: a, calendar: cal)
+        try store.delete(a, reassignTo: b)
+        let remaining = try store.projects()
+        XCTAssertEqual(remaining.map(\.name), ["B"])
+        XCTAssertEqual(store.totalActiveSeconds(for: b), 3600, "sessions must move, not vanish")
+    }
+
+    func testDeleteWithoutReassignmentCascades() throws {
+        let a = try store.createProject(name: "A", client: "", mode: .hourly,
+                                        hourlyRate: 85, currency: .chf)
+        try store.record(SessionRecord(start: date(2026, 7, 17, 10), end: date(2026, 7, 17, 11), activeSeconds: 3600), to: a, calendar: cal)
+        try store.delete(a, reassignTo: nil)
+        XCTAssertEqual(try store.projects().count, 0)
+        let orphans = try store.context.fetch(FetchDescriptor<WorkSession>())
+        XCTAssertEqual(orphans.count, 0, "cascade must remove the sessions")
     }
 
     func testAvgDailySeconds() throws {

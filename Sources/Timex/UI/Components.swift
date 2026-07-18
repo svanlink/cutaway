@@ -66,6 +66,8 @@ struct SwitcherList: View {
     let currentID: PersistentIdentifier?
     let select: (Project) -> Void
     let newProject: () -> Void
+    var onRename: ((Project) -> Void)? = nil
+    var onDelete: ((Project) -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,6 +76,14 @@ struct SwitcherList: View {
                     ForEach(projects, id: \.persistentModelID) { p in
                         SwitcherRow(project: p, isCurrent: p.persistentModelID == currentID) {
                             select(p)
+                        }
+                        .contextMenu {
+                            if let onRename {
+                                Button("Rename…") { onRename(p) }
+                            }
+                            if let onDelete {
+                                Button("Delete…", role: .destructive) { onDelete(p) }
+                            }
                         }
                     }
                 }

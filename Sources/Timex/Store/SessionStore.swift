@@ -40,6 +40,21 @@ final class SessionStore {
         return p
     }
 
+    func rename(_ project: Project, to newName: String) throws {
+        project.name = newName
+        try context.save()
+    }
+
+    /// Deletes a project. Sessions either move to `reassignTo` or fall to the
+    /// cascade delete — the caller decides, explicitly.
+    func delete(_ project: Project, reassignTo target: Project?) throws {
+        if let target {
+            for s in project.sessions { s.project = target }
+        }
+        context.delete(project)
+        try context.save()
+    }
+
     // MARK: - Sessions
 
     /// Persists a closed session, splitting at midnight so day totals stay true.

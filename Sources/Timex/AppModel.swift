@@ -12,6 +12,9 @@ final class AppModel {
 
     var selectedProjectID: PersistentIdentifier?
     var showNewProjectSheet = false
+    /// Non-nil while the rename / delete sheet is up for that project.
+    var renameTarget: Project?
+    var deleteTarget: Project?
     var mainTab: MainTab = .timer
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
@@ -105,6 +108,31 @@ final class AppModel {
     /// Scenario hook: same path as a Tier-1 detection.
     func scenarioDetect(_ name: String) {
         switchOrCreate(name, canCreate: true)
+    }
+
+    func rename(_ project: Project, to newName: String) {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        try? store.rename(project, to: name)
+        if project.persistentModelID == selectedProjectID {
+            Prefs.set(name, forKey: "selectedProjectName")
+        }
+        invalidateProjectCache()
+    }
+
+    func delete(_ project: Project, reassignTo target: Project?) {
+        let wasSelected = project.persistentModelID == selectedProjectID
+        if wasSelected {
+            // The open span belongs to the project being deleted (or its heir).
+            engine.closeSessionNow(reason: "project-delete")
+        }
+        try? store.delete(project, reassignTo: target)
+        invalidateProjectCache()
+        if wasSelected {
+            selectedProjectID = (target ?? projects.first)?.persistentModelID
+            Prefs.set(selectedProject?.name, forKey: "selectedProjectName")
+            engine.hasActiveProject = selectedProjectID != nil
+        }
     }
 
     private func seedDemoData() {
