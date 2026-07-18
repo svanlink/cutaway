@@ -12,7 +12,7 @@
 ## Install
 
 ```bash
-brew install --cask vaneickelen/tap/cutaway
+brew install --cask svanlink/tap/cutaway
 ```
 
 Two things on first run:
@@ -79,7 +79,7 @@ Everything is local. No account, no network calls, no telemetry, ever. Your data
 
 ```bash
 brew install xcodegen
-git clone https://github.com/vaneickelen/cutaway.git && cd cutaway
+git clone https://github.com/svanlink/cutaway.git && cd cutaway
 xcodegen generate
 xcodebuild -project Timex.xcodeproj -scheme Cutaway -configuration Release build
 ```
