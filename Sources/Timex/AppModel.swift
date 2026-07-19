@@ -31,6 +31,15 @@ final class AppModel {
         engine = ScenarioMode.isActive
             ? DetectionEngine(probes: ScenarioDriver.probes)
             : DetectionEngine()
+        // Back up the real billing store before it opens (quiescent files).
+        // Scenario/demo stores are disposable — never backed up.
+        if !ScenarioMode.isActive {
+            let storeURL = ModelConfiguration(isStoredInMemoryOnly: false).url
+            let backupsDir = FileManager.default
+                .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Cutaway/Backups")
+            try? StoreBackup.backUp(storeURL: storeURL, backupsDir: backupsDir)
+        }
         do {
             store = try SessionStore()
         } catch {

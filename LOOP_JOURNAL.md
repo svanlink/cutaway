@@ -3,9 +3,16 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 1/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 2/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~03:20 — [ship] R-BACKUP — KEPT
+StoreBackup: launch-time trio copy (store/-wal/-shm) before the container
+opens, byte-compare skip, keep-7 rotation. 4 new tests (copy/skip/rotate/
+no-op). Real double-launch proof: Backups/billing-20260719-025041 holds the
+trio. One iteration hiccup: forgot xcodegen after adding the file — compile
+fail, fixed by regenerate. Gate 81/81 + smoke ALL PASS.
 
 ## 2026-07-19 ~03:05 — [ship] R-INSTALL — KEPT
 Ad-hoc codesign step added to release.sh (sign → verify → zip). Proof:

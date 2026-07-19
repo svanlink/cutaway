@@ -106,3 +106,60 @@ final class ProjectDetectorParsingTests: XCTestCase {
         XCTAssertNil(ProjectDetector.projectName(fromWindowTitle: "DaVinci Resolve - "))
     }
 }
+
+final class StoreBackupTests: XCTestCase {
+
+    private var dir: URL!
+    private var store: URL!
+    private var backups: URL!
+
+    override func setUp() {
+        dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("backup-tests-\(UUID().uuidString)")
+        try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        store = dir.appendingPathComponent("timex.store")
+        backups = dir.appendingPathComponent("Backups")
+    }
+
+    override func tearDown() { try? FileManager.default.removeItem(at: dir) }
+
+    private func date(_ s: TimeInterval) -> Date { Date(timeIntervalSince1970: 1_800_000_000 + s) }
+
+    func testBackupCopiesStoreTrio() throws {
+        try Data("main".utf8).write(to: store)
+        try Data("wal".utf8).write(to: URL(fileURLWithPath: store.path + "-wal"))
+        let dest = try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(0))
+        let files = try FileManager.default.contentsOfDirectory(atPath: dest!.path).sorted()
+        XCTAssertEqual(files, ["timex.store", "timex.store-wal"])
+        XCTAssertEqual(try Data(contentsOf: dest!.appendingPathComponent("timex.store")),
+                       Data("main".utf8))
+    }
+
+    func testBackupSkipsWhenUnchanged() throws {
+        try Data("same".utf8).write(to: store)
+        XCTAssertNotNil(try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(0)))
+        XCTAssertNil(try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(60)),
+                     "identical store must not create a second backup")
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: backups.path).count, 1)
+    }
+
+    func testRotationKeepsNewestSeven() throws {
+        for i in 0..<9 {
+            try Data("content-\(i)".utf8).write(to: store)
+            XCTAssertNotNil(try StoreBackup.backUp(storeURL: store, backupsDir: backups,
+                                                   now: date(TimeInterval(i) * 60)))
+        }
+        let remaining = try FileManager.default.contentsOfDirectory(atPath: backups.path).sorted()
+        XCTAssertEqual(remaining.count, 7)
+        XCTAssertFalse(remaining.contains("billing-20270115-100000"), "oldest must be gone")
+        // Newest backup holds the latest content.
+        let newest = backups.appendingPathComponent(remaining.last!).appendingPathComponent("timex.store")
+        XCTAssertEqual(try Data(contentsOf: newest), Data("content-8".utf8))
+    }
+
+    func testMissingStoreIsNoOp() throws {
+        XCTAssertNil(try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(0)))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: backups.path)
+                       && (try! FileManager.default.contentsOfDirectory(atPath: backups.path)).isEmpty == false)
+    }
+}

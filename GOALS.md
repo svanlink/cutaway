@@ -27,7 +27,7 @@ scripts/release.sh so `brew install svanlink/tap/cutaway` serves it.
 Readiness checklist (each item needs proof, not belief):
 - [x] R-INSTALL  Fresh-Mac install works: ad-hoc signed app, quarantined
       launch opens, cask caveats explain first launch.
-- [ ] R-BACKUP   Billing data survives disaster: automatic store backup
+- [x] R-BACKUP   Billing data survives disaster: automatic store backup
       rotation, proven by test.
 - [ ] R-DEGRADE  Works without Resolve / nonstandard Resolve path: manual
       projects fully usable, detector fails soft. Proven by test.
@@ -39,20 +39,16 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Open
 
-1. [ship] R-BACKUP — copy the SwiftData store to Backups/ on launch, keep
-   last 7, skip when unchanged.
-   VERIFY: unit tests for rotation + skip logic; backup file exists after
-   real launch.
-2. [ship] R-DEGRADE — detector nil-safe with Resolve missing or installed
+1. [ship] R-DEGRADE — detector nil-safe with Resolve missing or installed
    in a nonstandard path; app fully usable with manual projects only.
    VERIFY: unit test for missing-fuscript path; existing smoke (runs with
    no Resolve) stays green.
-3. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
+2. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
    locales. VERIFY: formatter tests pass under en_US, de_DE, es_CO.
-4. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
+3. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
    Gatekeeper note, permissions, where data lives, backup/restore, FAQ.
    VERIFY: README sections exist; install command matches released cask.
-5. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
+4. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
    v1.1.0: build, zip, gh release, cask version+sha bump.
    VERIFY: brew audit --cask clean; release assets live.
 
