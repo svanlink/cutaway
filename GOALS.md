@@ -35,13 +35,11 @@ Readiness checklist (each item needs proof, not belief):
       de_DE, es_CO. Proven by test.
 - [x] R-DOCS     README quickstart for a non-technical business user +
       troubleshooting (Gatekeeper, permissions, data location).
-- [ ] R-RELEASE  v1.1.0 tagged, cask bumped, `brew audit` clean.
+- [x] R-RELEASE  v1.1.0 tagged, cask bumped, `brew audit` clean.
 
 ## Open
 
-1. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
-   v1.1.0: build, zip, gh release, cask version+sha bump.
-   VERIFY: brew audit --cask clean; release assets live.
+(Production push complete — next goals come from the Later list or a research iteration.)
 
 ## Later (post-deadline polish)
 

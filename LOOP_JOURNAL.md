@@ -3,9 +3,15 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 5/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~04:00 — [ship] R-RELEASE — KEPT — v1.1.0 LIVE
+Full sweep: 86 unit + UI tests green, smoke x5 ALL PASS. release.sh ran
+verify -> Release build -> ad-hoc sign -> zip -> GitHub release v1.1.0 ->
+cask bumped (version + sha256). Install command unchanged for users:
+brew install --cask svanlink/tap/cutaway. Readiness 6/6.
 
 ## 2026-07-19 ~03:50 — [ship] R-DOCS — KEPT
 README: 2-minute business quickstart, updated Gatekeeper guidance (ad-hoc
