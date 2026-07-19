@@ -39,12 +39,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Open
 
-1. [ux] Use-case sweep (user-reported) — enumerate remaining lifecycle and
-   first-run scenarios inline (no subagents) and fix stupid-proof gaps:
-   long-paused hint, in-memory-store warning, rate=0 validation, duplicate
-   project names, Cmd-Q vs red-X clarity.
-   VERIFY: each fixed scenario gets a test or a documented manual proof.
-
 ## Later (post-deadline polish)
 
 - [design] Last-banked line in the menu-bar panel — judges: the 4s banked

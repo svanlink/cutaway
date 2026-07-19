@@ -39,9 +39,10 @@ final class ScenarioDriver {
     static func run(model: AppModel) {
         guard let path = ScenarioMode.scenarioPath,
               let script = try? String(contentsOfFile: path, encoding: .utf8) else {
-            fputs("scenario: cannot read script\n", stderr)
-            NSApp.terminate(nil)
-            return
+            // Runs during App.init, where NSApp may not exist yet —
+            // NSApp.terminate here traps. exit is correct for a harness run.
+            fputs("scenario: cannot read script (TCC? path?)\n", stderr)
+            exit(1)
         }
         var clock = Date()
         model.engine.now = { clock }

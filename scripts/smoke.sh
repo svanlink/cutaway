@@ -29,7 +29,11 @@ assert() {
 run_scenario() {
   local file="$1" data="$2"
   defaults delete "$SUITE" >/dev/null 2>&1
-  launchctl setenv TIMEX_SCENARIO "$ROOT/scenarios/$file"
+  # Stage the script OUTSIDE any TCC-protected folder (Downloads/Desktop/
+  # Documents): a GUI-launched app may not have permission to read the repo,
+  # and macOS resets that grant whenever the app's code signature changes.
+  cp "$ROOT/scenarios/$file" "$data/scenario.txt"
+  launchctl setenv TIMEX_SCENARIO "$data/scenario.txt"
   launchctl setenv TIMEX_DATA_DIR "$data"
   open -W "$APP"
   local rc=$?

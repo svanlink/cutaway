@@ -217,3 +217,25 @@ final class DetectionEngineTests: XCTestCase {
                        "idle user in a browser must not bill")
     }
 }
+
+@MainActor
+final class LongPauseHintTests: XCTestCase {
+
+    func testLongPauseFlagsAfterThreshold() {
+        let probes = DetectionEngineTests.FakeProbes()
+        let engine = DetectionEngine(probes: probes)
+        var clock = Date(timeIntervalSince1970: 1_800_000_000)
+        engine.now = { clock }
+        engine.tick()
+        engine.togglePause()
+        XCTAssertFalse(engine.pausedLong)
+        clock = clock.addingTimeInterval(DetectionEngine.longPauseThreshold - 1)
+        engine.tick()
+        XCTAssertFalse(engine.pausedLong, "not yet at threshold")
+        clock = clock.addingTimeInterval(2)
+        engine.tick()
+        XCTAssertTrue(engine.pausedLong, "15 min of manual pause must flag the hint")
+        engine.togglePause()
+        XCTAssertFalse(engine.pausedLong, "resume clears the hint immediately")
+    }
+}

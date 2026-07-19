@@ -14,6 +14,12 @@ final class DetectionEngine {
     private(set) var closedSessions: [SessionRecord] = []
 
     var manuallyPaused = false
+    /// When the current manual pause began — nil while not paused.
+    private(set) var manualPauseStart: Date?
+    /// Flips true once a manual pause exceeds 15 minutes — the pill shows
+    /// a hint so a forgotten pause doesn't silently eat a billable day.
+    private(set) var pausedLong = false
+    static let longPauseThreshold: TimeInterval = 900
     var idleThreshold: TimeInterval = Prefs.object(forKey: "idleThreshold") as? TimeInterval ?? 120
     var hasActiveProject = true
     var workAppPrefixes: [String] = Prefs.stringArray(forKey: "workApps") ?? DetectionInput.defaultWorkAppPrefixes
@@ -74,6 +80,8 @@ final class DetectionEngine {
 
     func togglePause() {
         manuallyPaused.toggle()
+        manualPauseStart = manuallyPaused ? now() : nil
+        pausedLong = false
         // Re-evaluate immediately but do NOT accumulate — only the 1 Hz
         // timer adds seconds, otherwise every toggle injects phantom time.
         tick(accumulate: false)
@@ -81,6 +89,12 @@ final class DetectionEngine {
 
     // Internal (not private) so engine tests can drive ticks deterministically.
     func tick(accumulate: Bool = true) {
+        // Forgotten-pause hint: mutate only on the threshold crossing so the
+        // observable churns once, not every second.
+        let isLong = manuallyPaused && manualPauseStart.map {
+            now().timeIntervalSince($0) >= Self.longPauseThreshold
+        } ?? false
+        if isLong != pausedLong { pausedLong = isLong }
         // Midnight rollover: force-close a session that started yesterday so
         // the live "TODAY" figure never carries yesterday's seconds.
         if let start = accumulator.sessionStart,

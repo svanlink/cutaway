@@ -90,7 +90,8 @@ struct PillView: View {
                  goalFraction: model.goalProgress.fraction,
                  goalReached: goalReached,
                  seconds: model.pillSeconds,
-                 bankedText: model.bankedFlash)
+                 bankedText: model.bankedFlash,
+                 pausedHint: model.engine.pausedLong ? "‖ still paused" : nil)
             .accessibilityLabel(model.selectedProject == nil ? "No project selected"
                                 : isRecording ? "Recording" : "Paused")
     }
@@ -109,6 +110,8 @@ struct PillBody: View {
     let seconds: TimeInterval
     /// Transient session-banked confirmation — replaces the time readout.
     var bankedText: String? = nil
+    /// Forgotten-pause hint (manual pause > 15 min) — amber, persistent.
+    var pausedHint: String? = nil
 
     var body: some View {
         HStack(spacing: 7) {
@@ -120,6 +123,10 @@ struct PillBody: View {
                 Text(bankedText)
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(DT.green)
+            } else if let pausedHint {
+                Text(pausedHint)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(DT.amber)
             } else {
                 Text(timeString(seconds))
                     .font(.system(size: 12.5, weight: .bold))

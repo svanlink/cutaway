@@ -74,7 +74,7 @@ struct SettingsView: View {
                 row("Default hourly rate", sub: "Auto-detected projects start with this rate") {
                     TextField("85", value: Binding(
                         get: { Prefs.object(forKey: "defaultHourlyRate") as? Double ?? 85 },
-                        set: { Prefs.set($0, forKey: "defaultHourlyRate") }
+                        set: { Prefs.set(AppModel.clampedRate($0), forKey: "defaultHourlyRate") }
                     ), format: .number)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 70)

@@ -112,8 +112,16 @@ struct MainWindowView: View {
 
     var body: some View {
         VStack(spacing: DT.s3) {
+            if model.storeIsEphemeral {
+                Text("⚠︎ Data can't be saved this run — time tracked now disappears on quit. Restart Cutaway; if this persists, check disk space.")
+                    .font(DT.captionMedium)
+                    .foregroundStyle(DT.text)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .frame(maxWidth: .infinity)
+                    .background(DT.red.opacity(0.25))
+            }
             SegmentedTabs(selection: Bindable(model).mainTab)
-                .padding(.top, DT.s4)
+                .padding(.top, model.storeIsEphemeral ? 0 : DT.s4)
             switch model.mainTab {
             case .timer: TimerView(model: model)
             case .stats: StatsView(model: model)

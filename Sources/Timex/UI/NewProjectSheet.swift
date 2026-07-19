@@ -52,6 +52,11 @@ struct NewProjectSheet: View {
             }
 
             HStack {
+                if isDuplicate {
+                    Text("A project with this name already exists")
+                        .font(DT.captionMedium)
+                        .foregroundStyle(DT.amber)
+                }
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -59,7 +64,8 @@ struct NewProjectSheet: View {
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .tint(DT.orange)
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || Double(rate) == nil)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty
+                              || Double(rate) == nil || isDuplicate)
             }
             .padding(.top, DT.s1)
         }
@@ -68,13 +74,17 @@ struct NewProjectSheet: View {
         .background(DT.card)
     }
 
+    private var isDuplicate: Bool {
+        AppModel.isDuplicateName(name, existing: model.projects.map(\.name))
+    }
+
     private func create() {
         model.createProject(
             name: name.trimmingCharacters(in: .whitespaces),
             client: client.trimmingCharacters(in: .whitespaces),
             mode: mode,
-            rate: Double(rate) ?? 0,
-            budget: Double(budget) ?? 0,
+            rate: AppModel.clampedRate(Double(rate) ?? 0),
+            budget: max(0, Double(budget) ?? 0),
             currency: currency
         )
         dismiss()

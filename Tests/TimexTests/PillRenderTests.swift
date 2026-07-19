@@ -77,3 +77,21 @@ final class AppLifecycleTests: XCTestCase {
                        "menu-bar app must keep running when the window closes")
     }
 }
+
+/// Inline use-case sweep: the stupid-proof guards.
+final class StupidProofTests: XCTestCase {
+
+    func testDuplicateNameDetection() {
+        XCTAssertTrue(AppModel.isDuplicateName("nyx film", existing: ["Nyx Film"]))
+        XCTAssertTrue(AppModel.isDuplicateName(" Nyx Film ", existing: ["nyx film"]))
+        XCTAssertTrue(AppModel.isDuplicateName("café", existing: ["cafe"]))
+        XCTAssertFalse(AppModel.isDuplicateName("Nyx Film 2", existing: ["Nyx Film"]))
+        XCTAssertFalse(AppModel.isDuplicateName("", existing: ["Nyx Film"]))
+    }
+
+    func testRateClamping() {
+        XCTAssertEqual(AppModel.clampedRate(-50), 0, "negative rates are typos")
+        XCTAssertEqual(AppModel.clampedRate(85), 85)
+        XCTAssertEqual(AppModel.clampedRate(1_000_000), 99_999, "six figures an hour is a typo")
+    }
+}

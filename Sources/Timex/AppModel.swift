@@ -22,6 +22,24 @@ final class AppModel {
     /// (status-item panel) can reopen it.
     var openMainWindow: (() -> Void)?
     var openSettingsWindow: (() -> Void)?
+    /// True when SwiftData refused to open and we fell back to memory —
+    /// the user must be TOLD their time won't survive a restart.
+    var storeIsEphemeral = false
+
+    /// Case/diacritic-insensitive duplicate check (mirrors switchOrCreate
+    /// normalization) — two "Nyx film" projects is always a mistake.
+    nonisolated static func isDuplicateName(_ name: String, existing: [String]) -> Bool {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        guard !n.isEmpty else { return false }
+        return existing.contains {
+            $0.compare(n, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+        }
+    }
+
+    /// Rates are money: never negative, and six figures an hour is a typo.
+    nonisolated static func clampedRate(_ rate: Double) -> Double {
+        min(max(0, rate), 99_999)
+    }
 
     var dailyGoalHours: Double {
         get { Prefs.object(forKey: "dailyGoalHours") as? Double ?? 8 }
@@ -47,6 +65,7 @@ final class AppModel {
             // SwiftData refusing to open is unrecoverable at runtime; an
             // in-memory store keeps the app alive for this run.
             store = try! SessionStore(inMemory: true)
+            storeIsEphemeral = true
         }
         // ponytail: TIMEX_DEMO seeds sample data for screenshots/dev runs
         if ProcessInfo.processInfo.environment["TIMEX_DEMO"] != nil,

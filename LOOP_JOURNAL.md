@@ -7,6 +7,24 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~04:35 — [ux] Stupid-proof sweep — KEPT (after a real gate failure)
+Shipped: forgotten-pause hint (pill shows amber "still paused" after 15 min
+of manual pause, engine-tested with virtual clock), ephemeral-store banner
+(in-memory fallback now WARNS instead of silently losing data), rate
+clamping (0..99'999, typo-proof, tested), duplicate-project-name guard in
+the New Project sheet (case/diacritic-insensitive, tested).
+
+GATE FAILURE + POSTMORTEM (the loop working as designed):
+smoke went 24 FAILURES while unit tests stayed green. Bisect: committed
+HEAD also failed -> environmental, not the diff. Chain: repo lives in
+~/Downloads (TCC-protected); the GUI-launched app lost Downloads read
+permission when its code signature changed (ad-hoc signing + reinstall);
+scenario script unreadable; driver bail-out called NSApp.terminate during
+App.init where NSApp is nil -> SIGTRAP. Proof: same scenario from /tmp
+passed. Fixes: smoke stages scripts into the per-run temp dir (works on
+any Mac now), driver bail-out uses exit(1). Assertions untouched.
+Gate 96/96 + smoke ALL PASS.
+
 ## 2026-07-19 ~04:05 — [ux] User-reported lifecycle bugs — KEPT
 Three real-use bugs from the user, all reproduced in code and fixed:
 1. Settings never opened — panel called showSettingsWindow:, REMOVED in
