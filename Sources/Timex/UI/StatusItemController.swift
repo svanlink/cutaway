@@ -84,12 +84,36 @@ struct PillView: View {
     }
 
     var body: some View {
+        PillBody(stateColor: stateColor,
+                 isRecording: isRecording,
+                 showsPauseGlyph: model.selectedProject != nil && !isRecording,
+                 goalFraction: model.goalProgress.fraction,
+                 goalReached: goalReached,
+                 seconds: model.pillSeconds)
+            .accessibilityLabel(model.selectedProject == nil ? "No project selected"
+                                : isRecording ? "Recording" : "Paused")
+    }
+}
+
+/// Pure pill rendering — extracted from PillView so tests can render each
+/// traffic-light state in isolation (no AppModel, no engine).
+struct PillBody: View {
+    let stateColor: Color
+    let isRecording: Bool
+    /// Paused WITH a project — pause bars in the ring. Shape encodes state
+    /// redundantly with hue (deuteranopia collapses green/amber).
+    let showsPauseGlyph: Bool
+    let goalFraction: Double
+    let goalReached: Bool
+    let seconds: TimeInterval
+
+    var body: some View {
         HStack(spacing: 7) {
             // Bare state-colored circle — no chip background; the color IS
             // the state, matching the pill border.
             miniRing
                 .frame(width: 18, height: 18)
-            Text(timeString(model.pillSeconds))
+            Text(timeString(seconds))
                 .font(.system(size: 12.5, weight: .bold))
                 .foregroundStyle(isRecording ? DT.text : DT.text2)
                 .monospacedDigit()
@@ -106,8 +130,6 @@ struct PillView: View {
                 .stroke(stateColor.opacity(0.6), lineWidth: 1)
         )
         .padding(.horizontal, 3)
-        .accessibilityLabel(model.selectedProject == nil ? "No project selected"
-                            : isRecording ? "Recording" : "Paused")
     }
 
     private var miniRing: some View {
@@ -116,9 +138,18 @@ struct PillView: View {
                 .stroke(goalReached ? stateColor : stateColor.opacity(0.25), lineWidth: 2.4)
             if !goalReached {
                 Circle()
-                    .trim(from: 0, to: max(model.goalProgress.fraction, 0.08))
+                    .trim(from: 0, to: max(goalFraction, 0.08))
                     .stroke(stateColor, style: StrokeStyle(lineWidth: 2.4, lineCap: .round))
                     .rotationEffect(.degrees(-90))
+            }
+            // Shape-coded center: ● recording, ‖ paused, empty = no project.
+            if isRecording {
+                Circle().fill(stateColor).frame(width: 4.5, height: 4.5)
+            } else if showsPauseGlyph {
+                HStack(spacing: 1.6) {
+                    Capsule().fill(stateColor).frame(width: 1.8, height: 6)
+                    Capsule().fill(stateColor).frame(width: 1.8, height: 6)
+                }
             }
         }
         .frame(width: 12, height: 12)

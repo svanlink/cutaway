@@ -43,8 +43,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] Menu-bar pill pre-attentive check — VERIFY: design gate
-  "state legibility" on pill close-ups.
 - [design] Session-close peak-end moment — VERIFY: design gate "trust".
 - [design] Stats hierarchy pass — VERIFY: design gate "hierarchy".
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional

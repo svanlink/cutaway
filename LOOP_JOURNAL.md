@@ -7,6 +7,15 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~03:45 — [design] Pill state legibility — FAIL then KEPT
+The check WORKED: 3/3 judges FAILED the original pill — green vs amber
+(billing vs not) relied on hue alone, collapsing under deuteranopia.
+Fix per consensus: shape-coded ring centers (record dot when recording,
+pause bars when paused, empty ring for no-project). PillBody extracted as
+pure view + render test producing the close-ups (locked in suite).
+Re-judge: 3/3 PASS (7-8). Judges' residual notes (thicker ring at 1x,
+bolder red glyph) logged as optional polish. Gate 90/90 + a11y + smoke.
+
 ## 2026-07-19 ~03:30 — [design] Pause button Fitts pass — KEPT
 Primary control rebuilt as a real ButtonStyle: 44pt min target (Fitts),
 lift-and-glow hover, compress on press, animated transitions — replacing
