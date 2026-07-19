@@ -16,21 +16,16 @@ Rules of the loop (Karpathy-style):
 
 ## Open
 
-1. [stability] Editable workflow/satellite app lists — `workApps` and
-   `satelliteApps` keys are read-only today; Settings shows static text.
-   Add add/remove UI writing those keys; engine picks changes up live.
-   VERIFY: defaults round-trip test; engine honors an added bundle id in
-   a new engine test.
-2. [robustness] Live Tier-1 proof — scripted check that fuscript detection
+1. [robustness] Live Tier-1 proof — scripted check that fuscript detection
    works against a running Resolve (skips cleanly when Resolve absent).
    VERIFY: new optional harness scenario R-tier1 passes when Resolve is up.
-3. [polish] Session detail view — clicking a day row shows its sessions
+2. [polish] Session detail view — clicking a day row shows its sessions
    (start/end/duration) read-only. Foundation for future editing.
    VERIFY: UI renders sessions matching sqlite for the demo fixture.
-4. [hardening] Idle-during-render product question — add per-app idle
+3. [hardening] Idle-during-render product question — add per-app idle
    exemption toggle ("count renders") for anchor apps, default OFF.
    VERIFY: engine test: idle in exempted app keeps recording.
-5. [quality] Localize number/date formatting audit for non-CH locales.
+4. [quality] Localize number/date formatting audit for non-CH locales.
    VERIFY: formatter tests pass under en_US, de_DE, es_CO locales.
 
 ## Done
@@ -38,3 +33,4 @@ Rules of the loop (Karpathy-style):
 (The loop moves completed goals here with the commit hash.)
 
 - [stability] Project rename/delete UI with session reassignment — 210003c
+- [stability] Editable workflow/satellite app lists (Settings editor, live pickup) — d01dcc4
