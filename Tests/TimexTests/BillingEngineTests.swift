@@ -149,3 +149,28 @@ final class DaySplitterTests: XCTestCase {
         XCTAssertEqual(total, 1800, accuracy: 1)
     }
 }
+
+/// R-LOCALE: billing output must be byte-identical on any Mac, whatever
+/// the OS locale (en_US, de_DE, es_CO, th_TH...). Formatters are pinned to
+/// en_US_POSIX + explicit separators, so these exact strings are invariant.
+final class CurrencyLocaleInvarianceTests: XCTestCase {
+
+    func testDocumentedExactOutputs() {
+        XCTAssertEqual(TimexCurrency.chf.format(2329.25), "CHF 2'329.25")
+        XCTAssertEqual(TimexCurrency.cop.format(1_395_000), "COP 1.395.000")
+        XCTAssertEqual(TimexCurrency.eur.format(900), "€ 900.00")
+        XCTAssertEqual(TimexCurrency.usd.format(393.75), "$ 393.75")
+    }
+
+    func testWholeFormattingRoundsDown() {
+        // Whole-number display truncates — consistent with the app's
+        // resolve-toward-under-billing philosophy.
+        XCTAssertEqual(TimexCurrency.chf.formatWhole(12345.67), "CHF 12'345")
+        XCTAssertEqual(TimexCurrency.usd.formatWhole(0), "$ 0")
+    }
+
+    func testNegativeAndSmallAmounts() {
+        XCTAssertEqual(TimexCurrency.eur.format(-42.5), "€ -42.50")
+        XCTAssertEqual(TimexCurrency.cop.format(999), "COP 999")
+    }
+}

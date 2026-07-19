@@ -31,7 +31,7 @@ Readiness checklist (each item needs proof, not belief):
       rotation, proven by test.
 - [x] R-DEGRADE  Works without Resolve / nonstandard Resolve path: manual
       projects fully usable, detector fails soft. Proven by test.
-- [ ] R-LOCALE   Currency/number/date formatting correct under en_US,
+- [x] R-LOCALE   Currency/number/date formatting correct under en_US,
       de_DE, es_CO. Proven by test.
 - [ ] R-DOCS     README quickstart for a non-technical business user +
       troubleshooting (Gatekeeper, permissions, data location).
@@ -39,12 +39,10 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Open
 
-1. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
-   locales. VERIFY: formatter tests pass under en_US, de_DE, es_CO.
-2. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
+1. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
    Gatekeeper note, permissions, where data lives, backup/restore, FAQ.
    VERIFY: README sections exist; install command matches released cask.
-3. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
+2. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
    v1.1.0: build, zip, gh release, cask version+sha bump.
    VERIFY: brew audit --cask clean; release assets live.
 

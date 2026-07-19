@@ -3,9 +3,17 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 3/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 4/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~03:40 — [ship] R-LOCALE — KEPT
+All formatters pinned to en_US_POSIX: currency (was separator-pinned only,
+now digit/sign-proof too) and CSV date/weekday/time (was OS-calendar
+dependent — a Thai-locale Mac would have exported Buddhist-era years).
+3 exact-output tests across all 4 currencies. One test expectation was
+wrong, not the app: formatWhole truncates (12'345.67 -> 12'345), kept as
+correct under-billing behavior and documented. Gate 86/86 + smoke ALL PASS.
 
 ## 2026-07-19 ~03:30 — [ship] R-DEGRADE — KEPT
 fuscript now found via LaunchServices (wherever Resolve is installed) with

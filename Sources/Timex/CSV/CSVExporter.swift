@@ -19,13 +19,20 @@ enum CSVExporter {
         var lines = [header]
         var cumSeconds: TimeInterval = 0
         var cumEarned: Double = 0
+        // POSIX locale pins Gregorian digits and English weekday names — a
+        // client-facing CSV must not change shape with the Mac's locale
+        // (e.g. Buddhist-era years, localized weekdays).
+        let posix = Locale(identifier: "en_US_POSIX")
         let dateF = DateFormatter()
+        dateF.locale = posix
         dateF.dateFormat = "yyyy-MM-dd"
         dateF.calendar = calendar
         let weekdayF = DateFormatter()
+        weekdayF.locale = posix
         weekdayF.dateFormat = "EEE"
         weekdayF.calendar = calendar
         let timeF = DateFormatter()
+        timeF.locale = posix
         timeF.dateFormat = "HH:mm"
         timeF.calendar = calendar
 

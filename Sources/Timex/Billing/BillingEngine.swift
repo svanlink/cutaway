@@ -102,6 +102,10 @@ enum TimexCurrency: String, CaseIterable, Codable, Sendable {
 
     private func number(_ amount: Double, decimals: Int) -> String {
         let f = NumberFormatter()
+        // POSIX base locale: explicit separators below already pin the
+        // shape, but this stops any OS-locale property (digits, minus sign)
+        // from leaking into billing output.
+        f.locale = Locale(identifier: "en_US_POSIX")
         f.numberStyle = .decimal
         f.minimumFractionDigits = decimals
         f.maximumFractionDigits = decimals
