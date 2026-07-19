@@ -23,35 +23,46 @@ struct MenuBarPanel: View {
 
     // MARK: - Hero
 
+    /// The hero doubles as the way back into the app — click anywhere on
+    /// it to open the main window on the Timer tab (stupid-proof reentry).
     private var hero: some View {
-        HStack(spacing: 0) {
-            ZStack {
-                Color.black
-                heroRing
-            }
-            .frame(width: 92, height: 92)
+        Button {
+            model.mainTab = .timer
+            model.openMainWindow?()
+        } label: {
+            HStack(spacing: 0) {
+                ZStack {
+                    Color.black
+                    heroRing
+                }
+                .frame(width: 92, height: 92)
 
-            VStack(alignment: .leading, spacing: 1) {
-                elapsedText
-                Text(model.selectedProject?.client.isEmpty == false
-                     ? model.selectedProject!.client.uppercased()
-                     : "CUTAWAY")
-                    .font(.system(size: 10.5, weight: .bold))
-                    .kerning(0.84)
-                    .foregroundStyle(isRecording ? accent : DT.text3)
-                    .padding(.top, 3)
-                Text(model.selectedProject?.name ?? "No project")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(DT.text)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+                VStack(alignment: .leading, spacing: 1) {
+                    elapsedText
+                    Text(model.selectedProject?.client.isEmpty == false
+                         ? model.selectedProject!.client.uppercased()
+                         : "CUTAWAY")
+                        .font(.system(size: 10.5, weight: .bold))
+                        .kerning(0.84)
+                        .foregroundStyle(isRecording ? accent : DT.text3)
+                        .padding(.top, 3)
+                    Text(model.selectedProject?.name ?? "No project")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(DT.text)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .background(isRecording ? accent.opacity(0.12) : Color.white.opacity(0.04))
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(isRecording ? accent.opacity(0.12) : Color.white.opacity(0.04))
+            .frame(height: 92)
+            .contentShape(Rectangle())
         }
-        .frame(height: 92)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open Cutaway")
+        .help("Open Cutaway")
     }
 
     private var heroRing: some View {
@@ -120,10 +131,9 @@ struct MenuBarPanel: View {
             }
             .buttonStyle(.plain)
             footBtn("⚙", help: "Settings") {
-                if #available(macOS 14, *) {
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                }
-                NSApp.activate(ignoringOtherApps: true)
+                // showSettingsWindow: was removed in macOS 14 — the old
+                // silent-no-op bug. Settings is a real window we open.
+                model.openSettingsWindow?()
             }
         }
         .padding(.horizontal, 12)

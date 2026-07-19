@@ -19,6 +19,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 model.hotkeyUnavailable = !hotKey.isRegistered
             }
         }
+        // Menu-bar app: closing the last window retreats to the pill
+        // (no Dock icon) instead of lingering as a windowless Dock app.
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification, object: nil, queue: .main
+        ) { _ in
+            DispatchQueue.main.async {
+                let anyVisible = NSApp.windows.contains {
+                    $0.isVisible && $0.styleMask.contains(.titled)
+                }
+                if !anyVisible { NSApp.setActivationPolicy(.accessory) }
+            }
+        }
+    }
+
+    /// The red X must NEVER quit — the timer lives in the menu bar.
+    /// (SwiftUI's default for status-item apps without MenuBarExtra is to
+    /// terminate on last window close — that was the "app closes" bug.)
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    /// Dock icon click (while visible) reopens the main window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !hasVisibleWindows {
+            Task { @MainActor in AppDelegate.model?.openMainWindow?() }
+        }
+        return true
     }
 }
 
@@ -60,9 +87,20 @@ struct TimexApp: App {
         .windowResizability(.contentSize)
         .defaultSize(width: DT.windowSize.width, height: DT.windowSize.height)
 
-        Settings {
+        // A real Window, not a Settings scene: the Settings scene can only
+        // be opened via showSettingsWindow:, which macOS 14 removed — that
+        // was the "settings never opens" bug. A window we open ourselves
+        // works from every entry point (panel ⚙, Cmd-comma, harness).
+        Window("Cutaway Settings", id: "settings") {
             SettingsView(model: model)
                 .preferredColorScheme(.dark)
+        }
+        .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings…") { model.openSettingsWindow?() }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
         }
     }
 }
@@ -71,7 +109,6 @@ struct TimexApp: App {
 struct MainWindowView: View {
     @Bindable var model: AppModel
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(spacing: DT.s3) {
@@ -86,8 +123,14 @@ struct MainWindowView: View {
         .background(DT.window)
         .onAppear {
             model.openMainWindow = {
+                NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "main")
+            }
+            model.openSettingsWindow = {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "settings")
             }
             // Zero-state: only ask for a manual project when Resolve isn't
             // running — otherwise auto-detection creates it within seconds.
@@ -97,7 +140,9 @@ struct MainWindowView: View {
             }
             if ProcessInfo.processInfo.environment["TIMEX_TAB"] == "stats" { model.mainTab = .stats }
             // Harness hook (like TIMEX_TAB): deterministic Settings capture.
-            if ProcessInfo.processInfo.environment["TIMEX_SHOW"] == "settings" { openSettings() }
+            if ProcessInfo.processInfo.environment["TIMEX_SHOW"] == "settings" {
+                model.openSettingsWindow?()
+            }
         }
     }
 }

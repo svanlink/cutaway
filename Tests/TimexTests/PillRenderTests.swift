@@ -66,3 +66,14 @@ final class BankedFlashTests: XCTestCase {
             .write(to: dir.appendingPathComponent("pill-banked.png"))
     }
 }
+
+/// The "red X quit the app" bug, locked as a test: a menu-bar timer must
+/// survive its last window closing.
+@MainActor
+final class AppLifecycleTests: XCTestCase {
+    func testClosingLastWindowNeverTerminates() {
+        let delegate = AppDelegate()
+        XCTAssertFalse(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApp),
+                       "menu-bar app must keep running when the window closes")
+    }
+}

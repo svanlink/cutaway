@@ -21,6 +21,7 @@ final class AppModel {
     /// Captured from the main window's environment so AppKit surfaces
     /// (status-item panel) can reopen it.
     var openMainWindow: (() -> Void)?
+    var openSettingsWindow: (() -> Void)?
 
     var dailyGoalHours: Double {
         get { Prefs.object(forKey: "dailyGoalHours") as? Double ?? 8 }

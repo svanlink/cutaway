@@ -7,6 +7,21 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~04:05 — [ux] User-reported lifecycle bugs — KEPT
+Three real-use bugs from the user, all reproduced in code and fixed:
+1. Settings never opened — panel called showSettingsWindow:, REMOVED in
+   macOS 14 (silent no-op). Settings scene replaced with a real Window
+   opened via closure from every entry point; Cmd-comma rebound.
+   PROVEN: harness launch shows "Cutaway Settings" window (id 22941).
+2. Red X terminated the app — SwiftUI default for non-MenuBarExtra apps.
+   applicationShouldTerminateAfterLastWindowClosed -> false, locked in as
+   AppLifecycleTests. Closing last window also drops the Dock icon
+   (accessory policy); reopening from pill/panel restores it.
+3. No way back to Timer — the panel hero is now a click target opening
+   the main window on the Timer tab; Dock-icon reopen handled too.
+Gate 93/93 + smoke ALL PASS. User declined the subagent audit fan-out —
+scenario sweep continues inline as the next goal instead.
+
 ## 2026-07-19 ~03:55 — [design] Session-close peak-end flash — KEPT
 Closing a session (the billing event) now flashes a quiet 4s "✓ 47 min
 banked" in the pill (green text, no sound, micro-sessions < 1 min stay
