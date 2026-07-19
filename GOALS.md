@@ -33,16 +33,13 @@ Readiness checklist (each item needs proof, not belief):
       projects fully usable, detector fails soft. Proven by test.
 - [x] R-LOCALE   Currency/number/date formatting correct under en_US,
       de_DE, es_CO. Proven by test.
-- [ ] R-DOCS     README quickstart for a non-technical business user +
+- [x] R-DOCS     README quickstart for a non-technical business user +
       troubleshooting (Gatekeeper, permissions, data location).
 - [ ] R-RELEASE  v1.1.0 tagged, cask bumped, `brew audit` clean.
 
 ## Open
 
-1. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
-   Gatekeeper note, permissions, where data lives, backup/restore, FAQ.
-   VERIFY: README sections exist; install command matches released cask.
-2. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
+1. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
    v1.1.0: build, zip, gh release, cask version+sha bump.
    VERIFY: brew audit --cask clean; release assets live.
 

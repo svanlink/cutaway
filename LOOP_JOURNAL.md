@@ -3,9 +3,16 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 4/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 5/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~03:50 — [ship] R-DOCS — KEPT
+README: 2-minute business quickstart, updated Gatekeeper guidance (ad-hoc
++ --no-quarantine), upgrade/uninstall commands, new "Your data" section
+(location, automatic backups, restore steps), 3 new FAQ answers matching
+this push's changes (nonstandard Resolve path, locale-pinned output).
+Docs-only change; gate carried from previous iteration (86/86 + smoke).
 
 ## 2026-07-19 ~03:40 — [ship] R-LOCALE — KEPT
 All formatters pinned to en_US_POSIX: currency (was separator-pinned only,
