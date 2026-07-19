@@ -3,9 +3,16 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 2/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 3/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~03:30 — [ship] R-DEGRADE — KEPT
+fuscript now found via LaunchServices (wherever Resolve is installed) with
+stock-path fallbacks; injectable candidates make it testable. 2 tests:
+missing fuscript -> nil (no crash), nonstandard path found. Smoke doubles
+as the no-Resolve proof (whole app runs without Resolve present).
+Gate 83/83 + smoke ALL PASS.
 
 ## 2026-07-19 ~03:20 — [ship] R-BACKUP — KEPT
 StoreBackup: launch-time trio copy (store/-wal/-shm) before the container

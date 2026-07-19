@@ -29,7 +29,7 @@ Readiness checklist (each item needs proof, not belief):
       launch opens, cask caveats explain first launch.
 - [x] R-BACKUP   Billing data survives disaster: automatic store backup
       rotation, proven by test.
-- [ ] R-DEGRADE  Works without Resolve / nonstandard Resolve path: manual
+- [x] R-DEGRADE  Works without Resolve / nonstandard Resolve path: manual
       projects fully usable, detector fails soft. Proven by test.
 - [ ] R-LOCALE   Currency/number/date formatting correct under en_US,
       de_DE, es_CO. Proven by test.
@@ -39,16 +39,12 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Open
 
-1. [ship] R-DEGRADE — detector nil-safe with Resolve missing or installed
-   in a nonstandard path; app fully usable with manual projects only.
-   VERIFY: unit test for missing-fuscript path; existing smoke (runs with
-   no Resolve) stays green.
-2. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
+1. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
    locales. VERIFY: formatter tests pass under en_US, de_DE, es_CO.
-3. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
+2. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
    Gatekeeper note, permissions, where data lives, backup/restore, FAQ.
    VERIFY: README sections exist; install command matches released cask.
-4. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
+3. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
    v1.1.0: build, zip, gh release, cask version+sha bump.
    VERIFY: brew audit --cask clean; release assets live.
 

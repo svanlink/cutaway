@@ -163,3 +163,24 @@ final class StoreBackupTests: XCTestCase {
                        && (try! FileManager.default.contentsOfDirectory(atPath: backups.path)).isEmpty == false)
     }
 }
+
+final class FuscriptDegradationTests: XCTestCase {
+
+    func testMissingFuscriptFailsSoft() {
+        XCTAssertNil(ProjectDetector.fuscriptPath(from: ["/nonexistent/fuscript"]),
+                     "absent Resolve must degrade to nil, never crash")
+        XCTAssertNil(ProjectDetector.fuscriptPath(from: []))
+    }
+
+    func testNonstandardPathIsFound() throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("fuscript-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let exe = dir.appendingPathComponent("fuscript")
+        try Data("#!/bin/sh\n".utf8).write(to: exe)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: exe.path)
+        XCTAssertEqual(ProjectDetector.fuscriptPath(from: ["/nope/fuscript", exe.path]), exe.path,
+                       "first executable candidate wins, wherever Resolve lives")
+    }
+}

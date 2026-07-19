@@ -69,9 +69,20 @@ final class ProjectDetector {
     /// Resolve ships `fuscript` inside the app bundle; external scripting
     /// answers only on Studio. Free editions simply return nothing and we
     /// stay on Tier 2/3.
-    nonisolated static func fuscriptPath() -> String? {
-        let p = "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fuscript"
-        return FileManager.default.isExecutableFile(atPath: p) ? p : nil
+    /// Candidate fuscript locations: wherever LaunchServices says Resolve
+    /// actually lives (covers nonstandard installs), then the stock paths.
+    nonisolated static func fuscriptCandidates() -> [String] {
+        var roots = DetectionInput.resolveBundleIDs.compactMap {
+            NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0)?.path
+        }
+        roots.append("/Applications/DaVinci Resolve/DaVinci Resolve.app")
+        roots.append(NSHomeDirectory() + "/Applications/DaVinci Resolve/DaVinci Resolve.app")
+        return roots.map { $0 + "/Contents/Libraries/Fusion/fuscript" }
+    }
+
+    nonisolated static func fuscriptPath(from candidates: [String]? = nil) -> String? {
+        (candidates ?? fuscriptCandidates())
+            .first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
     /// Asks the running Resolve for its current project name. ~3s timeout,
