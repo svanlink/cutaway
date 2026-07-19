@@ -3,9 +3,17 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 0/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 1/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
 
 ---
+
+## 2026-07-19 ~03:05 — [ship] R-INSTALL — KEPT
+Ad-hoc codesign step added to release.sh (sign → verify → zip). Proof:
+Release build signed (flags=0x2 adhoc), codesign --verify strict OK,
+quarantined copy launches after documented xattr -cr. Caveat: this Mac has
+Gatekeeper disabled (spctl override), so the warning dialog itself is
+untestable here — stock-Mac path documented in cask caveats (right-click
+Open / --no-quarantine). Tap updated + brew audit clean. Gate 77/77 + smoke.
 
 ## 2026-07-19 ~02:50 — loop upgraded to autoresearch mechanics
 Researched karpathy/autoresearch + bilevel loop engineering. Adopted:

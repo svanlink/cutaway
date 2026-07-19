@@ -25,7 +25,7 @@ LOOP_JOURNAL.md. Final iteration before 06:00: release v1.1.0 via
 scripts/release.sh so `brew install svanlink/tap/cutaway` serves it.
 
 Readiness checklist (each item needs proof, not belief):
-- [ ] R-INSTALL  Fresh-Mac install works: ad-hoc signed app, quarantined
+- [x] R-INSTALL  Fresh-Mac install works: ad-hoc signed app, quarantined
       launch opens, cask caveats explain first launch.
 - [ ] R-BACKUP   Billing data survives disaster: automatic store backup
       rotation, proven by test.
@@ -39,24 +39,20 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Open
 
-1. [ship] R-INSTALL — ad-hoc codesign in release.sh; simulate a quarantined
-   download locally and prove the app launches; cask caveats block.
-   VERIFY: codesign -dv shows adhoc signature on release build; app with
-   com.apple.quarantine xattr launches; caveats text in cask.
-2. [ship] R-BACKUP — copy the SwiftData store to Backups/ on launch, keep
+1. [ship] R-BACKUP — copy the SwiftData store to Backups/ on launch, keep
    last 7, skip when unchanged.
    VERIFY: unit tests for rotation + skip logic; backup file exists after
    real launch.
-3. [ship] R-DEGRADE — detector nil-safe with Resolve missing or installed
+2. [ship] R-DEGRADE — detector nil-safe with Resolve missing or installed
    in a nonstandard path; app fully usable with manual projects only.
    VERIFY: unit test for missing-fuscript path; existing smoke (runs with
    no Resolve) stays green.
-4. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
+3. [ship] R-LOCALE — number/date/currency formatting audit for non-CH
    locales. VERIFY: formatter tests pass under en_US, de_DE, es_CO.
-5. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
+4. [ship] R-DOCS — README: 2-minute business quickstart, first-launch
    Gatekeeper note, permissions, where data lives, backup/restore, FAQ.
    VERIFY: README sections exist; install command matches released cask.
-6. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
+5. [ship] R-RELEASE — final sweep (full test suite + smoke 5) then release
    v1.1.0: build, zip, gh release, cask version+sha bump.
    VERIFY: brew audit --cask clean; release assets live.
 

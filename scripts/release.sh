@@ -15,6 +15,13 @@ echo "── release build"
 xcodebuild -project Timex.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"
 REL=$(ls -d "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*/Build/Products/Release/Cutaway.app | head -1)
 
+echo "── sign (ad-hoc)"
+# Ad-hoc signature: no paid Developer ID, but Apple Silicon refuses to run
+# fully unsigned binaries, and a valid signature turns Gatekeeper's
+# "damaged" error into the right-click-openable "unidentified developer".
+codesign --force --deep --sign - "$REL"
+codesign --verify --deep --strict "$REL"
+
 echo "── package"
 ZIP="/tmp/Cutaway-$V.zip"
 ditto -c -k --keepParent "$REL" "$ZIP"
