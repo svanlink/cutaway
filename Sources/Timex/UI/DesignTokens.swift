@@ -4,17 +4,23 @@ import SwiftUI
 /// tokens. Change values HERE only — never inline in views.
 enum DT {
     // surfaces
-    static let window = Color(red: 13/255, green: 13/255, blue: 15/255)
-    static let card = Color(red: 23/255, green: 23/255, blue: 26/255)
+    static let window = Color(red: windowRGB.r, green: windowRGB.g, blue: windowRGB.b)
+    static let card = Color(red: cardRGB.r, green: cardRGB.g, blue: cardRGB.b)
     static let card2 = Color(red: 28/255, green: 28/255, blue: 32/255)
     static let popover = Color(red: 32/255, green: 32/255, blue: 36/255)
     static let strokeSubtle = Color.white.opacity(0.07)
     static let strokeWindow = Color.white.opacity(0.09)
 
-    // text
-    static let text = Color(red: 245/255, green: 245/255, blue: 247/255)
-    static let text2 = Color(red: 245/255, green: 245/255, blue: 247/255).opacity(0.55)
-    static let text3 = Color(red: 245/255, green: 245/255, blue: 247/255).opacity(0.50)
+    // text — raw components exposed so ContrastTests can verify WCAG AA
+    // (4.5:1) mathematically against the surface tokens.
+    static let baseTextRGB = (r: 245.0 / 255, g: 245.0 / 255, b: 247.0 / 255)
+    static let cardRGB = (r: 23.0 / 255, g: 23.0 / 255, b: 26.0 / 255)
+    static let windowRGB = (r: 13.0 / 255, g: 13.0 / 255, b: 15.0 / 255)
+    static let text2Alpha = 0.62
+    static let text3Alpha = 0.55
+    static let text = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b)
+    static let text2 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text2Alpha)
+    static let text3 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text3Alpha)
 
     // accent + states
     static let orange = Color(red: 1, green: 107/255, blue: 26/255)

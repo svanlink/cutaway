@@ -170,9 +170,11 @@ struct SettingsView: View {
         HStack(spacing: DT.s2) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(DT.body).foregroundStyle(DT.text)
+                // Wrap, never ellipsize — a truncated explanation explains nothing.
                 Text(sub).font(DT.captionMedium).foregroundStyle(DT.text3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer()
+            Spacer(minLength: DT.s2)
             control()
         }
         .padding(.horizontal, 14)

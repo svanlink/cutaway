@@ -7,6 +7,13 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~03:15 — [design] Settings legibility — KEPT
+Subtitles wrap instead of ellipsizing (fixedSize vertical); DT.text3/text2
+alphas 0.50/0.55 -> 0.55/0.62 with hierarchy preserved. New ContrastTests
+compute WCAG AA mathematically from raw DT tokens (composited over card and
+window): all >= 4.5:1, locked against regression. Blind panel 3/3 on
+"legibility" (9 vs 6). Gate 89/89 + a11y + smoke ALL PASS.
+
 ## 2026-07-19 ~04:00 — [ship] R-RELEASE — KEPT — v1.1.0 LIVE
 Full sweep: 86 unit + UI tests green, smoke x5 ALL PASS. release.sh ran
 verify -> Release build -> ad-hoc sign -> zip -> GitHub release v1.1.0 ->
