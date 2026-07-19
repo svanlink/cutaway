@@ -89,7 +89,8 @@ struct PillView: View {
                  showsPauseGlyph: model.selectedProject != nil && !isRecording,
                  goalFraction: model.goalProgress.fraction,
                  goalReached: goalReached,
-                 seconds: model.pillSeconds)
+                 seconds: model.pillSeconds,
+                 bankedText: model.bankedFlash)
             .accessibilityLabel(model.selectedProject == nil ? "No project selected"
                                 : isRecording ? "Recording" : "Paused")
     }
@@ -106,6 +107,8 @@ struct PillBody: View {
     let goalFraction: Double
     let goalReached: Bool
     let seconds: TimeInterval
+    /// Transient session-banked confirmation — replaces the time readout.
+    var bankedText: String? = nil
 
     var body: some View {
         HStack(spacing: 7) {
@@ -113,10 +116,16 @@ struct PillBody: View {
             // the state, matching the pill border.
             miniRing
                 .frame(width: 18, height: 18)
-            Text(timeString(seconds))
-                .font(.system(size: 12.5, weight: .bold))
-                .foregroundStyle(isRecording ? DT.text : DT.text2)
-                .monospacedDigit()
+            if let bankedText {
+                Text(bankedText)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(DT.green)
+            } else {
+                Text(timeString(seconds))
+                    .font(.system(size: 12.5, weight: .bold))
+                    .foregroundStyle(isRecording ? DT.text : DT.text2)
+                    .monospacedDigit()
+            }
         }
         .padding(.leading, 3)
         .padding(.trailing, 9)

@@ -61,6 +61,7 @@ final class AppModel {
         engine.onSessionClosed = { [weak self] record in
             guard let self, let project = self.selectedProject else { return }
             try? self.store.record(record, to: project)
+            self.flashBankedSession(record.activeSeconds)
         }
         // Crash recovery: persist the last checkpoint of a session that never
         // closed. The snapshot is cleared ONLY after a successful persist —
@@ -251,6 +252,26 @@ final class AppModel {
     var isPausedVisual: Bool { engine.state != .recording }
 
     /// What the menu-bar pill displays, per the "Menu bar shows" setting.
+    /// Peak-end moment: a closed session is the billing event — the pill
+    /// quietly confirms it for a few seconds instead of staying silent.
+    var bankedFlash: String?
+
+    func flashBankedSession(_ activeSeconds: TimeInterval) {
+        guard activeSeconds >= 60 else { return }  // micro-sessions stay quiet
+        let text = Self.bankedText(activeSeconds)
+        bankedFlash = text
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(4))
+            if self?.bankedFlash == text { self?.bankedFlash = nil }
+        }
+    }
+
+    static func bankedText(_ seconds: TimeInterval) -> String {
+        let m = max(1, Int((seconds / 60).rounded()))
+        return m >= 60 ? String(format: "✓ %d:%02d h banked", m / 60, m % 60)
+                       : "✓ \(m) min banked"
+    }
+
     var pillSeconds: TimeInterval {
         switch Prefs.string(forKey: "pillDisplay") ?? "today" {
         case "session":

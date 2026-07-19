@@ -7,6 +7,15 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~03:55 — [design] Session-close peak-end flash — KEPT
+Closing a session (the billing event) now flashes a quiet 4s "✓ 47 min
+banked" in the pill (green text, no sound, micro-sessions < 1 min stay
+silent), then reverts. Engine untouched — UI observers only. Blind panel
+3/3 on "trust/feedback" (8-9 vs 4). All three judges independently found
+the same follow-up: closes usually fire after the user walked away, so a
+persistent "last banked" receipt belongs in the panel — added as a new
+goal. Gate 92/92 + a11y + smoke ALL PASS.
+
 ## 2026-07-19 ~03:45 — [design] Pill state legibility — FAIL then KEPT
 The check WORKED: 3/3 judges FAILED the original pill — green vs amber
 (billing vs not) relied on hue alone, collapsing under deuteranopia.

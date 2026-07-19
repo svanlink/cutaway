@@ -40,3 +40,29 @@ final class PillRenderTests: XCTestCase {
         XCTAssertEqual(pixels.count, 3, "three states must not render identically")
     }
 }
+
+@MainActor
+final class BankedFlashTests: XCTestCase {
+
+    func testBankedTextFormatting() {
+        XCTAssertEqual(AppModel.bankedText(47 * 60), "✓ 47 min banked")
+        XCTAssertEqual(AppModel.bankedText(90), "✓ 2 min banked", "rounds to nearest minute")
+        XCTAssertEqual(AppModel.bankedText(60), "✓ 1 min banked")
+        XCTAssertEqual(AppModel.bankedText(2 * 3600 + 5 * 60), "✓ 2:05 h banked")
+    }
+
+    func testBankedFlashRenders() throws {
+        let pill = PillBody(stateColor: DT.amber, isRecording: false, showsPauseGlyph: true,
+                            goalFraction: 0.57, goalReached: false, seconds: 16572,
+                            bankedText: "✓ 47 min banked")
+        let renderer = ImageRenderer(content: pill.background(Color.black))
+        renderer.scale = 4
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("cutaway-pill-renders")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        guard let cg = renderer.cgImage else { throw XCTSkip("no CG image") }
+        let rep = NSBitmapImageRep(cgImage: cg)
+        try rep.representation(using: .png, properties: [:])!
+            .write(to: dir.appendingPathComponent("pill-banked.png"))
+    }
+}

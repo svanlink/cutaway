@@ -43,7 +43,10 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] Session-close peak-end moment — VERIFY: design gate "trust".
+- [design] Last-banked line in the menu-bar panel — judges: the 4s banked
+  flash often fires after the user walked away; the panel should show a
+  persistent "Last session: 47 min · 14:32" line as the durable receipt.
+  VERIFY: design gate "trust"; line matches last closed session in sqlite.
 - [design] Stats hierarchy pass — VERIFY: design gate "hierarchy".
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
