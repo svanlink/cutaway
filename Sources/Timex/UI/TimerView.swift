@@ -53,25 +53,43 @@ struct TimerView: View {
         } label: {
             HStack(spacing: DT.s2) {
                 Image(systemName: paused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                 Text(paused ? "Resume" : "Pause")
                     .font(DT.bodyBold)
             }
+        }
+        .buttonStyle(PauseButtonStyle(paused: paused, hovering: hoveringPause))
+        .onHover { hoveringPause = $0 }
+        .accessibilityLabel(paused ? "Resume timer" : "Pause timer")
+    }
+}
+
+/// The app's primary control earns a real interaction design: a 44pt
+/// target (Fitts), a lift-and-glow hover, and a compress on press —
+/// not just a brightness tweak.
+private struct PauseButtonStyle: ButtonStyle {
+    let paused: Bool
+    let hovering: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .foregroundStyle(paused ? DT.text : DT.onOrange)
-            .padding(.horizontal, 26)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 32)
+            .frame(minHeight: 44)
             .background(
                 paused ? AnyShapeStyle(DT.card2) : AnyShapeStyle(DT.orange),
                 in: RoundedRectangle(cornerRadius: DT.rMd)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: DT.rMd)
-                    .stroke(paused ? Color.white.opacity(0.14) : .clear, lineWidth: 1)
+                    .stroke(paused ? Color.white.opacity(hovering ? 0.24 : 0.14)
+                                   : Color.white.opacity(hovering ? 0.25 : 0), lineWidth: 1)
             )
-            .brightness(hoveringPause && !paused ? 0.06 : 0)
-        }
-        .buttonStyle(.plain)
-        .onHover { hoveringPause = $0 }
-        .accessibilityLabel(paused ? "Resume timer" : "Pause timer")
+            .shadow(color: paused ? .clear : DT.orange.opacity(hovering ? 0.45 : 0.22),
+                    radius: hovering ? 14 : 8, y: 3)
+            .brightness(configuration.isPressed ? -0.06 : (hovering ? 0.05 : 0))
+            .scaleEffect(configuration.isPressed ? 0.97 : (hovering ? 1.02 : 1))
+            .animation(.easeOut(duration: 0.12), value: hovering)
+            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
     }
 }

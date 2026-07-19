@@ -43,7 +43,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] Pause button Fitts pass — VERIFY: design gate "control affordance".
 - [design] Menu-bar pill pre-attentive check — VERIFY: design gate
   "state legibility" on pill close-ups.
 - [design] Session-close peak-end moment — VERIFY: design gate "trust".

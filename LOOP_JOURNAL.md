@@ -7,6 +7,13 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-07-19 ~03:30 — [design] Pause button Fitts pass — KEPT
+Primary control rebuilt as a real ButtonStyle: 44pt min target (Fitts),
+lift-and-glow hover, compress on press, animated transitions — replacing
+the 36pt brightness-only version. Blind panel 3/3 on "control affordance"
+(8-9 vs 7). One judge notes the resting glow could read as hover — logged,
+acceptable for the tally-light aesthetic. Gate 89/89 + a11y + smoke.
+
 ## 2026-07-19 ~03:15 — [design] Settings legibility — KEPT
 Subtitles wrap instead of ellipsizing (fixedSize vertical); DT.text3/text2
 alphas 0.50/0.55 -> 0.55/0.62 with hierarchy preserved. New ContrastTests
