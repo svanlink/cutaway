@@ -118,6 +118,29 @@ final class DetectionEngineTests: XCTestCase {
                        "no credit may survive a hard boundary")
     }
 
+    func testAddedWorkAppPrefixIsHonoredLive() {
+        // Custom anchor added mid-run (the Settings editor path): the very
+        // next tick must treat it as work context — no restart required.
+        probes.frontmost = "com.figma.Desktop"
+        engine.tick()
+        XCTAssertEqual(engine.state, .paused(.notFrontmost), "unknown app is not work")
+        engine.workAppPrefixes = DetectionInput.defaultWorkAppPrefixes + ["com.figma.Desktop"]
+        advance(1); engine.tick()
+        XCTAssertEqual(engine.state, .recording, "added prefix must count immediately")
+    }
+
+    func testSanitizedPrefixesRoundTripThroughDefaults() {
+        let dirty = ["  com.adobe.PremierePro ", "", "com.figma.Desktop", "COM.FIGMA.DESKTOP"]
+        let clean = DetectionInput.sanitizedPrefixes(dirty)
+        XCTAssertEqual(clean, ["com.adobe.PremierePro", "com.figma.Desktop"])
+        // Round-trip through a scratch defaults suite (never the real domain).
+        let suite = UserDefaults(suiteName: "cutaway.tests.applist")!
+        suite.removePersistentDomain(forName: "cutaway.tests.applist")
+        suite.set(clean, forKey: "workApps")
+        XCTAssertEqual(suite.stringArray(forKey: "workApps"), clean)
+        suite.removePersistentDomain(forName: "cutaway.tests.applist")
+    }
+
     func testWorkflowAppKeepsRecording() {
         engine.workAppPrefixes = DetectionInput.defaultWorkAppPrefixes
         engine.tick()

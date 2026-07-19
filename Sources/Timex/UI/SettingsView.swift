@@ -6,6 +6,8 @@ struct SettingsView: View {
     @AppStorage("idleThreshold") private var idleThreshold: Double = 120
     @AppStorage("dailyGoalHours") private var dailyGoal: Double = 8
     @AppStorage("defaultCurrency") private var defaultCurrency = TimexCurrency.chf.rawValue
+    @State private var editingWorkApps = false
+    @State private var editingSatellites = false
 
     var body: some View {
         VStack(spacing: DT.s3) {
@@ -51,13 +53,26 @@ struct SettingsView: View {
                 .labelsHidden().frame(width: 130)
             }
             row("Workflow apps", sub: "Time in these counts toward the project") {
-                Text("After Effects, Photoshop, Premiere, Illustrator, Audition")
-                    .font(DT.captionMedium)
-                    .foregroundStyle(DT.text2)
-                    .frame(width: 170)
-                    .multilineTextAlignment(.trailing)
+                Button("\(model.engine.workAppPrefixes.count) apps  ·  Edit…") { editingWorkApps = true }
+                    .popover(isPresented: $editingWorkApps, arrowEdge: .bottom) {
+                        AppListEditor(
+                            title: "Workflow apps",
+                            prefsKey: "workApps",
+                            defaults: DetectionInput.defaultWorkAppPrefixes
+                        ) { model.engine.workAppPrefixes = $0 }
+                    }
             }
-            row("Research & comms", sub: "Browsers, Claude/ChatGPT, Mail, Finder, Dropbox sustain the timer") {
+            row("Research & comms", sub: "These sustain the timer inside the research window") {
+                Button("\(model.engine.satellitePrefixes.count) apps  ·  Edit…") { editingSatellites = true }
+                    .popover(isPresented: $editingSatellites, arrowEdge: .bottom) {
+                        AppListEditor(
+                            title: "Research & comms apps",
+                            prefsKey: "satelliteApps",
+                            defaults: DetectionInput.defaultSatellitePrefixes
+                        ) { model.engine.satellitePrefixes = $0 }
+                    }
+            }
+            row("Research window", sub: "How long these apps keep counting after anchor work") {
                 Picker("", selection: Binding(
                     get: { Prefs.object(forKey: "satelliteWindow") as? Double ?? 1200 },
                     set: { Prefs.set($0, forKey: "satelliteWindow"); model.engine.satelliteWindow = $0 }

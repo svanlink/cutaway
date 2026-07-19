@@ -65,6 +65,17 @@ struct DetectionInput: Sendable {
         "com.getdropbox.dropbox",
     ]
 
+    /// Cleans a user-edited prefix list: trims whitespace, drops empties,
+    /// dedupes case-insensitively while preserving order.
+    static func sanitizedPrefixes(_ list: [String]) -> [String] {
+        var seen = Set<String>()
+        return list.compactMap { raw in
+            let p = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !p.isEmpty, seen.insert(p.lowercased()).inserted else { return nil }
+            return p
+        }
+    }
+
     var frontmostIsAnchor: Bool {
         guard let front = frontmostBundleID else { return false }
         if Self.resolveBundleIDs.contains(front) { return true }
