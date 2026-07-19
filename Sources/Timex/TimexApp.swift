@@ -71,6 +71,7 @@ struct TimexApp: App {
 struct MainWindowView: View {
     @Bindable var model: AppModel
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(spacing: DT.s3) {
@@ -95,6 +96,8 @@ struct MainWindowView: View {
                 model.showNewProjectSheet = true
             }
             if ProcessInfo.processInfo.environment["TIMEX_TAB"] == "stats" { model.mainTab = .stats }
+            // Harness hook (like TIMEX_TAB): deterministic Settings capture.
+            if ProcessInfo.processInfo.environment["TIMEX_SHOW"] == "settings" { openSettings() }
         }
     }
 }

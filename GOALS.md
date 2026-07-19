@@ -14,19 +14,42 @@ Rules of the loop (Karpathy-style):
   comparable tools, mine the FAQ/issues) and APPEND new goals instead of
   inventing code changes.
 
+Design gate — applies to every [design] goal, ON TOP of the functional gate:
+- Accessibility audit UI test must pass.
+- Blind judge panel: before/after screenshots shown unlabeled and
+  order-shuffled to 3 independent judges; ≥2 must prefer the change on the
+  goal's named dimension, or the change is reverted.
+- No new hardcoded colors/sizes outside DesignTokens (DT).
+
 ## Open
 
-1. [robustness] Live Tier-1 proof — scripted check that fuscript detection
+1. [design] Settings grouped sections — 13 flat identical rows force a full
+   scan (Hick's law). Group into labeled sections (Tracking / Billing /
+   Display & System), one card per section with row dividers.
+   VERIFY: design gate on "scannability & grouping"; a11y audit; smoke.
+2. [robustness] Live Tier-1 proof — scripted check that fuscript detection
    works against a running Resolve (skips cleanly when Resolve absent).
    VERIFY: new optional harness scenario R-tier1 passes when Resolve is up.
-2. [polish] Session detail view — clicking a day row shows its sessions
+3. [design] Pause button Fitts pass — primary control target ≥44pt tall,
+   designed hover/pressed states (not just brightness).
+   VERIFY: design gate on "control affordance"; a11y audit.
+4. [polish] Session detail view — clicking a day row shows its sessions
    (start/end/duration) read-only. Foundation for future editing.
    VERIFY: UI renders sessions matching sqlite for the demo fixture.
-3. [hardening] Idle-during-render product question — add per-app idle
+5. [design] Menu-bar pill pre-attentive check — traffic-light border must
+   read in a glance in all three states at menu-bar size.
+   VERIFY: design gate on "state legibility" using pill close-ups.
+6. [hardening] Idle-during-render product question — add per-app idle
    exemption toggle ("count renders") for anchor apps, default OFF.
    VERIFY: engine test: idle in exempted app keeps recording.
-4. [quality] Localize number/date formatting audit for non-CH locales.
+7. [design] Session-close peak-end moment — a session closing (the billing
+   moment) deserves a quiet visible confirmation, not silence.
+   VERIFY: design gate on "trust/feedback"; engine behavior unchanged.
+8. [quality] Localize number/date formatting audit for non-CH locales.
    VERIFY: formatter tests pass under en_US, de_DE, es_CO locales.
+9. [design] Stats hierarchy pass — daily breakdown scale contrast; the money
+   column should lead, the bars support.
+   VERIFY: design gate on "hierarchy".
 
 ## Done
 
