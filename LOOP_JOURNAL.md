@@ -1,0 +1,25 @@
+# Cutaway Loop Journal
+
+Autoresearch-style state: what was tried, what happened, kept or reverted.
+Newest entries at the top. Readiness score updates with each [ship] entry.
+
+Readiness: 0/6 proven (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+
+---
+
+## 2026-07-19 ~02:50 — loop upgraded to autoresearch mechanics
+Researched karpathy/autoresearch + bilevel loop engineering. Adopted:
+per-iteration budget, failure journaling (this file), bilevel re-plan rule
+after 2 consecutive reverts, single readiness metric for the 06:00
+production push. Backlog rewritten around the readiness checklist.
+
+## 2026-07-19 ~02:30 — [design] Settings grouped sections — KEPT (96571c6)
+Blind panel 3/3 for grouped design (8 vs 4-5). Judges found real defects:
+subtitle truncation + low contrast → new goal in Later. Gate green.
+
+## 2026-07-19 ~02:15 — [stability] Editable app lists — KEPT (d01dcc4)
+Settings editor popovers, live engine pickup, sanitizer. 77/77 + smoke.
+
+## 2026-07-19 ~01:50 — [stability] Rename/delete projects — KEPT (210003c)
+One compile failure mid-iteration (missing SwiftData import) — fixed,
+gate then green on first re-run. 75/75 + smoke.
