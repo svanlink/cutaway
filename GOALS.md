@@ -115,7 +115,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [perf] Backup decided from size+mtime, contents only as fallback — PENDING
+- [perf] Backup decided from size+mtime, contents only as fallback — cf0311c
 
 - [data] Log quarantined from verification runs and bounded at ~4 MB — e1961a7
 
