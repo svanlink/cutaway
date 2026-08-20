@@ -7,6 +7,34 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:57 — [perf] Today's totals memoised — KEPT
+The menu-bar panel renders a row per project on every tick and each row
+asked the store for that project's total today, which filtered that
+project's ENTIRE session history to answer. Ten projects with a couple of
+years of work is tens of thousands of comparisons a second, forever — a cost
+that grows with exactly the thing the app is for.
+
+Memoised per project, with the DAY as part of the key so midnight
+invalidates itself rather than needing a timer to notice. Invalidation is
+wholesale on record and delete: writes are rare, renders are not, and a
+too-clever per-project invalidation is how a billing figure goes quietly
+stale on screen. That is the trade this cache is willing to make and the one
+it is not.
+
+`sessionScanCount` is production diagnostics, not test scaffolding hidden in
+the app — it is the only way to assert the actual claim ("rendering does not
+re-walk history") rather than a proxy for it. A timing assertion would have
+been flaky on a loaded machine and would not have proven the mechanism.
+
+VERIFY met: TodayCacheTests — 10 projects x 60 days rendered twice costs
+exactly 10 scans; the memoised answer equals the computed one; recording
+work shows up immediately; midnight invalidates itself; deleting with
+reassignment shows the heir's new total; and one project's total is never
+served for another.
+Gate 171/171 + smoke ALL PASS (3 iterations) + UI tests pass.
+
+This closes the multi-project audit — all three findings fixed.
+
 ## 2026-08-20 ~18:52 — [logic] Stale Tier-1 race — KEPT (closes what the last
 iteration only narrowed)
 `detectViaScriptingAPI` spawns fuscript and answers seconds later, and the

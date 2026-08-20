@@ -74,16 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [perf] Switching cost scales with history. The menu-bar panel renders a
-  row per project on every tick, and each row calls `activeSecondsToday`,
-  which filters that project's ENTIRE session history. Ten projects with two
-  years of work is tens of thousands of comparisons a second, forever, for
-  numbers that change once a second at most. Cache the per-day totals and
-  invalidate on record / switch / delete.
-  VERIFY: unit test — 10 projects x 5000 sessions; a probe counts session
-  traversals across a simulated second of rendering and asserts it does not
-  scale with history (one pass per project per invalidation, not per render).
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
@@ -95,6 +85,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [perf] Today's totals memoised — rendering no longer re-walks history — PENDING
 
 - [logic] Stale Tier-1 answers cannot overrule a newer manual choice — 8ecab2f
 

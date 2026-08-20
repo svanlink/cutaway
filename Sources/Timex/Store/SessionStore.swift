@@ -8,6 +8,16 @@ final class SessionStore {
     let container: ModelContainer
     var context: ModelContext { container.mainContext }
 
+    /// Today's total per project, memoised. The menu-bar panel renders a row
+    /// per project on every tick, and each row asked for this — so the app
+    /// re-filtered every project's ENTIRE history twice a second, a cost that
+    /// grows with exactly the thing the app is for: months of tracked work.
+    private var todayCache: [PersistentIdentifier: (day: Date, seconds: TimeInterval)] = [:]
+
+    /// Diagnostics only: counts the scans that actually touched history, so a
+    /// test can prove rendering does not re-walk it.
+    private(set) var sessionScanCount = 0
+
     init(inMemory: Bool = false) throws {
         let config: ModelConfiguration
         if inMemory {
@@ -53,6 +63,7 @@ final class SessionStore {
         }
         context.delete(project)
         try context.save()
+        invalidateTodayCache()
     }
 
     // MARK: - Sessions
@@ -67,6 +78,7 @@ final class SessionStore {
                                        hourlyRate: rate, project: project))
         }
         try context.save()
+        invalidateTodayCache()
     }
 
     // MARK: - Aggregation
@@ -90,9 +102,22 @@ final class SessionStore {
 
     func activeSecondsToday(for project: Project, calendar: Calendar = .current, now: Date = Date()) -> TimeInterval {
         let today = calendar.startOfDay(for: now)
-        return project.sessions
+        let id = project.persistentModelID
+        // The day is part of the key, so midnight invalidates itself.
+        if let cached = todayCache[id], cached.day == today { return cached.seconds }
+        sessionScanCount += 1
+        let seconds = project.sessions
             .filter { calendar.startOfDay(for: $0.start) == today }
             .reduce(0) { $0 + $1.activeSeconds }
+        todayCache[id] = (today, seconds)
+        return seconds
+    }
+
+    /// Anything that changes what a day contains drops the memo. Wholesale
+    /// rather than per-project: writes are rare, renders are not, and a
+    /// too-clever invalidation is how a billing figure goes quietly stale.
+    private func invalidateTodayCache() {
+        todayCache.removeAll()
     }
 
     /// The individual sessions behind one Daily Breakdown row, in the order
