@@ -7,6 +7,41 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:24 — [hardening] The engine has one clock — KEPT
+`closeSessionIfOpen` called `endSession()` with its default `Date()`, so the
+moment that decides a session's END — and through DaySplitter, which DAY the
+work bills to — was the one place in the engine that ignored `now()`.
+
+Grepping for the symptom found three more of the same leak rather than one:
+the crash-recovery snapshot stamped `updatedAt` from the wall clock (that
+stamp becomes a recovered session's END after a crash), the checkpoint timer
+compared against a wall-clock reading, and `lastCheckpoint` was SEEDED with
+`Date()` at construction — a wall-clock reading smuggled past the injectable
+clock before the engine had even started. All four now read `now()`;
+`lastCheckpoint` is optional instead of seeded, because there is no honest
+value for "when did the last checkpoint happen" before one has.
+
+The snapshot also moved from the global `Prefs` to the injected `defaults`,
+finishing what the previous iteration started.
+
+Latent, not live: in production the two clocks agree, so no user has been
+billed a wrong day by this. It was worth fixing because it is the class of
+bug that surfaces once, in someone's real data, in a way the tests
+structurally could not reproduce — the test could not reach the code path
+that read the wall clock.
+
+Three test failures on the way, all mine: a "sanity" assertion asserting the
+virtual clock was in the PAST when 1_800_000_000 is 2027 (now asserts
+distance in either direction, so it cannot rot as the wall clock moves); a
+day-boundary reference off by one day; and a checkpoint expectation tighter
+than the 15s checkpoint interval it was measuring.
+
+VERIFY met: EngineClockTests — a closed session ends on the engine's clock
+and nowhere near the wall clock, a session crossing a virtual midnight
+splits with every second conserved, the crash snapshot sits on the virtual
+timeline, and checkpointing does not depend on construction time.
+Gate 181/181 + smoke ALL PASS (3 iterations, s7-midnight included).
+
 ## 2026-08-20 ~19:12 — [billing] Manual pause survives a relaunch — KEPT
 `manuallyPaused` was a plain var. Quit while paused — or crash, or restart
 overnight — and the app came back recording, accruing time the user believed

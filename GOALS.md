@@ -74,18 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [hardening] The accumulator ends sessions on the wall clock while the
-  engine runs on an injectable one. `closeSessionIfOpen` calls
-  `endSession()` with its default `Date()`, so the single moment that
-  decides a session's END — and therefore which DAY it is billed to, via
-  DaySplitter — is the one place in the engine that ignores `now()`. In
-  production the two agree, so this is latent rather than live; it is also
-  exactly the kind of latent that surfaces as a wrong day boundary that no
-  test can reproduce, because the tests cannot reach it.
-  VERIFY: `endSession` is called with the engine's clock; an engine test
-  drives a session across a virtual midnight and asserts the record's `end`
-  is on the virtual clock, not the wall clock.
-
 - [ux] The user cannot tell WHY the timer is still running. `.recording` is
   opaque: it looks identical whether Resolve is frontmost or whether a
   browser is sustaining the clock inside the research window. So an editor
@@ -108,6 +96,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [hardening] Every engine time read goes through the injectable clock — PENDING
 
 - [billing] Manual pause survives a relaunch — 60a3bf4
 

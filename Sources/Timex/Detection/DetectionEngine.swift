@@ -74,7 +74,10 @@ final class DetectionEngine {
     private let defaults: UserDefaults
     private var isAsleep = false
     private var timer: Timer?
-    private var lastCheckpoint = Date()
+    /// nil until the first checkpoint. Optional rather than seeded with
+    /// `Date()`, because a seed taken at construction is a wall-clock reading
+    /// smuggled past the injectable clock.
+    private var lastCheckpoint: Date?
 
     init(probes: any SystemProbing = SystemProbes(), logger: SessionLogger = SessionLogger(),
          defaults: UserDefaults = Prefs) {
@@ -212,9 +215,10 @@ final class DetectionEngine {
 
         // 15s checkpoint = max data loss on crash. Snapshot the open session
         // to UserDefaults; recovered on next launch.
-        if newState == .recording, now().timeIntervalSince(lastCheckpoint) >= 15 {
+        let checkpointDue = lastCheckpoint.map { now().timeIntervalSince($0) >= 15 } ?? true
+        if newState == .recording, checkpointDue {
             logger.log(event: "checkpoint", detail: "activeSeconds=\(Int(accumulator.activeSeconds))")
-            lastCheckpoint = Date()
+            lastCheckpoint = now()
             snapshotOpenSession()
         }
         onTick?()
@@ -248,17 +252,17 @@ final class DetectionEngine {
 
     private func snapshotOpenSession() {
         guard let start = accumulator.sessionStart else { return }
-        let d = Prefs
-        d.set(start.timeIntervalSince1970, forKey: "openSession.start")
-        d.set(accumulator.activeSeconds, forKey: "openSession.active")
-        d.set(Date().timeIntervalSince1970, forKey: "openSession.updatedAt")
+        defaults.set(start.timeIntervalSince1970, forKey: "openSession.start")
+        defaults.set(accumulator.activeSeconds, forKey: "openSession.active")
+        // The engine's clock, like everything else here — this stamp becomes
+        // a recovered session's END after a crash.
+        defaults.set(now().timeIntervalSince1970, forKey: "openSession.updatedAt")
     }
 
     private func clearOpenSessionSnapshot() {
-        let d = Prefs
-        d.removeObject(forKey: "openSession.start")
-        d.removeObject(forKey: "openSession.active")
-        d.removeObject(forKey: "openSession.updatedAt")
+        defaults.removeObject(forKey: "openSession.start")
+        defaults.removeObject(forKey: "openSession.active")
+        defaults.removeObject(forKey: "openSession.updatedAt")
     }
 
     /// If the app (or the Mac) died mid-session, the last checkpoint survives
@@ -290,7 +294,10 @@ final class DetectionEngine {
     }
 
     private func closeSessionIfOpen(reason: String) {
-        if let record = accumulator.endSession() {
+        // The engine's clock decides when a session ended — and therefore,
+        // through DaySplitter, which DAY it bills to. This was the one moment
+        // in the engine that read the wall clock instead.
+        if let record = accumulator.endSession(at: now()) {
             closedSessions.append(record)
             // In-memory diagnostics only (persistence is via onSessionClosed);
             // cap so a weeks-long run can't grow unboundedly.
