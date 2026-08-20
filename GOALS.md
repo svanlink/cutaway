@@ -98,6 +98,42 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [data] The backup skip-check looks at the wrong file. `StoreBackup`
+  byte-compares only the main `.store` against the newest backup's copy — but
+  SQLite runs in WAL mode, so recent writes live in `.store-wal` while the
+  main file sits unchanged. The check can therefore decide "nothing changed"
+  while a session's worth of billing data waits in the WAL. It matters most
+  exactly when it matters most: after a crash, the WAL is where the
+  unflushed work is, and that is the launch on which the backup gets
+  skipped. (The copy itself is fine — it includes the WAL. The bug is
+  skipping, not corrupting.)
+  VERIFY: unit test — a store whose main file is byte-identical but whose
+  `-wal` differs must produce a backup, not a skip; identical trio still
+  skips; the taken backup still contains all three files.
+
+- [data] Verification runs write into the user's real data directory, and
+  the log grows forever. `SessionLogger` ignores `ScenarioMode.dataDir`
+  entirely, so every scenario run appends to the same
+  `~/Library/Application Support/Cutaway/detection-log.jsonl` a real user
+  accumulates. On this machine that file is already 3.1 MB / 39,705 lines,
+  35,213 of them checkpoints — from a few days of development, not a year of
+  editing. It is also a permanent plaintext record of every app the user
+  focused, which the app never promised to keep and never trims.
+  VERIFY: unit test — a logger given a scenario data dir writes there and
+  never touches Application Support; rotation caps the file (size or lines)
+  and keeps the newest entries; a fresh install is unaffected.
+
+- [perf] Deciding whether to back up costs two full reads of the store, on
+  the launch path, before the UI exists. The skip-check does
+  `Data(contentsOf:)` on both the previous backup and the current store and
+  compares the bytes. That is fine at 80 KB and pointless at 80 MB — and it
+  grows with exactly the history the app is designed to accumulate. Compare
+  cheap facts first (size, then modification date), and only fall back to
+  content when those cannot decide.
+  VERIFY: unit test with an instrumented reader — an unchanged store of
+  non-trivial size is skipped without reading its contents; a changed one
+  still backs up; a same-size-different-content store is still caught.
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 

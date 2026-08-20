@@ -7,6 +7,44 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:52 — AUDIT iteration (long-lived data) — 3 goals added
+The last high-stakes area never audited: what happens to a store, a backup
+and a log after a year rather than an afternoon. Looked at the real files on
+this machine rather than reasoning about them, which changed one finding and
+strengthened another.
+
+1. THE BACKUP SKIP-CHECK LOOKS AT THE WRONG FILE. It byte-compares only the
+   main `.store`, but SQLite runs in WAL mode — recent writes sit in
+   `.store-wal` while the main file is unchanged. So the check can say
+   "nothing changed" while a session's billing data waits in the WAL, and it
+   says it most readily after a crash, which is the launch where the WAL
+   matters and the backup gets skipped. Stated precisely: the copy is
+   correct (it includes the WAL); the bug is skipping, not corrupting.
+
+2. VERIFICATION RUNS POLLUTE THE USER'S DATA DIRECTORY. `SessionLogger`
+   ignores `ScenarioMode.dataDir` entirely. The scenario STORE is carefully
+   quarantined; the LOG is not, so every smoke run appends to the real
+   user's file. Evidence, not estimate: 3.1 MB and 39,705 lines on this
+   machine, 35,213 of them checkpoints, from days of development. It never
+   rotates, and it is a permanent plaintext record of every app the user
+   focused — which the app never promised to keep.
+
+3. DECIDING WHETHER TO BACK UP COSTS TWO FULL READS OF THE STORE, on the
+   launch path, before the UI exists. Fine at 80 KB (its size here),
+   pointless at 80 MB, and it grows with exactly the history the app exists
+   to accumulate.
+
+Checked and found CORRECT: rotation keeps the newest 7 and sorts stamped
+names lexically, which is stable because the stamp is fixed-width
+POSIX-formatted; the backup runs before the container opens, so the files
+really are quiescent; `-wal` and `-shm` are included in the copy.
+
+Finding 2 is the one I would not have got right from reading alone — I
+expected an unbounded log, and found an unbounded log that our own
+verification runs had been filling.
+
+No code changed this iteration.
+
 ## 2026-08-20 ~19:49 — Loop rules iteration — three rules earned in this run
 Not a code change: the loop's own rules, updated from things that actually
 happened over seventeen iterations rather than from principle.
