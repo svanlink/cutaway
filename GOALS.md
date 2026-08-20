@@ -107,7 +107,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [logic] Auto-switch follows transitions in Resolve, not steady state — PENDING
+- [logic] Auto-switch follows transitions in Resolve, not steady state — 7ef3870
 
 - [billing] Invoice arithmetic — round once, then sum — 299c119
 
