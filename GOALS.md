@@ -109,7 +109,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [billing] Manual pause survives a relaunch — PENDING
+- [billing] Manual pause survives a relaunch — 60a3bf4
 
 - [perf] Today's totals memoised — rendering no longer re-walks history — 9630250
 
