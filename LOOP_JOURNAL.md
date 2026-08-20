@@ -7,6 +7,37 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:54 — [data] The backup skip-check sees the whole store — KEPT
+`StoreBackup` byte-compared only the main `.store` against the newest
+backup's copy. SQLite runs in WAL mode, so recent writes live in `-wal`
+while the main file stays byte-identical until a checkpoint — meaning the
+check could return "nothing changed" with a session's billing data sitting
+in the WAL. Worst exactly where it matters: after a crash the WAL is where
+the unflushed work is, and that is the launch on which the backup was
+skipped.
+
+Precision worth keeping: the COPY was always correct — it took all three
+files. The bug was skipping, never corrupting. Overstating that would have
+made this sound like data loss, which it was not.
+
+Now every DATA file is compared (`.store` and `-wal`), with a file present
+on one side and absent on the other counting as a difference — a WAL that
+has just appeared is precisely the crash case. `-shm` is deliberately
+excluded from the DECISION while remaining in the COPY: it is a derived
+index rebuilt from the other two, so letting its churn force a backup would
+mean a new copy on every launch, and seven backups of the same data is the
+opposite of disaster recovery.
+
+The next goal replaces the innards of this comparison (two full reads on the
+launch path); splitting them was deliberate — correctness first, with the
+comparison already extracted into one helper for that goal to rewrite.
+
+VERIFY met: BackupWALTests — a changed WAL forces a backup, a WAL appearing
+forces one, a WAL disappearing forces one, a truly identical trio still
+skips, `-shm` churn alone does not, and the backup still contains all three
+files. Existing StoreBackupTests untouched.
+Gate 195/195 + smoke ALL PASS (3 iterations) + UI tests pass.
+
 ## 2026-08-20 ~19:52 — AUDIT iteration (long-lived data) — 3 goals added
 The last high-stakes area never audited: what happens to a store, a backup
 and a log after a year rather than an afternoon. Looked at the real files on

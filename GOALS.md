@@ -98,19 +98,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [data] The backup skip-check looks at the wrong file. `StoreBackup`
-  byte-compares only the main `.store` against the newest backup's copy — but
-  SQLite runs in WAL mode, so recent writes live in `.store-wal` while the
-  main file sits unchanged. The check can therefore decide "nothing changed"
-  while a session's worth of billing data waits in the WAL. It matters most
-  exactly when it matters most: after a crash, the WAL is where the
-  unflushed work is, and that is the launch on which the backup gets
-  skipped. (The copy itself is fine — it includes the WAL. The bug is
-  skipping, not corrupting.)
-  VERIFY: unit test — a store whose main file is byte-identical but whose
-  `-wal` differs must produce a backup, not a skip; identical trio still
-  skips; the taken backup still contains all three files.
-
 - [data] Verification runs write into the user's real data directory, and
   the log grows forever. `SessionLogger` ignores `ScenarioMode.dataDir`
   entirely, so every scenario run appends to the same
@@ -145,6 +132,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [data] Backup skip-check reads the whole store, WAL included — PENDING
 
 - [ux] Recording says why — the research window is visible and counts down — d92f92a
 

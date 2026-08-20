@@ -15,12 +15,14 @@ enum StoreBackup {
         guard fm.fileExists(atPath: storeURL.path) else { return nil }
         try fm.createDirectory(at: backupsDir, withIntermediateDirectories: true)
 
-        // Skip when unchanged: byte-compare the main store file against the
-        // newest backup's copy (stores are small; simplicity beats hashing).
+        // Skip when unchanged — but a store is a SET of files. SQLite runs in
+        // WAL mode, so recent writes live in `-wal` while the main file sits
+        // byte-identical for as long as it takes to checkpoint. Comparing only
+        // `.store` is how a backup gets skipped with a session's billing data
+        // still in the WAL, and it says so most readily right after a crash,
+        // which is the launch where the WAL holds the unflushed work.
         if let newest = existingBackups(in: backupsDir).last,
-           let prev = try? Data(contentsOf: newest.appendingPathComponent(storeURL.lastPathComponent)),
-           let cur = try? Data(contentsOf: storeURL),
-           prev == cur {
+           matchesBackup(storeURL: storeURL, backup: newest) {
             return nil
         }
 
@@ -29,7 +31,7 @@ enum StoreBackup {
         fmt.dateFormat = "yyyyMMdd-HHmmss"
         let dest = backupsDir.appendingPathComponent("billing-\(fmt.string(from: now))")
         try fm.createDirectory(at: dest, withIntermediateDirectories: true)
-        for suffix in ["", "-wal", "-shm"] {
+        for suffix in copiedSuffixes {
             let src = URL(fileURLWithPath: storeURL.path + suffix)
             guard fm.fileExists(atPath: src.path) else { continue }
             try fm.copyItem(at: src, to: dest.appendingPathComponent(src.lastPathComponent))
@@ -41,6 +43,25 @@ enum StoreBackup {
             try? fm.removeItem(at: stale)
         }
         return dest
+    }
+
+    /// `-shm` is a derived index, rebuilt from the other two — copied for
+    /// completeness, never consulted when deciding whether anything changed.
+    private static let dataSuffixes = ["", "-wal"]
+    private static let copiedSuffixes = ["", "-wal", "-shm"]
+
+    /// True only when every DATA file matches the backup's copy. A file
+    /// present on one side and absent on the other counts as a difference —
+    /// a WAL that has just appeared is exactly the case this must catch.
+    private static func matchesBackup(storeURL: URL, backup: URL) -> Bool {
+        for suffix in dataSuffixes {
+            let current = URL(fileURLWithPath: storeURL.path + suffix)
+            let copied = backup.appendingPathComponent(current.lastPathComponent)
+            if (try? Data(contentsOf: current)) != (try? Data(contentsOf: copied)) {
+                return false
+            }
+        }
+        return true
     }
 
     private static func existingBackups(in dir: URL) -> [URL] {
