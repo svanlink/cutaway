@@ -10,14 +10,26 @@ final class StatusItemController: NSObject {
     private let popover = NSPopover()
     private let model: AppModel
     private var hostView: NSHostingView<PillView>?
+    /// Last value handed to VoiceOver, so an unchanged one is not re-announced.
+    private var lastSpokenValue = ""
 
+    /// VoiceOver re-speaks a focused element when its label changes. Writing
+    /// this every second meant the pill recited itself once a second, forever,
+    /// while focused — and `spokenDuration` has MINUTE resolution, so 59 of
+    /// every 60 writes were byte-identical. All cost, no information.
+    ///
+    /// It is also the VALUE, not the name: the name is "Cutaway" and does not
+    /// change; the figure does.
     private func syncAccessibilityLabel() {
-        statusItem.button?.setAccessibilityLabel(PillView.accessibilityLabel(
+        let spoken = PillView.accessibilityLabel(
             project: model.selectedProject?.name,
             isRecording: model.engine.state == .recording,
             seconds: model.pillSeconds,
             banked: model.bankedFlash,
-            pausedHint: model.engine.pausedLong ? "still paused" : nil))
+            pausedHint: model.engine.pausedLong ? "still paused" : nil)
+        guard spoken != lastSpokenValue else { return }
+        lastSpokenValue = spoken
+        statusItem.button?.setAccessibilityValue(spoken)
     }
 
     private func syncWidth() {
@@ -43,11 +55,14 @@ final class StatusItemController: NSObject {
             let size = host.fittingSize
             host.frame = NSRect(x: 0, y: 0, width: size.width, height: size.height)
             statusItem.length = size.width
+            // The pill is announced by the BUTTON. Left as an element, the
+            // hosting view appears as a child saying the identical thing.
+            host.setAccessibilityElement(false)
             button.addSubview(host)
             button.target = self
             button.action = #selector(togglePopover)
-            // The button's own label is what VoiceOver reads when focus lands
-            // on the status item; the hosting view's label is not consulted.
+            // The name is set once and never changes; the figure travels as
+            // the accessibility VALUE instead.
             button.setAccessibilityLabel("Cutaway")
             syncAccessibilityLabel()
             // No system highlight flash behind the custom pill — that gray
@@ -92,8 +107,8 @@ struct PillView: View {
     private var accent: Color { goalReached ? DT.green : DT.orange }
     /// Traffic-light border: green = recording · amber = paused · red = no project.
     private var stateColor: Color {
-        if model.selectedProject == nil { return DT.red }
-        return isRecording ? DT.green : DT.amber
+        if model.selectedProject == nil { return DT.barRed }
+        return isRecording ? DT.barGreen : DT.barAmber
     }
 
     /// What the pill says to VoiceOver. It used to say only the state —
@@ -173,15 +188,15 @@ struct PillBody: View {
             if let bankedText {
                 Text(bankedText)
                     .font(DT.pillMessage)
-                    .foregroundStyle(DT.green)
+                    .foregroundStyle(DT.barGreen)
             } else if let pausedHint {
                 Text(pausedHint)
                     .font(DT.pillMessage)
-                    .foregroundStyle(DT.amber)
+                    .foregroundStyle(DT.barAmber)
             } else {
                 Text(timeString(seconds))
                     .font(DT.pillTime)
-                    .foregroundStyle(isRecording ? DT.text : DT.text2)
+                    .foregroundStyle(isRecording ? DT.barText : DT.barText2)
                     .monospacedDigit()
             }
         }

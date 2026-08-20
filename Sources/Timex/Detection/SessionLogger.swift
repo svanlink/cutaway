@@ -16,11 +16,22 @@ final class SessionLogger: @unchecked Sendable {
 
     /// Where the log belongs, given whether this is a verification run.
     /// Pure so the rule is testable without an environment.
-    static func directory(scenarioDataDir: String?) -> URL {
+    static func directory(scenarioDataDir: String?,
+                          isTestRun: Bool = ProcessInfo.processInfo
+                              .environment["XCTestConfigurationFilePath"] != nil) -> URL {
         // A scenario run must not write into the user's real data directory.
         // The scenario STORE has always been quarantined; the log never was,
         // so every smoke run appended to the file a real user accumulates.
         if let scenarioDataDir { return URL(fileURLWithPath: scenarioDataDir) }
+        // Nor may the unit suite. Engine tests construct DetectionEngine
+        // without a logger, so the DEFAULT logger was writing fake probe
+        // transitions — idle 300.0, four state changes in one second — into
+        // the log a real user's crash forensics come from. Same leak as the
+        // scenario one, one layer further in.
+        if isTestRun {
+            return URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent("cutaway-tests", isDirectory: true)
+        }
         return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Cutaway", isDirectory: true)
     }

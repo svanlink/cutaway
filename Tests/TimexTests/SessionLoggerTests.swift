@@ -31,9 +31,26 @@ final class SessionLoggerTests: XCTestCase {
     }
 
     func testARealRunStillUsesApplicationSupport() {
-        let real = SessionLogger.directory(scenarioDataDir: nil)
+        let real = SessionLogger.directory(scenarioDataDir: nil, isTestRun: false)
         XCTAssertTrue(real.path.contains("Application Support"))
         XCTAssertEqual(real.lastPathComponent, "Cutaway")
+    }
+
+    /// Engine tests build a DetectionEngine without passing a logger, so the
+    /// DEFAULT logger was appending fake-probe transitions — idle 300.0, four
+    /// state changes inside one second — to the file a real user's crash
+    /// forensics come from. The scenario store was quarantined long ago; the
+    /// unit suite never was.
+    func testTheUnitSuiteNeverWritesToTheUsersLog() {
+        let underTest = SessionLogger.directory(scenarioDataDir: nil, isTestRun: true)
+        XCTAssertFalse(underTest.path.contains("Application Support"),
+                       "a test run must not touch the user's data directory")
+
+        // And the live default, resolved the way the app resolves it while
+        // these very tests are running.
+        let live = SessionLogger.directory(scenarioDataDir: nil)
+        XCTAssertFalse(live.path.contains("Application Support"),
+                       "this assertion runs inside a test — it must resolve to the quarantine")
     }
 
     // MARK: - Growth

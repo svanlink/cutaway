@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// 1:1 mirror of the Figma "02 Foundations" variables and the HTML :root
 /// tokens. Change values HERE only — never inline in views.
@@ -21,6 +22,33 @@ enum DT {
     static let text = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b)
     static let text2 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text2Alpha)
     static let text3 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text3Alpha)
+
+    // MENU BAR — these must adapt to the SYSTEM appearance.
+    //
+    // Everything else in this app renders inside a window forced to
+    // .preferredColorScheme(.dark), so fixed light-on-dark tokens are safe
+    // there. The status item is not in a window: it sits on the system menu
+    // bar, which follows the user's appearance setting. Using the dark tokens
+    // there put near-white text on a light menu bar at 1.13:1 — the number
+    // the whole app exists to show, invisible.
+    static let barText = Color.primary
+    static let barText2 = Color.secondary
+    // Apple's own systemGreen/Orange/Red are tuned as FILLS. As a 1pt border
+    // on a light menu bar they measure 1.8–2.9:1 — below the 3:1 a status
+    // indicator needs. These carry the app's dark-mode hues unchanged and
+    // drop to deeper variants in light, where they reach 4.7–5.1:1.
+    static let barGreen = barAdaptive(dark: (52, 199, 89), light: (30, 110, 50))
+    static let barAmber = barAdaptive(dark: (254, 188, 46), light: (150, 86, 0))
+    static let barRed = barAdaptive(dark: (255, 69, 58), light: (190, 30, 25))
+
+    static func barAdaptive(dark: (Int, Int, Int), light: (Int, Int, Int)) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            let (r, g, b) = isDark ? dark : light
+            return NSColor(srgbRed: CGFloat(r) / 255, green: CGFloat(g) / 255,
+                           blue: CGFloat(b) / 255, alpha: 1)
+        })
+    }
 
     // accent + states
     static let orange = Color(red: 1, green: 107/255, blue: 26/255)
