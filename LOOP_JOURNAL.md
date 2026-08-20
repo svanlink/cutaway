@@ -7,6 +7,29 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~17:29 — [polish] Session detail view — KEPT
+A Daily Breakdown row is a claim ("4.6 h, CHF 391"). Until now there was no
+way to see what it was made of, which is exactly the question a client
+asks. Day rows are now disclosure buttons: tapping one unfolds the sessions
+behind it — time range, hours, earnings — sourced from the same store rows
+the CSV exports. One day open at a time; the breakdown is a ledger, not an
+outline.
+
+Honesty detail: today's row includes the live accumulator, which has no
+WorkSession yet. Unfolded, the persisted parts would visibly fail to sum to
+the total above them. The running span is therefore itemised too, marked
+"running" in DT.orange with its live duration — the parts always reconcile
+with the claim.
+
+Chose in-place disclosure over a detail sheet: no new window, no navigation
+state, no new surface to keep in sync with the ledger it describes.
+
+VERIFY met: SessionDetailTests builds a sqlite fixture and asserts the
+itemisation against it — day isolation, worked order, sum-equals-day-total,
+midnight-split halves landing under the day each ran in, empty days, and
+the rendered line matching the stored session.
+Gate 106/106 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+
 ## 2026-08-20 ~16:31 — [design] Stats hierarchy pass — KEPT
 Three identically-weighted cards stacked in a column: same size, same
 padding, same type. Nothing led, so the eye had to read all three to find

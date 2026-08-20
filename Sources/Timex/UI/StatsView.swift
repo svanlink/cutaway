@@ -4,6 +4,9 @@ import SwiftUI
 struct StatsView: View {
     @Bindable var model: AppModel
     @State private var switcherOpen = false
+    /// The day whose sessions are unfolded, if any. One at a time — the
+    /// breakdown is a ledger, not an outline.
+    @State private var expandedDay: Date?
 
     private var project: Project? { model.selectedProject }
 
@@ -184,7 +187,11 @@ struct StatsView: View {
                 VStack(spacing: 0) {
                     let maxDay = days.map(\.activeSeconds).max() ?? 1
                     ForEach(days, id: \.day) { d in
-                        dayRow(d, project: p, isToday: cal.isDateInToday(d.day), maxSeconds: maxDay)
+                        let isToday = cal.isDateInToday(d.day)
+                        dayRow(d, project: p, isToday: isToday, maxSeconds: maxDay)
+                        if expandedDay == d.day {
+                            sessionDetail(d, project: p, isToday: isToday)
+                        }
                     }
                 }
             }
@@ -211,6 +218,9 @@ struct StatsView: View {
     }
 
     private func dayRow(_ d: DayTotal, project p: Project, isToday: Bool, maxSeconds: TimeInterval) -> some View {
+        Button {
+            expandedDay = expandedDay == d.day ? nil : d.day
+        } label: {
         HStack(spacing: DT.s3) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(isToday ? "Today" : d.day.formatted(.dateTime.month(.abbreviated).day()))
@@ -246,6 +256,56 @@ struct StatsView: View {
         .overlay(alignment: .bottom) {
             Rectangle().fill(Color.white.opacity(0.04)).frame(height: 1)
         }
+        .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(expandedDay == d.day ? "Hide sessions" : "Show sessions")
+    }
+
+    /// The sessions behind one day. The breakdown row is a claim; this is the
+    /// itemisation that backs it — the same thing the CSV would show a client.
+    @ViewBuilder
+    private func sessionDetail(_ d: DayTotal, project p: Project, isToday: Bool) -> some View {
+        let sessions = model.store.sessions(for: p, on: d.day)
+        let live = isToday ? model.engine.accumulator.activeSeconds : 0
+        VStack(spacing: 0) {
+            ForEach(sessions, id: \.persistentModelID) { s in
+                sessionLine(range: AppModel.sessionTimeRange(start: s.start, end: s.end),
+                            seconds: s.activeSeconds, project: p, isLive: false)
+            }
+            // A day row that includes the running accumulator must itemise it,
+            // or the parts visibly fail to add up to the total above them.
+            if live > 0, let started = model.engine.accumulator.sessionStart {
+                sessionLine(range: AppModel.sessionTimeRange(start: started, end: Date()),
+                            seconds: live, project: p, isLive: true)
+            }
+        }
+        .padding(.leading, DT.s5)
+        .padding(.trailing, DT.rowInset)
+        .background(Color.black.opacity(0.18))
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color.white.opacity(0.04)).frame(height: 1)
+        }
+    }
+
+    private func sessionLine(range: String, seconds: TimeInterval,
+                             project p: Project, isLive: Bool) -> some View {
+        HStack(spacing: DT.s3) {
+            Text(range)
+                .font(DT.captionMedium)
+                .foregroundStyle(isLive ? DT.orange : DT.text2)
+                .monospacedDigit()
+            if isLive {
+                Text("running").font(DT.tag).foregroundStyle(DT.orange)
+            }
+            Spacer(minLength: DT.s2)
+            Text(String(format: "%.1fh", seconds / 3600))
+                .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
+            Text(p.currency.format(BillingEngine.earnings(activeSeconds: seconds, hourlyRate: p.hourlyRate)))
+                .font(DT.captionMedium).foregroundStyle(DT.text2).monospacedDigit()
+                .frame(width: 96, alignment: .trailing)
+        }
+        .padding(.vertical, DT.s1)
     }
 
     private func hours(_ t: TimeInterval) -> String {

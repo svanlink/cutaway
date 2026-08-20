@@ -61,7 +61,6 @@ Readiness checklist (each item needs proof, not belief):
 
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
-- [polish] Session detail view — VERIFY: UI matches sqlite fixture.
 - [hardening] Idle-during-render exemption toggle — VERIFY: engine test.
 
 Design gate — applies to every [design] goal, ON TOP of the functional gate:
@@ -72,6 +71,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [polish] Session detail — day rows unfold into their sessions — PENDING
 
 - [design] Stats hierarchy pass — one money lead + two support stats — 75dbf4d
 

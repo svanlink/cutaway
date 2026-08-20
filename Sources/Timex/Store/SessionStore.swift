@@ -86,6 +86,16 @@ final class SessionStore {
             .reduce(0) { $0 + $1.activeSeconds }
     }
 
+    /// The individual sessions behind one Daily Breakdown row, in the order
+    /// they were worked. Midnight-split halves are already separate rows, so
+    /// grouping by `start` day matches what the day total counted.
+    func sessions(for project: Project, on day: Date, calendar: Calendar = .current) -> [WorkSession] {
+        let target = calendar.startOfDay(for: day)
+        return project.sessions
+            .filter { calendar.startOfDay(for: $0.start) == target }
+            .sorted { $0.start < $1.start }
+    }
+
     /// Daily Breakdown rows, newest first. One entry per worked day.
     func dayTotals(for project: Project, calendar: Calendar = .current) -> [DayTotal] {
         let grouped = Dictionary(grouping: project.sessions) { calendar.startOfDay(for: $0.start) }

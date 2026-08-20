@@ -312,6 +312,11 @@ final class AppModel {
         return "Last session: \(duration) · \(when)"
     }
 
+    /// A session's wall-clock span, as the detail rows print it.
+    static func sessionTimeRange(start: Date, end: Date) -> String {
+        "\(start.formatted(.dateTime.hour().minute())) – \(end.formatted(.dateTime.hour().minute()))"
+    }
+
     var pillSeconds: TimeInterval {
         switch Prefs.string(forKey: "pillDisplay") ?? "today" {
         case "session":
