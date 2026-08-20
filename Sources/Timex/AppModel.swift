@@ -279,7 +279,12 @@ final class AppModel {
 
     var todayMoney: String {
         guard let p = selectedProject else { return "—" }
-        return p.currency.format(BillingEngine.earnings(activeSeconds: todaySeconds, hourlyRate: p.hourlyRate))
+        let banked = store.dayTotals(for: p).first {
+            Calendar.current.isDateInToday($0.day)
+        }?.earned ?? 0
+        let live = BillingEngine.earnings(activeSeconds: engine.accumulator.activeSeconds,
+                                          hourlyRate: p.hourlyRate)
+        return p.currency.format(banked + live)
     }
 
     var goalProgress: BillingEngine.GoalProgress {
@@ -362,13 +367,17 @@ final class AppModel {
         let live = engine.accumulator.activeSeconds
         guard project.persistentModelID == selectedProjectID, live > 0 else { return days }
         let today = Calendar.current.startOfDay(for: Date())
+        // The open span has not been stamped yet, so it bills at the rate in
+        // force right now — which is what it will be stamped with on close.
+        let liveEarned = BillingEngine.earnings(activeSeconds: live, hourlyRate: project.hourlyRate)
         if let i = days.firstIndex(where: { $0.day == today }) {
             days[i].activeSeconds += live
+            days[i].earned += liveEarned
             days[i].lastEnd = Date()
         } else {
             days.insert(DayTotal(day: today, activeSeconds: live, sessionCount: 1,
                                  firstStart: engine.accumulator.sessionStart ?? Date(),
-                                 lastEnd: Date()), at: 0)
+                                 lastEnd: Date(), earned: liveEarned), at: 0)
         }
         return days
     }

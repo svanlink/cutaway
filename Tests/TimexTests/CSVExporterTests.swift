@@ -13,12 +13,17 @@ final class CSVExporterTests: XCTestCase {
         cal.date(from: DateComponents(year: y, month: mo, day: d, hour: h, minute: mi))!
     }
 
+    /// A DayTotal now carries what it earned, because the sessions behind it
+    /// may have been worked at different rates. Same 85/h as before —
+    /// 6.9h = 586.50, 4.6h = 391.00 — so every assertion below is unchanged.
     private var sampleDays: [DayTotal] {
         [
             DayTotal(day: cal.startOfDay(for: date(2026, 7, 16, 0)), activeSeconds: 6.9 * 3600,
-                     sessionCount: 3, firstStart: date(2026, 7, 16, 9), lastEnd: date(2026, 7, 16, 17)),
+                     sessionCount: 3, firstStart: date(2026, 7, 16, 9), lastEnd: date(2026, 7, 16, 17),
+                     earned: 6.9 * 85),
             DayTotal(day: cal.startOfDay(for: date(2026, 7, 17, 0)), activeSeconds: 4.6 * 3600,
-                     sessionCount: 2, firstStart: date(2026, 7, 17, 10), lastEnd: date(2026, 7, 17, 15, 30)),
+                     sessionCount: 2, firstStart: date(2026, 7, 17, 10), lastEnd: date(2026, 7, 17, 15, 30),
+                     earned: 4.6 * 85),
         ]
     }
 

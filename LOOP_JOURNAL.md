@@ -7,6 +7,42 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:17 — [billing] Rate history — KEPT
+The worst of the three invoicing defects. Every earnings figure in the app
+was `activeSeconds × project.hourlyRate` — the CURRENT rate — and
+WorkSession stored no rate. A raise silently repriced every past day,
+including days already invoiced, so a re-export disagreed with the invoice
+the client had already paid.
+
+WorkSession now carries `hourlyRate`, stamped at record time. DayTotal
+carries `earned` rather than letting each consumer recompute it, because
+the sessions behind a day may have been worked at different rates; its
+`effectiveRate` blends a day that spans a change so `hours × printed rate`
+still reconciles with `earned`. CSV, Stats, the day rows, the session detail
+lines and today's money all read the carried figure. Legacy rows (rate 0)
+fall back to the project rate — exactly what they were billed under.
+
+MIGRATION PROVEN, NOT ASSUMED. This is the first iteration to change the
+shape of the billing store, so it was verified end to end rather than
+trusted: built the previous commit in a git worktree, ran it against a
+scratch data dir to write a store with the OLD schema (columns: Z_PK Z_ENT
+Z_OPT ZPROJECT ZACTIVESECONDS ZEND ZSTART), then opened that same file with
+the NEW binary. Result: ZHOURLYRATE added by lightweight migration, the
+existing session intact at 59.0s, its rate 0.0 -> project-rate fallback.
+
+GATE FAILURE ON THE WAY — 5 red, in CSVExporterTests. The failing
+assertions (586.50, 977.50) were RIGHT; the FIXTURE was incomplete, because
+a DayTotal must now carry its earned. Fixture updated to the same 85/h
+figures the assertions already expected; `git diff | grep XCTAssert`
+returned nothing, which is the check that the verifier stayed sacred. Had
+the assertions themselves needed changing, the correct move was revert.
+
+VERIFY met: RateHistoryTests — a raise does not reprice done work, the total
+always reconciles with the days across multiple changes, legacy rows price
+at the project rate, a day spanning a change blends, and the rate is
+stamped at record time rather than read later.
+Gate 137/137 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+
 ## 2026-08-20 ~18:20 — AUDIT iteration (bias: invoicing / CSV) — 3 goals added
 Walked the path a freelancer actually takes: work a month, open Stats,
 Export CSV, send it to a client who checks it. Three findings, all money.

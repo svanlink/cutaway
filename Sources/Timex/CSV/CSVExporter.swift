@@ -37,7 +37,11 @@ enum CSVExporter {
         timeF.calendar = calendar
 
         for d in ordered {
-            let earned = BillingEngine.earnings(activeSeconds: d.activeSeconds, hourlyRate: hourlyRate)
+            // The day carries what it earned, at the rates it was worked at.
+            // Recomputing from the project's CURRENT rate is what used to
+            // rewrite invoices that had already been sent.
+            let earned = d.earned
+            let rowRate = d.effectiveRate > 0 ? d.effectiveRate : hourlyRate
             cumSeconds += d.activeSeconds
             cumEarned += earned
             let wall = d.lastEnd.timeIntervalSince(d.firstStart)
@@ -56,7 +60,7 @@ enum CSVExporter {
                 timeF.string(from: d.lastEnd),
                 String(format: "%.2f", d.activeSeconds / 3600),
                 String(format: "%.2f", idleExcluded / 3600),
-                String(format: "%.2f", hourlyRate),
+                String(format: "%.2f", rowRate),
                 String(format: "%.2f", earned),
                 mode == .budget ? String(format: "%.2f", budget) : "",
                 mode == .budget ? String(format: "%.2f", budgetRemaining) : "",

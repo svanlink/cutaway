@@ -70,18 +70,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [billing] Rate changes rewrite history. `earned` is always
-  `activeSeconds × project.hourlyRate` — the CURRENT rate — and WorkSession
-  stores no rate of its own. Raise your rate mid-project and every past day
-  is silently recalculated, including days you already invoiced: the CSV you
-  export in October will not match the one you sent in September, and the
-  new one is the wrong one. Record the rate in force when the work happened
-  and bill from that. Legacy rows (rate 0) fall back to the project rate.
-  VERIFY: unit test — record days at 85, raise the project to 120, record
-  more; the old days still price at 85, the new at 120, and total_earned
-  equals the sum of the per-day values. Existing sessions keep pricing at
-  the project rate (migration is non-destructive).
-
 - [billing] There is no way to export an invoice PERIOD. Export dumps the
   entire project history every time, so billing a month means hand-editing
   the file in Excel — and the cumulative columns are computed over all time,
@@ -113,6 +101,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [billing] Rate history — work bills at the rate it was worked at — PENDING
 
 - [ux] Accessibility offered once, in context, with a real decline — 2234290
 

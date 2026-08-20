@@ -75,8 +75,9 @@ struct StatsView: View {
         let total = model.store.totalActiveSeconds(for: p) + model.engine.accumulator.activeSeconds
         let days = model.dayTotalsIncludingLive(for: p)
         let dayCount = max(days.count, days.isEmpty && total > 0 ? 1 : days.count)
-        let earned = BillingEngine.earnings(activeSeconds: total, hourlyRate: p.hourlyRate)
+        let earned = days.reduce(0) { $0 + $1.earned }
         let avg = model.store.avgDailySeconds(for: p)
+        let avgEarned = days.isEmpty ? 0 : earned / Double(days.count)
 
         VStack(spacing: DT.s2) {
             if p.mode == .budget {
@@ -89,7 +90,7 @@ struct StatsView: View {
                             sub: "\(dayCount) day\(dayCount == 1 ? "" : "s")")
                 supportStat(key: "AVG PER DAY", value: hours(avg),
                             sub: avg > 0
-                                ? "\(p.currency.formatWhole(BillingEngine.earnings(activeSeconds: avg, hourlyRate: p.hourlyRate))) / day"
+                                ? "\(p.currency.formatWhole(avgEarned)) / day"
                                 : "—")
             }
         }
@@ -205,7 +206,7 @@ struct StatsView: View {
                  + Text(" active").foregroundStyle(DT.text2))
                     .font(DT.captionMedium)
                 Spacer()
-                Text("Total  \(p.currency.format(BillingEngine.earnings(activeSeconds: total, hourlyRate: p.hourlyRate)))")
+                Text("Total  \(p.currency.format(days.reduce(0) { $0 + $1.earned }))")
                     .font(DT.bodyBold).foregroundStyle(DT.text).monospacedDigit()
             }
             .padding(.horizontal, 14)
@@ -240,7 +241,7 @@ struct StatsView: View {
                 }
             }
             .frame(height: 5)
-            Text(p.currency.format(BillingEngine.earnings(activeSeconds: d.activeSeconds, hourlyRate: p.hourlyRate)))
+            Text(p.currency.format(d.earned))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(DT.text)
                 .monospacedDigit()
@@ -271,13 +272,18 @@ struct StatsView: View {
         VStack(spacing: 0) {
             ForEach(sessions, id: \.persistentModelID) { s in
                 sessionLine(range: AppModel.sessionTimeRange(start: s.start, end: s.end),
-                            seconds: s.activeSeconds, project: p, isLive: false)
+                            seconds: s.activeSeconds,
+                            earned: s.earned(projectRate: p.hourlyRate),
+                            project: p, isLive: false)
             }
             // A day row that includes the running accumulator must itemise it,
             // or the parts visibly fail to add up to the total above them.
             if live > 0, let started = model.engine.accumulator.sessionStart {
                 sessionLine(range: AppModel.sessionTimeRange(start: started, end: Date()),
-                            seconds: live, project: p, isLive: true)
+                            seconds: live,
+                            earned: BillingEngine.earnings(activeSeconds: live,
+                                                           hourlyRate: p.hourlyRate),
+                            project: p, isLive: true)
             }
         }
         .padding(.leading, DT.s5)
@@ -288,7 +294,7 @@ struct StatsView: View {
         }
     }
 
-    private func sessionLine(range: String, seconds: TimeInterval,
+    private func sessionLine(range: String, seconds: TimeInterval, earned: Double,
                              project p: Project, isLive: Bool) -> some View {
         HStack(spacing: DT.s3) {
             Text(range)
@@ -301,7 +307,7 @@ struct StatsView: View {
             Spacer(minLength: DT.s2)
             Text(String(format: "%.1fh", seconds / 3600))
                 .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
-            Text(p.currency.format(BillingEngine.earnings(activeSeconds: seconds, hourlyRate: p.hourlyRate)))
+            Text(p.currency.format(earned))
                 .font(DT.captionMedium).foregroundStyle(DT.text2).monospacedDigit()
                 .frame(width: 96, alignment: .trailing)
         }

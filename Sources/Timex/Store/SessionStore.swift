@@ -59,9 +59,12 @@ final class SessionStore {
 
     /// Persists a closed session, splitting at midnight so day totals stay true.
     func record(_ record: SessionRecord, to project: Project, calendar: Calendar = .current) throws {
+        // Stamp the rate NOW. A raise next month must not reprice this work.
+        let rate = project.hourlyRate
         for part in DaySplitter.split(record, calendar: calendar) where part.activeSeconds > 0 {
             context.insert(WorkSession(start: part.start, end: part.end,
-                                       activeSeconds: part.activeSeconds, project: project))
+                                       activeSeconds: part.activeSeconds,
+                                       hourlyRate: rate, project: project))
         }
         try context.save()
     }
@@ -77,6 +80,12 @@ final class SessionStore {
 
     func totalActiveSeconds(for project: Project) -> TimeInterval {
         project.sessions.reduce(0) { $0 + $1.activeSeconds }
+    }
+
+    /// Summed from each session's own rate — never from the project's current
+    /// one, which is what used to rewrite invoiced history.
+    func totalEarned(for project: Project) -> Double {
+        project.sessions.reduce(0) { $0 + $1.earned(projectRate: project.hourlyRate) }
     }
 
     func activeSecondsToday(for project: Project, calendar: Calendar = .current, now: Date = Date()) -> TimeInterval {
@@ -105,7 +114,8 @@ final class SessionStore {
                 activeSeconds: sessions.reduce(0) { $0 + $1.activeSeconds },
                 sessionCount: sessions.count,
                 firstStart: sessions.map(\.start).min() ?? day,
-                lastEnd: sessions.map(\.end).max() ?? day
+                lastEnd: sessions.map(\.end).max() ?? day,
+                earned: sessions.reduce(0) { $0 + $1.earned(projectRate: project.hourlyRate) }
             )
         }
         .sorted { $0.day > $1.day }

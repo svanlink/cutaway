@@ -44,21 +44,43 @@ final class WorkSession {
     var start: Date
     var end: Date
     var activeSeconds: TimeInterval
+    /// The rate in force when this work happened. Money already invoiced must
+    /// not reprice because the project's rate changed later. 0 means a row
+    /// written before this field existed — those fall back to the project
+    /// rate, which is exactly the behaviour they were billed under.
+    var hourlyRate: Double = 0
     var project: Project?
 
-    init(start: Date, end: Date, activeSeconds: TimeInterval, project: Project?) {
+    init(start: Date, end: Date, activeSeconds: TimeInterval,
+         hourlyRate: Double, project: Project?) {
         self.start = start
         self.end = end
         self.activeSeconds = activeSeconds
+        self.hourlyRate = hourlyRate
         self.project = project
+    }
+
+    /// What this session is worth, at the rate it was worked at.
+    func earned(projectRate: Double) -> Double {
+        BillingEngine.earnings(activeSeconds: activeSeconds,
+                               hourlyRate: hourlyRate > 0 ? hourlyRate : projectRate)
     }
 }
 
 /// One row of the Daily Breakdown / CSV: a project's totals for one day.
+/// `earned` is carried, not recomputed downstream, because the sessions
+/// behind it may have been worked at different rates.
 struct DayTotal: Equatable, Sendable {
     var day: Date            // startOfDay
     var activeSeconds: TimeInterval
     var sessionCount: Int
     var firstStart: Date
     var lastEnd: Date
+    var earned: Double = 0
+
+    /// The rate this day actually billed at — the blended rate when a day
+    /// spans a rate change, so `hours × rate` always reconciles with `earned`.
+    var effectiveRate: Double {
+        activeSeconds > 0 ? earned / (activeSeconds / 3600) : 0
+    }
 }
