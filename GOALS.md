@@ -79,7 +79,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [hardening] Idle-during-render exemption — opt-in, cpu-evidenced, 30 min cap — PENDING
+- [hardening] Idle-during-render exemption — opt-in, cpu-evidenced, 30 min cap — 9205c5f
 
 - [polish] Session detail — day rows unfold into their sessions — ec0493e
 
