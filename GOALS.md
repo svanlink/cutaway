@@ -74,6 +74,41 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [billing] A manual pause does not survive a relaunch. `manuallyPaused` is
+  a plain var, never persisted, so quitting while paused — or a crash, or a
+  restart overnight — comes back recording. The app calls manual pause
+  sacred; this is the one way it silently un-pauses, and it fails in the
+  billing direction: time accrues that the user believed was stopped. Worse,
+  it is invisible, because a relaunched app looks exactly like one that was
+  never paused.
+  VERIFY: unit test — pause, simulate relaunch (fresh engine, same Prefs),
+  assert the state is still `.paused(.manual)` and that no seconds accrued
+  in between; unpausing clears the persisted flag; a never-paused install is
+  unaffected.
+
+- [hardening] The accumulator ends sessions on the wall clock while the
+  engine runs on an injectable one. `closeSessionIfOpen` calls
+  `endSession()` with its default `Date()`, so the single moment that
+  decides a session's END — and therefore which DAY it is billed to, via
+  DaySplitter — is the one place in the engine that ignores `now()`. In
+  production the two agree, so this is latent rather than live; it is also
+  exactly the kind of latent that surfaces as a wrong day boundary that no
+  test can reproduce, because the tests cannot reach it.
+  VERIFY: `endSession` is called with the engine's clock; an engine test
+  drives a session across a virtual midnight and asserts the record's `end`
+  is on the virtual clock, not the wall clock.
+
+- [ux] The user cannot tell WHY the timer is still running. `.recording` is
+  opaque: it looks identical whether Resolve is frontmost or whether a
+  browser is sustaining the clock inside the research window. So an editor
+  researching in Chrome has no idea they are inside a 20-minute window that
+  will expire silently — and when it does, tracking stops with no event they
+  can perceive. Trust runs both directions: the app is careful not to
+  over-bill, and it should be equally clear about when it is about to stop.
+  VERIFY: recording carries its sustaining reason (anchor vs satellite, with
+  time left in the window); unit tests cover each branch; the pill or panel
+  surfaces it; design gate for the view.
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 

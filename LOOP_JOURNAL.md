@@ -7,6 +7,45 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:58 — AUDIT iteration (detection engine — the billing logic)
+No bias was sent this tick, so took the area flagged as least-audited and
+highest-stakes: the engine's own rules, where the money is actually decided.
+Read evaluate(), tick(), the accumulator and the bridge/satellite handling
+line by line.
+
+1. MANUAL PAUSE DOES NOT SURVIVE RELAUNCH. `manuallyPaused` is a plain var.
+   Quit while paused, or crash, or restart overnight, and the app comes back
+   recording. The app calls this boundary sacred — and it is, within a
+   single run. Across runs it silently lifts, in the billing direction, and
+   invisibly, because a relaunched app looks exactly like one that was never
+   paused. Of everything found in three audits, this is the one that most
+   directly contradicts a promise the app makes about itself.
+
+2. THE ACCUMULATOR ENDS SESSIONS ON THE WALL CLOCK. `closeSessionIfOpen`
+   calls `endSession()` with its default `Date()`, so the single moment that
+   decides a session's end — and via DaySplitter, which DAY it bills to — is
+   the one place in the engine that ignores the injectable `now()`. Latent
+   in production (the clocks agree), but it is precisely the kind of latent
+   that shows up as a wrong day boundary the tests structurally cannot
+   reproduce.
+
+3. RECORDING IS OPAQUE. `.recording` looks the same whether Resolve is
+   frontmost or a browser is sustaining the clock inside the research
+   window. An editor researching in Chrome cannot see that they are inside a
+   20-minute window, and when it expires, tracking stops with no perceptible
+   event. The app is scrupulous about not over-billing; it should be equally
+   clear about when it is about to stop counting.
+
+Checked and found CORRECT (recorded so a later audit skips it): sleep during
+a bridge gap closes and clears the gap; the accumulator credits the
+post-transition state, so a transition tick under-bills by at most a second
+rather than over-billing; `pausedLong` resets on unpause; bridge credit is
+refused once a session has ended, so a project switch mid-gap cannot move
+another project's time; the 20-entry `closedSessions` cap is diagnostics
+only and cannot affect persistence.
+
+No code changed this iteration.
+
 ## 2026-08-20 ~18:57 — [perf] Today's totals memoised — KEPT
 The menu-bar panel renders a row per project on every tick and each row
 asked the store for that project's total today, which filtered that
