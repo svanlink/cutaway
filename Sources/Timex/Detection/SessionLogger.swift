@@ -9,11 +9,45 @@ final class SessionLogger: @unchecked Sendable {
     private let iso = ISO8601DateFormatter()
     private let queue = DispatchQueue(label: "session-logger")
 
-    init() {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    /// Roll at 2 MB, keeping one previous file — so the log costs at most
+    /// ~4 MB forever instead of growing for as long as the app is used. It
+    /// is a diagnostic, not an archive.
+    static let defaultMaxBytes = 2 * 1024 * 1024
+
+    /// Where the log belongs, given whether this is a verification run.
+    /// Pure so the rule is testable without an environment.
+    static func directory(scenarioDataDir: String?) -> URL {
+        // A scenario run must not write into the user's real data directory.
+        // The scenario STORE has always been quarantined; the log never was,
+        // so every smoke run appended to the file a real user accumulates.
+        if let scenarioDataDir { return URL(fileURLWithPath: scenarioDataDir) }
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Cutaway", isDirectory: true)
+    }
+
+    init(directory: URL? = nil, maxBytes: Int = SessionLogger.defaultMaxBytes) {
+        let dir = directory ?? Self.directory(scenarioDataDir: ScenarioMode.dataDir)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         fileURL = dir.appendingPathComponent("detection-log.jsonl")
+        rollIfOversized(maxBytes: maxBytes)
+    }
+
+    /// Rolled at launch rather than per write: the check costs one stat call
+    /// once, instead of one on every checkpoint for the life of the process.
+    private func rollIfOversized(maxBytes: Int) {
+        let fm = FileManager.default
+        guard let size = (try? fm.attributesOfItem(atPath: fileURL.path)[.size]) as? Int,
+              size > maxBytes else { return }
+        let previous = fileURL.deletingLastPathComponent()
+            .appendingPathComponent("detection-log.1.jsonl")
+        try? fm.removeItem(at: previous)
+        try? fm.moveItem(at: fileURL, to: previous)
+    }
+
+    /// Test hook: the writer is asynchronous, and a test that reads the file
+    /// before the queue drains is a flaky test, not a fast one.
+    func flush() {
+        queue.sync {}
     }
 
     func log(event: String, detail: String = "", input: DetectionInput? = nil) {

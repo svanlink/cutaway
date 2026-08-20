@@ -98,18 +98,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [data] Verification runs write into the user's real data directory, and
-  the log grows forever. `SessionLogger` ignores `ScenarioMode.dataDir`
-  entirely, so every scenario run appends to the same
-  `~/Library/Application Support/Cutaway/detection-log.jsonl` a real user
-  accumulates. On this machine that file is already 3.1 MB / 39,705 lines,
-  35,213 of them checkpoints — from a few days of development, not a year of
-  editing. It is also a permanent plaintext record of every app the user
-  focused, which the app never promised to keep and never trims.
-  VERIFY: unit test — a logger given a scenario data dir writes there and
-  never touches Application Support; rotation caps the file (size or lines)
-  and keeps the newest entries; a fresh install is unaffected.
-
 - [perf] Deciding whether to back up costs two full reads of the store, on
   the launch path, before the UI exists. The skip-check does
   `Data(contentsOf:)` on both the previous backup and the current store and
@@ -132,6 +120,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [data] Log quarantined from verification runs and bounded at ~4 MB — PENDING
 
 - [data] Backup skip-check reads the whole store, WAL included — 43e981c
 

@@ -7,6 +7,44 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~20:03 — [data] The log is quarantined and bounded — KEPT
+Two defects in one file. `SessionLogger` ignored `ScenarioMode.dataDir`, so
+every verification run appended to the log a real user accumulates — the
+scenario STORE had always been quarantined, the log never was. And nothing
+ever bounded it: 3.1 MB / 39,705 lines on this machine from days of
+development, 35,213 of them 15-second checkpoints.
+
+Both fixed. `SessionLogger.directory(scenarioDataDir:)` is pure, so the rule
+is testable without an environment, and it sends scenario runs to their own
+quarantined directory. The log rolls once at launch when it exceeds 2 MB,
+keeping exactly one previous file — so the cost is BOUNDED at ~4 MB rather
+than merely slowed. Rolled at launch rather than per write: one stat call
+once, not one on every checkpoint for the life of the process.
+
+PROVEN END TO END, not asserted: recorded the real log's size, ran
+`smoke.sh "" 3`, recorded it again — 13,325 bytes before and after,
+unchanged. Under the old code those three runs would have added thousands of
+lines to it.
+
+Observed while checking: the rotation had already fired on this machine
+during the run — the 3.1 MB file is now `detection-log.1.jsonl` and the live
+log restarted at 13 KB. That is the feature working on real data, and worth
+naming rather than leaving for the user to discover. The old file is still
+there; deleting it is the user's call, not a side effect of a fix.
+
+Deliberately NOT done: reducing what gets logged. 35,213 of 39,705 lines
+being checkpoints is striking, but the defect was that the log had no
+bound — and it now has one regardless of volume. Trimming the diagnostic
+because it is voluminous would trade away crash forensics for a problem
+already solved.
+
+VERIFY met: SessionLoggerTests — scenario runs write to their own directory,
+real runs still use Application Support, an oversized log rolls without
+truncating what it keeps, rolling twice keeps only one previous file, a
+small log is untouched, a fresh install has nothing to roll, and the log
+still writes valid JSON lines.
+Gate 202/202 + smoke ALL PASS (3 iterations) + UI tests pass.
+
 ## 2026-08-20 ~19:54 — [data] The backup skip-check sees the whole store — KEPT
 `StoreBackup` byte-compared only the main `.store` against the newest
 backup's copy. SQLite runs in WAL mode, so recent writes live in `-wal`
