@@ -18,10 +18,14 @@ final class SessionStore {
     /// test can prove rendering does not re-walk it.
     private(set) var sessionScanCount = 0
 
-    init(inMemory: Bool = false) throws {
+    init(inMemory: Bool = false, url: URL? = nil) throws {
         let config: ModelConfiguration
         if inMemory {
             config = ModelConfiguration(isStoredInMemoryOnly: true)
+        } else if let url {
+            // Explicit location — used to prove that a restored backup really
+            // opens and still holds the work someone invoiced against.
+            config = ModelConfiguration(url: url)
         } else if let dir = ScenarioMode.dataDir {
             // Verification runs live in their own quarantined store — the
             // real billing database is untouchable from scenario mode.
