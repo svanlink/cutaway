@@ -35,6 +35,18 @@ struct SettingsView: View {
                     .labelsHidden().frame(width: 130)
                 }
                 divider
+                row("Keep counting during renders",
+                    sub: "Bills export time with no input — only while Resolve is provably busy, max 30 min") {
+                    Toggle("", isOn: Binding(
+                        get: { Prefs.bool(forKey: "idleRenderExemption") },
+                        set: { Prefs.set($0, forKey: "idleRenderExemption")
+                               model.engine.renderExemption = $0 }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .tint(DT.orange)
+                }
+                divider
                 row("Workflow apps", sub: "Time in these counts toward the project") {
                     Button("\(model.engine.workAppPrefixes.count) apps  ·  Edit…") { editingWorkApps = true }
                         .popover(isPresented: $editingWorkApps, arrowEdge: .bottom) {

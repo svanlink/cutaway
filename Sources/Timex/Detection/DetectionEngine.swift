@@ -28,6 +28,20 @@ final class DetectionEngine {
     /// Research window: satellite apps sustain recording only this long after
     /// the last anchor (Resolve/Adobe) activity.
     var satelliteWindow: TimeInterval = Prefs.object(forKey: "satelliteWindow") as? TimeInterval ?? 1200
+    /// Opt-in: keep billing while a render burns cpu with nobody touching the
+    /// keyboard. OFF by default — every other rule in this app resolves
+    /// ambiguity toward under-billing, and this one resolves the other way.
+    var renderExemption: Bool = Prefs.bool(forKey: "idleRenderExemption")
+    /// % of one core, sustained, that counts as "rendering". Machines differ;
+    /// this is the knob to turn if idle Resolve trips it (or a render doesn't).
+    static let renderCPUThreshold: Double = 50
+    /// An unattended overnight render is not a working day. The exemption
+    /// expires after this long and the idle pause takes over as usual.
+    static let renderExemptionCap: TimeInterval = 1800
+    /// Two samples make a rate; the probe stays stateless, the engine remembers.
+    private var lastCPUSample: (nanos: UInt64, at: Date)?
+    /// When the current exemption started carrying an idle stretch.
+    private(set) var renderExemptStart: Date?
     /// Last moment an anchor app was frontmost with fresh input.
     private var lastAnchorActive: Date?
     /// When we left the work context while recording — the bridge window.
@@ -119,6 +133,7 @@ final class DetectionEngine {
         input.satelliteWindowOpen = lastAnchorActive.map {
             now().timeIntervalSince($0) <= satelliteWindow
         } ?? false
+        input.renderExemptionActive = evaluateRenderExemption(input)
         let newState = DetectionState.evaluate(input)
         if newState != state {
             logger.log(event: "transition", detail: describe(newState), input: input)
@@ -183,6 +198,29 @@ final class DetectionEngine {
 
     /// Called after every tick — AppModel hooks project auto-detection here.
     var onTick: (() -> Void)?
+
+    /// Is an anchor app provably rendering through this idle stretch?
+    /// Sampled every tick so the rate is always fresh, but it can only ever
+    /// suppress the idle pause — never start a session, never outrank a
+    /// manual pause, and never run past the cap.
+    private func evaluateRenderExemption(_ input: DetectionInput) -> Bool {
+        let t = now()
+        let nanos = probes.workAppCPUNanos(matching: workAppPrefixes)
+        let previous = lastCPUSample
+        lastCPUSample = (nanos, t)
+        guard renderExemption else { renderExemptStart = nil; return false }
+        // Below the idle threshold the user is present; nothing to exempt.
+        guard input.secondsSinceInput >= idleThreshold else { renderExemptStart = nil; return false }
+        guard let previous, nanos >= previous.nanos else { return false }
+        let elapsed = t.timeIntervalSince(previous.at)
+        guard elapsed > 0 else { return renderExemptStart != nil }
+        let percent = Double(nanos - previous.nanos) / 1_000_000_000 / elapsed * 100
+        guard percent >= Self.renderCPUThreshold else { renderExemptStart = nil; return false }
+        let started = renderExemptStart ?? t
+        renderExemptStart = started
+        // Cap reached: stop exempting, and do not re-arm until input returns.
+        return t.timeIntervalSince(started) <= Self.renderExemptionCap
+    }
 
     private func snapshotOpenSession() {
         guard let start = accumulator.sessionStart else { return }

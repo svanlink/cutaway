@@ -7,6 +7,35 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~17:44 — [hardening] Idle-during-render exemption — KEPT
+An export runs for 20 minutes, the editor watches it, touches nothing, and
+the timer pauses at the idle threshold. That is real work going unbilled —
+but the fix is the ONE rule in this app that resolves ambiguity toward
+billing MORE, so it is fenced on every side:
+- OFF by default. Opt-in toggle in Settings → TRACKING.
+- Evidence required. Not "Resolve is open" — sustained cpu on an anchor
+  process, sampled from proc_pid_rusage. Threshold 50% of one core, a named
+  constant because machines differ and this is the knob to turn.
+- Capped at 30 minutes per idle stretch. An unattended overnight render is
+  not a working day. Input returning re-arms a fresh cap.
+- Outranked by everything hard. It suppresses `.inputIdle` and nothing else,
+  so manual pause, sleep, no-project and leaving the work context all still
+  win — proven by test, not by reading.
+
+Probe returns CUMULATIVE nanoseconds, not a percentage, so SystemProbing
+stays stateless and the engine owns the two samples a rate needs. A default
+implementation returning 0 means every existing fake probe compiles
+untouched — the diff never reached the other engine tests.
+
+One test failure on the way, worth recording: the accrual test jumped the
+clock 10s and got 5s, because the engine deliberately caps a single tick's
+delta at 5s against RunLoop stalls. The ENGINE was right and the new test
+was wrong; fixed the test to tick at 1 Hz like the real timer. (No existing
+assertion was touched — the verifier stays sacred.)
+
+VERIFY met: RenderExemptionTests, 7 engine tests.
+Gate 113/113 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+
 ## 2026-08-20 ~17:29 — [polish] Session detail view — KEPT
 A Daily Breakdown row is a claim ("4.6 h, CHF 391"). Until now there was no
 way to see what it was made of, which is exactly the question a client

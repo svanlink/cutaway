@@ -69,7 +69,6 @@ Readiness checklist (each item needs proof, not belief):
 
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
-- [hardening] Idle-during-render exemption toggle — VERIFY: engine test.
 
 Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - Accessibility audit UI test must pass.
@@ -79,6 +78,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [hardening] Idle-during-render exemption — opt-in, cpu-evidenced, 30 min cap — PENDING
 
 - [polish] Session detail — day rows unfold into their sessions — ec0493e
 

@@ -32,6 +32,10 @@ struct DetectionInput: Sendable {
     /// True while within the research window of the last anchor activity —
     /// computed by the engine, consumed here.
     var satelliteWindowOpen: Bool = false
+    /// True while an anchor app is provably burning cpu (a render/export) and
+    /// the user has opted into billing that. Suppresses the idle pause ONLY —
+    /// manual pause, sleep and leaving the work context still outrank it.
+    var renderExemptionActive: Bool = false
 
     /// Resolve ships under one bundle id, but keep this a set so App Store /
     /// regional variants can be added without touching logic.
@@ -102,7 +106,9 @@ extension DetectionState {
         if input.isAsleep { return .paused(.systemSleep) }
         if !input.hasActiveProject { return .paused(.noProject) }
         guard input.isWorkContext else { return .paused(.notFrontmost) }
-        if input.secondsSinceInput >= input.idleThreshold { return .paused(.inputIdle) }
+        if input.secondsSinceInput >= input.idleThreshold, !input.renderExemptionActive {
+            return .paused(.inputIdle)
+        }
         return .recording
     }
 }
