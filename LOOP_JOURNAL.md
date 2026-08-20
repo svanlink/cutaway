@@ -7,6 +7,30 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:05 — [ux] First-run money defaults — KEPT
+The defaults question had three answers on one Mac: SettingsView defaulted
+to CHF, NewProjectSheet hardcoded `rate = "85.00"` / `currency = .chf` as
+@State, and AppModel.switchOrCreate read the prefs. Set your defaults in
+Settings and the New Project form still said 85 CHF; auto-created projects
+and hand-created ones disagreed.
+
+Now one source: `AppModel.defaultCurrency` / `AppModel.defaultHourlyRate`.
+All three call sites read them. The currency falls back to
+`TimexCurrency.fromLocale()` rather than a hardcoded CHF, so a first-run
+user in Berlin starts in EUR — but a written pref always outranks the
+locale, and a locale Cutaway does not support (JPY, GBP) falls back to CHF
+rather than inventing an unsupported currency.
+
+Bonus catch: the rate default now runs through `clampedRate`, so a corrupt
+or hand-edited pref cannot seed a negative or six-figure rate onto a new
+project — the clamp existed but the default path bypassed it.
+
+VERIFY met: MoneyDefaultsTests — locale mapping for all four supported
+currencies, unsupported-locale fallback, pref-outranks-locale, unreadable
+pref, clamping, and the regression itself (every creation path reads the
+same accessors).
+Gate 120/120 + smoke ALL PASS (3 iterations) + UI tests pass.
+
 ## 2026-08-20 ~17:56 — AUDIT iteration (bias: first-run experience) — 3 goals added
 Backlog was empty but for the Resolve-blocked Tier-1 goal, so the run-dry
 rule fired: generate goals rather than stop. Human asked for a first-run

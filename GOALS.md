@@ -67,19 +67,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [ux] First-run money defaults are wrong twice over. NewProjectSheet
-  hardcodes `rate = "85.00"` and `currency = .chf`, ignoring the
-  `defaultHourlyRate` / `defaultCurrency` prefs that Settings writes and
-  that auto-created projects (AppModel.switchOrCreate) already honour — so
-  the same Mac creates projects two different ways. And the pref itself
-  defaults to CHF for everyone, so a first-run user in Berlin invoices in
-  francs unless they notice a picker on a form they were shown before they
-  understood the app. Seed the sheet from the prefs, and seed the prefs from
-  the Mac's locale on first launch.
-  VERIFY: unit test — sheet defaults equal prefs; locale map covers CHF/EUR/
-  USD/COP with a CHF fallback for anything unsupported; a sheet-created and
-  an auto-created project agree on rate and currency.
-
 - [ux] The zero state says nothing. Cancel the first-run sheet and the timer
   is a 0:00 ring, a red pill, and no explanation — the meaning of red lives
   in the README, not the app. Give it a real zero state: name what Cutaway
@@ -108,6 +95,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [ux] First-run money defaults — one source, locale-seeded — PENDING
 
 - [hardening] Idle-during-render exemption — opt-in, cpu-evidenced, 30 min cap — 9205c5f
 

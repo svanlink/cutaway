@@ -7,9 +7,11 @@ struct NewProjectSheet: View {
     @State private var name = ""
     @State private var client = ""
     @State private var mode: BillingMode = .hourly
-    @State private var rate = "85.00"
+    // Seeded from the shared defaults, not invented here — a project created
+    // on this form and one auto-created from Resolve must agree.
+    @State private var rate = String(format: "%.2f", AppModel.defaultHourlyRate)
     @State private var budget = ""
-    @State private var currency: TimexCurrency = .chf
+    @State private var currency: TimexCurrency = AppModel.defaultCurrency
 
     var body: some View {
         VStack(alignment: .leading, spacing: DT.s3) {
@@ -34,7 +36,7 @@ struct NewProjectSheet: View {
 
             HStack(spacing: DT.s3) {
                 field("HOURLY RATE") {
-                    TextField("85.00", text: $rate).textFieldStyle(.plain)
+                    TextField(String(format: "%.2f", AppModel.defaultHourlyRate), text: $rate).textFieldStyle(.plain)
                 }
                 if mode == .budget {
                     field("BUDGET") {

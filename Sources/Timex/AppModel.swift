@@ -41,6 +41,20 @@ final class AppModel {
         min(max(0, rate), 99_999)
     }
 
+    /// Money defaults live in ONE place. Three call sites used to answer this
+    /// question differently — Settings, the New Project sheet, and
+    /// auto-creation — which is how one Mac ended up creating projects two
+    /// ways and invoicing in a currency nobody chose.
+    static var defaultCurrency: TimexCurrency {
+        if let raw = Prefs.string(forKey: "defaultCurrency"),
+           let stored = TimexCurrency(rawValue: raw) { return stored }
+        return TimexCurrency.fromLocale()
+    }
+
+    static var defaultHourlyRate: Double {
+        clampedRate(Prefs.object(forKey: "defaultHourlyRate") as? Double ?? 85)
+    }
+
     var dailyGoalHours: Double {
         get { Prefs.object(forKey: "dailyGoalHours") as? Double ?? 8 }
         set { Prefs.set(newValue, forKey: "dailyGoalHours") }
@@ -229,10 +243,8 @@ final class AppModel {
             return
         }
         guard canCreate else { return }
-        let d = Prefs
-        let currency = TimexCurrency(rawValue: d.string(forKey: "defaultCurrency") ?? "CHF") ?? .chf
-        let rate = d.object(forKey: "defaultHourlyRate") as? Double ?? 85
-        createProject(name: name, client: "", mode: .hourly, rate: rate, budget: 0, currency: currency)
+        createProject(name: name, client: "", mode: .hourly,
+                      rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency)
     }
 
     func select(_ project: Project) {

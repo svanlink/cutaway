@@ -5,7 +5,7 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     @AppStorage("idleThreshold") private var idleThreshold: Double = 120
     @AppStorage("dailyGoalHours") private var dailyGoal: Double = 8
-    @AppStorage("defaultCurrency") private var defaultCurrency = TimexCurrency.chf.rawValue
+    @AppStorage("defaultCurrency") private var defaultCurrency = AppModel.defaultCurrency.rawValue
     @State private var editingWorkApps = false
     @State private var editingSatellites = false
 
@@ -85,7 +85,7 @@ struct SettingsView: View {
             section("BILLING") {
                 row("Default hourly rate", sub: "Auto-detected projects start with this rate") {
                     TextField("85", value: Binding(
-                        get: { Prefs.object(forKey: "defaultHourlyRate") as? Double ?? 85 },
+                        get: { AppModel.defaultHourlyRate },
                         set: { Prefs.set(AppModel.clampedRate($0), forKey: "defaultHourlyRate") }
                     ), format: .number)
                     .textFieldStyle(.roundedBorder)

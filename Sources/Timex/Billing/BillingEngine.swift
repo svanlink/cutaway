@@ -70,6 +70,17 @@ enum TimexCurrency: String, CaseIterable, Codable, Sendable {
     case eur = "EUR"
     case usd = "USD"
 
+    /// The currency to start a first-run user on. Cutaway supports four; a
+    /// Mac set to anything else falls back to CHF rather than inventing an
+    /// unsupported one. Only ever a STARTING point — the pref, once written,
+    /// outranks the locale.
+    static func fromLocale(_ locale: Locale = .current) -> TimexCurrency {
+        guard let code = locale.currency?.identifier,
+              let match = TimexCurrency(rawValue: code.uppercased())
+        else { return .chf }
+        return match
+    }
+
     var symbol: String {
         switch self {
         case .chf: return "CHF"
