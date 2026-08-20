@@ -102,7 +102,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [billing] Rate history — work bills at the rate it was worked at — PENDING
+- [billing] Rate history — work bills at the rate it was worked at — 3a9d1c2
 
 - [ux] Accessibility offered once, in context, with a real decline — 2234290
 
