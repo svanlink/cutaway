@@ -97,7 +97,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [hardening] Every engine time read goes through the injectable clock — PENDING
+- [hardening] Every engine time read goes through the injectable clock — 0ddb8c2
 
 - [billing] Manual pause survives a relaunch — 60a3bf4
 
