@@ -8,14 +8,32 @@ Rules of the loop (Karpathy autoresearch style):
 - The verifier is sacred: `Tests/` and `scenarios/` may gain new checks but
   existing assertions may never be weakened to make a change pass.
   (Autoresearch rule: the evaluator lives outside the editable surface.)
-- Gate for every iteration: 72+ unit tests green AND `./scripts/smoke.sh "" 3`
+- Gate for every iteration: ALL unit tests green (101 and rising) AND `./scripts/smoke.sh "" 3`
   ALL PASS. A change that fails the gate is reverted, not patched forward.
 - JOURNAL every iteration in LOOP_JOURNAL.md: what was tried, result,
   kept or reverted, and why. Failures are data — record them so the loop
   resumes instead of restarts.
 - Bilevel rule: after 2 consecutive reverted iterations, the next iteration
   must be a research/re-plan iteration (change the approach, not retry).
-- Each completed goal: conventional commit, push. Move to Done with hash.
+- Each completed goal: conventional commit. Move to Done with hash.
+
+Adopted verbatim from karpathy/autoresearch `program.md` (the loop this one
+is modelled on), because they were the parts we were only half-doing:
+- ADVANCE OR RESET. The gate is the metric. Gate green -> keep the commit and
+  advance the branch. Gate red -> `git reset` back to where the iteration
+  started. Never patch a red gate forward, never weaken it to go green.
+- LEDGER. Every iteration gets a row in `LOOP_RESULTS.tsv` (tab-separated,
+  untracked by design): commit, gate, test count, status keep/discard/crash,
+  description. The prose journal explains; the ledger is greppable state.
+- SIMPLICITY CRITERION. All else equal, simpler wins. A small improvement
+  that adds ugly complexity is not worth it. An improvement that DELETES
+  code is the best outcome there is. Equal result with less code: keep.
+- NEVER STOP. Once the loop is running, do not pause to ask whether to
+  continue or which goal is next — the backlog is ordered, take the top one.
+  The human may be asleep. They interrupt the loop; the loop doesn't
+  interrupt them. (Outward-facing acts — pushing, releasing — stay off the
+  autonomous path and wait for a human word.)
+- The run lives on `autoresearch/<tag>`, never directly on main.
 
 ## Production push — deadline 06:00 today
 
