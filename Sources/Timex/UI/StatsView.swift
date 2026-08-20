@@ -132,10 +132,11 @@ struct StatsView: View {
         case .warn75: DT.amber
         case .warn90, .over: DT.red
         }
-        let forecast = BillingEngine.forecastDaysLeft(
+        let forecast = BillingEngine.forecast(
             remaining: status.remaining,
             avgDailySeconds: model.store.avgDailySeconds(for: p),
-            hourlyRate: p.hourlyRate
+            hourlyRate: p.hourlyRate,
+            daysWorked: model.store.dayTotals(for: p).count
         )
 
         VStack(spacing: 6) {
@@ -155,8 +156,8 @@ struct StatsView: View {
                 }
             }
             .frame(height: 5)
-            if let f = forecast {
-                Text("≈ \(String(format: "%.1f", f)) working days left at current pace")
+            if let line = BillingEngine.forecastLine(forecast) {
+                Text(line)
                     .font(DT.captionMedium)
                     .foregroundStyle(status.warning == .none ? DT.text3 : DT.amber)
                     .frame(maxWidth: .infinity, alignment: .leading)

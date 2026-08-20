@@ -54,17 +54,20 @@ final class BillingEngineTests: XCTestCase {
 
     func testForecastWorkingDaysLeft() {
         // remaining 990, avg 4.6h/day at 85/h → 990 / 391 = 2.53 days
-        let days = BillingEngine.forecastDaysLeft(remaining: 990, avgDailySeconds: 4.6 * 3600, hourlyRate: 85)
-        XCTAssertNotNil(days)
-        XCTAssertEqual(days!, 2.53, accuracy: 0.01)
+        let f = BillingEngine.forecast(remaining: 990, avgDailySeconds: 4.6 * 3600,
+                                       hourlyRate: 85, daysWorked: 5)
+        guard case .days(let days) = f else { return XCTFail("expected a forecast, got \(f)") }
+        XCTAssertEqual(days, 2.53, accuracy: 0.01)
     }
 
     func testForecastNilWhenNoPace() {
-        XCTAssertNil(BillingEngine.forecastDaysLeft(remaining: 990, avgDailySeconds: 0, hourlyRate: 85))
+        XCTAssertEqual(BillingEngine.forecast(remaining: 990, avgDailySeconds: 0,
+                                              hourlyRate: 85, daysWorked: 5), .paceUnknown)
     }
 
     func testForecastNilWhenOverBudget() {
-        XCTAssertNil(BillingEngine.forecastDaysLeft(remaining: -10, avgDailySeconds: 3600, hourlyRate: 85))
+        XCTAssertEqual(BillingEngine.forecast(remaining: -10, avgDailySeconds: 3600,
+                                              hourlyRate: 85, daysWorked: 5), .paceUnknown)
     }
 
     // MARK: - Daily goal

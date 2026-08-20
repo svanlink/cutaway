@@ -33,13 +33,53 @@ enum BillingEngine {
         return BudgetStatus(percentUsed: pct, remaining: budget - usedAmount, warning: warning)
     }
 
-    /// "≈ N working days left at current pace". Nil when there is no pace
-    /// to extrapolate from or the budget is already exhausted.
-    static func forecastDaysLeft(remaining: Double, avgDailySeconds: TimeInterval, hourlyRate: Double) -> Double? {
-        guard remaining > 0, avgDailySeconds > 0, hourlyRate > 0 else { return nil }
+    /// What can honestly be said about how long a budget will last.
+    ///
+    /// A rate divided by a near-zero pace is arithmetically fine and
+    /// practically a lie: twenty-two seconds of tracked work against a 4'500
+    /// budget extrapolates to 10,858 working days — forty-three years,
+    /// printed to one decimal place as though it meant something. A forecast
+    /// has to know when it does not have enough to forecast from.
+    enum BudgetForecast: Equatable {
+        /// Enough worked history to extrapolate from.
+        case days(Double)
+        /// Too little tracked work to claim a pace. Say nothing.
+        case paceUnknown
+        /// The pace is real but so slow the number stops being information.
+        case beyondHorizon
+    }
+
+    /// A working year. Past this, "how many days" is not the useful answer.
+    static let forecastHorizonDays: Double = 250
+    /// Below a quarter hour a day, a "pace" is noise being amplified.
+    static let forecastMinimumDailySeconds: TimeInterval = 15 * 60
+    /// One day is a sample of one. Two is the least that can trend.
+    static let forecastMinimumDaysWorked = 2
+
+    static func forecast(remaining: Double, avgDailySeconds: TimeInterval,
+                         hourlyRate: Double, daysWorked: Int) -> BudgetForecast {
+        guard remaining > 0, hourlyRate > 0 else { return .paceUnknown }
+        guard daysWorked >= forecastMinimumDaysWorked,
+              avgDailySeconds >= forecastMinimumDailySeconds else { return .paceUnknown }
         let dailyBurn = earnings(activeSeconds: avgDailySeconds, hourlyRate: hourlyRate)
-        guard dailyBurn > 0 else { return nil }
-        return remaining / dailyBurn
+        guard dailyBurn > 0 else { return .paceUnknown }
+        let days = remaining / dailyBurn
+        return days > forecastHorizonDays ? .beyondHorizon : .days(days)
+    }
+
+    /// The sentence the budget card prints, or nil when there is nothing
+    /// honest to say yet.
+    static func forecastLine(_ forecast: BudgetForecast) -> String? {
+        switch forecast {
+        case .paceUnknown:
+            return nil
+        case .beyondHorizon:
+            return "More than a year left at current pace"
+        case .days(let d):
+            return d < 1.0
+                ? "Less than a working day left at current pace"
+                : "≈ \(String(format: "%.1f", d)) working days left at current pace"
+        }
     }
 
     // MARK: - Daily goal
