@@ -86,7 +86,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [billing] Invoice arithmetic — round once, then sum — PENDING
+- [billing] Invoice arithmetic — round once, then sum — 299c119
 
 - [billing] Invoice period export — presets, filtered in the exporter — 557f59c
 
