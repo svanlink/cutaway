@@ -72,7 +72,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [polish] Session detail — day rows unfold into their sessions — PENDING
+- [polish] Session detail — day rows unfold into their sessions — ec0493e
 
 - [design] Stats hierarchy pass — one money lead + two support stats — 75dbf4d
 
