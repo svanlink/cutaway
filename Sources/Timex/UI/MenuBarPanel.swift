@@ -44,12 +44,12 @@ struct MenuBarPanel: View {
                     Text(model.selectedProject?.client.isEmpty == false
                          ? model.selectedProject!.client.uppercased()
                          : "CUTAWAY")
-                        .font(.system(size: 10.5, weight: .bold))
+                        .font(DT.panelClient)
                         .kerning(0.84)
                         .foregroundStyle(isRecording ? accent : DT.text3)
                         .padding(.top, 3)
                     Text(model.selectedProject?.name ?? "No project")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(DT.panelProject)
                         .foregroundStyle(DT.text)
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -85,8 +85,8 @@ struct MenuBarPanel: View {
         let main = String(format: "%d:%02d", s / 3600, (s % 3600) / 60)
         let sec = String(format: ":%02d", s % 60)
         return HStack(alignment: .firstTextBaseline, spacing: 2) {
-            Text(main).font(.system(size: 38, weight: .thin)).foregroundStyle(DT.text)
-            Text(sec).font(.system(size: 20, weight: .light)).foregroundStyle(DT.text2)
+            Text(main).font(DT.panelHero).foregroundStyle(DT.text)
+            Text(sec).font(DT.panelHeroSeconds).foregroundStyle(DT.text2)
         }
         .monospacedDigit()
     }
@@ -184,7 +184,7 @@ struct MenuBarPanel: View {
                 model.openMainWindow?()
             } label: {
                 Text("Stats ↗")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DT.smallSemibold)
                     .foregroundStyle(DT.text2)
                     .frame(maxWidth: .infinity)
                     .frame(height: 26)
@@ -205,7 +205,7 @@ struct MenuBarPanel: View {
     private func footBtn(_ label: String, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 12, weight: .semibold))
+                .font(DT.smallSemibold)
                 .foregroundStyle(DT.text2)
                 .frame(width: 32, height: 26)
                 .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
@@ -238,14 +238,14 @@ private struct PanelRow: View {
                             .frame(width: 11, height: 11)
                     } else {
                         Image(systemName: "play.fill")
-                            .font(.system(size: 8))
+                            .font(DT.glyphTiny)
                             .foregroundStyle(DT.text3)
                     }
                 }
                 .frame(width: 26, height: 26)
 
                 Text(project.name)
-                    .font(.system(size: 13, weight: isRunning ? .semibold : .medium))
+                    .font(isRunning ? DT.panelRowActive : DT.body)
                     .foregroundStyle(isRunning ? DT.text : DT.text2)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -253,7 +253,7 @@ private struct PanelRow: View {
 
                 if isRunning, sessionSeconds >= 1 {
                     Text(shortTime(sessionSeconds))
-                        .font(.system(size: 11.5, weight: .bold))
+                        .font(DT.panelChip)
                         .foregroundStyle(DT.orange)
                         .monospacedDigit()
                         .padding(.horizontal, 7)
@@ -262,7 +262,7 @@ private struct PanelRow: View {
                 }
 
                 Text(hoursMinutes(todaySeconds))
-                    .font(.system(size: 12.5, weight: isRunning ? .bold : .semibold))
+                    .font(isRunning ? DT.panelTotalActive : DT.panelTotal)
                     .foregroundStyle(isRunning ? DT.text : DT.text2)
                     .monospacedDigit()
             }

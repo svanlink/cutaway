@@ -44,7 +44,7 @@ struct ProjectPill: View {
                     ModeTag(mode: p.mode, prominent: true)
                 }
                 Text(pointsUp ? "▲" : "▼")
-                    .font(.system(size: 9))
+                    .font(DT.glyphLight)
                     .foregroundStyle(DT.text3)
             }
             .padding(.horizontal, 14)

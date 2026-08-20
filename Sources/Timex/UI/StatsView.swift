@@ -44,7 +44,7 @@ struct StatsView: View {
                             .foregroundStyle(DT.text3)
                             .lineLimit(1)
                     }
-                    Text("▼").font(.system(size: 9)).foregroundStyle(DT.text3)
+                    Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
@@ -242,7 +242,7 @@ struct StatsView: View {
             }
             .frame(height: 5)
             Text(p.currency.format(d.earned))
-                .font(.system(size: 12, weight: .bold))
+                .font(DT.smallBold)
                 .foregroundStyle(DT.text)
                 .monospacedDigit()
                 .frame(width: 96, alignment: .trailing)

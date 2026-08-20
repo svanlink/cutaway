@@ -121,7 +121,7 @@ struct TimerView: View {
         } label: {
             HStack(spacing: DT.s2) {
                 Image(systemName: paused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(DT.smallBold)
                 Text(paused ? "Resume" : "Pause")
                     .font(DT.bodyBold)
             }

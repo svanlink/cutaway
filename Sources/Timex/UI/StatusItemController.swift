@@ -10,7 +10,6 @@ final class StatusItemController: NSObject {
     private let popover = NSPopover()
     private let model: AppModel
     private var hostView: NSHostingView<PillView>?
-    private var resizeTimer: Timer?
 
     private func syncAccessibilityLabel() {
         statusItem.button?.setAccessibilityLabel(PillView.accessibilityLabel(
@@ -55,18 +54,15 @@ final class StatusItemController: NSObject {
             // rounded "extension" on click was the button cell highlighting.
             (button.cell as? NSButtonCell)?.highlightsBy = []
 
-            // Re-sync width once per second (session time appearing/growing
-            // changes the pill's natural width).
-            resizeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-                Task { @MainActor in
-                    self?.syncWidth()
-                    // Rides the existing tick rather than adding a second
-                    // timer — the pill already has one too many.
-                    self?.syncAccessibilityLabel()
-                }
+            // The pill's width changes when the session time gains a digit,
+            // and its label changes with the time. Both ride the engine's
+            // existing 1 Hz tick: a second timer running for the life of the
+            // app — while paused, backgrounded, and showing a static number,
+            // on a machine that is rendering video — bought nothing.
+            model.onEngineTick = { [weak self] in
+                self?.syncWidth()
+                self?.syncAccessibilityLabel()
             }
-            // Width only changes when digit count changes — coalesce freely.
-            resizeTimer?.tolerance = 0.5
         }
 
         popover.behavior = .transient
@@ -176,15 +172,15 @@ struct PillBody: View {
                 .frame(width: 18, height: 18)
             if let bankedText {
                 Text(bankedText)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(DT.pillMessage)
                     .foregroundStyle(DT.green)
             } else if let pausedHint {
                 Text(pausedHint)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(DT.pillMessage)
                     .foregroundStyle(DT.amber)
             } else {
                 Text(timeString(seconds))
-                    .font(.system(size: 12.5, weight: .bold))
+                    .font(DT.pillTime)
                     .foregroundStyle(isRecording ? DT.text : DT.text2)
                     .monospacedDigit()
             }

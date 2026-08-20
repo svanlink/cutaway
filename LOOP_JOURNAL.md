@@ -7,6 +7,38 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~21:05 — Design tokens made mechanical, and the second timer gone
+Two rounds' worth, done together because the second was already half-done by
+the first.
+
+TOKENS. Eighteen font-size literals across the UI — ten in the menu-bar
+panel alone — while the stated rule was "no hardcoded sizes outside
+DesignTokens". All eighteen are now tokens named for their ROLE
+(`pillTime`, `panelHeroSeconds`, `glyphTiny`) rather than their number,
+because a token called `size12` would only move the problem. Two of them
+turned out to already exist — the panel's footer buttons were re-declaring
+`smallSemibold` — which is the drift the rule was meant to prevent, sitting
+in the code the whole time.
+
+Then the part that matters: a test reads the UI sources and fails on any
+literal it finds, naming file and line. Verified it can actually fail before
+trusting it — put one literal back, watched it report
+`CSVExportButton.swift:16`, put it back. A guard nobody has seen fail is a
+guard nobody knows works.
+
+THE SECOND TIMER. The status item ran its own 1 Hz timer to resize the pill,
+firing forever — paused, no project, backgrounded, static number, on a
+machine rendering video. It now subscribes to the engine's existing tick via
+`AppModel.onEngineTick`. Placed BEFORE the scenario-mode guard in that
+closure, because the pill is live during verification runs too and its width
+still has to keep up.
+
+Worth noting what did NOT get deleted: `syncWidth` itself. Frame-based
+sizing is a documented workaround for autolayout blowing the status item to
+screen width — the timer was the accident, the sizing is load-bearing.
+
+220 tests, smoke ALL PASS, UI tests pass.
+
 ## 2026-08-20 ~20:45 — Rules removed, and the pill got a real label
 Two things this round.
 

@@ -59,6 +59,31 @@ enum DT {
     /// Inline leading glyph (checkmark, hourglass) — sits a step below
     /// caption so the symbol reads as punctuation, not as a second voice.
     static let glyph = Font.system(size: 9, weight: .bold)
+    /// Unweighted glyph — a chevron or a play triangle, where bold would
+    /// read as emphasis the mark does not carry.
+    static let glyphLight = Font.system(size: 9)
+    /// Smallest glyph in the system: the play mark inside a 26pt panel row.
+    static let glyphTiny = Font.system(size: 8)
+    /// Leading icon inside a compact button (Export CSV).
+    static let buttonGlyph = Font.system(size: 10, weight: .bold)
+    static let smallBold = Font.system(size: 12, weight: .bold)
+    static let bodySemibold = Font.system(size: 13, weight: .semibold)
+
+    // menu-bar pill — read at a glance, at menu-bar scale
+    static let pillTime = Font.system(size: 12.5, weight: .bold)
+    /// Banked confirmation and the forgotten-pause hint, which replace the
+    /// time readout rather than sitting beside it.
+    static let pillMessage = Font.system(size: 12, weight: .bold)
+
+    // menu-bar panel — its own scale, one step down from the main window
+    static let panelHero = Font.system(size: 38, weight: .thin)
+    static let panelHeroSeconds = Font.system(size: 20, weight: .light)
+    static let panelClient = Font.system(size: 10.5, weight: .bold)
+    static let panelProject = Font.system(size: 15, weight: .semibold)
+    static let panelRowActive = Font.system(size: 13, weight: .semibold)
+    static let panelTotal = Font.system(size: 12.5, weight: .semibold)
+    static let panelTotalActive = Font.system(size: 12.5, weight: .bold)
+    static let panelChip = Font.system(size: 11.5, weight: .bold)
 
     // canvas
     static let windowSize = CGSize(width: 480, height: 660)

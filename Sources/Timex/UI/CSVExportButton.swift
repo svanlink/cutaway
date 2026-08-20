@@ -13,7 +13,7 @@ struct CSVExportButton: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "arrow.down.to.line")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(DT.buttonGlyph)
                 Text("Export CSV").font(DT.small)
             }
             .foregroundStyle(hovering ? DT.text : DT.text2)

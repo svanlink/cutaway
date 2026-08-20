@@ -35,30 +35,13 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] The design gate cannot be enforced where it matters most. The
-  rule is "no hardcoded colors/sizes outside DesignTokens", but there are 18
-  font-size literals across the UI — 10 in the menu-bar panel, 3 in the pill
-  itself — plus corner radii, ring widths and paddings that never became
-  tokens. The gate is checked by eye, which means it is checked when someone
-  remembers. Tokenise the remainder and make the rule mechanical.
-  VERIFY: no `Font.system(size:` literal outside DesignTokens.swift, proven
-  by a test that reads the UI sources and fails on any it finds; existing
-  renders unchanged (PillRenderTests still produce three distinct states).
-
-- [perf] A second 1 Hz timer runs for the life of the app to resize a pill
-  whose width changes when a digit is added — a few times a day. It fires
-  while paused, while no project is selected, and while the app sits in the
-  background with a static number, on a machine the user is editing video
-  on. The engine already ticks once a second and the pill already re-renders
-  from it; the width sync can ride that instead of owning a timer.
-  VERIFY: unit test — the controller schedules no timer of its own; width
-  still syncs when the digit count changes (proven through the sync entry
-  point, not by sleeping).
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
 ## Done
+
+- [design] Font sizes tokenised, and the rule checked by a test — PENDING-A
+- [perf] The status item runs on the engine's tick, not its own timer — PENDING-B
 
 - [a11y] The pill says the time and the project to VoiceOver — ca5ab62
 

@@ -11,6 +11,9 @@ final class AppModel {
     let detector = ProjectDetector()
 
     var selectedProjectID: PersistentIdentifier?
+    /// Anything else that wants to hear the engine's 1 Hz tick. The status
+    /// item used to run a timer of its own for this; one clock is enough.
+    var onEngineTick: (() -> Void)?
     /// Turns Resolve's steady state into transitions, so a manual switch is
     /// not overwritten by the next poll of a window that never moved.
     private var follower = DetectionFollower()
@@ -122,7 +125,11 @@ final class AppModel {
         var tickCount = 0
         var tier1InFlight = false
         engine.onTick = { [weak self] in
-            guard let self, !ScenarioMode.isActive else { return }
+            guard let self else { return }
+            // Before the scenario guard: the pill is live during verification
+            // runs too, and its width and label still have to keep up.
+            self.onEngineTick?()
+            guard !ScenarioMode.isActive else { return }
             // Detection runs while recording AND while paused for lack of a
             // project — that's how a zero-state install bootstraps itself
             // from whatever is open in Resolve.
