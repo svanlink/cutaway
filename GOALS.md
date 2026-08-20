@@ -73,7 +73,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [design] Stats hierarchy pass — one money lead + two support stats — PENDING
+- [design] Stats hierarchy pass — one money lead + two support stats — 75dbf4d
 
 - [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — 4adfe94
 
