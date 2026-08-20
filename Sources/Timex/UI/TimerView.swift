@@ -21,8 +21,15 @@ struct TimerView: View {
             )
             .padding(.top, DT.s1)
 
-            pauseButton
-                .padding(.top, DT.s3)
+            // A zero state has nothing to pause. Swap the primary control for
+            // the reason nothing is counting, and the way out of it.
+            if let zero = model.zeroState {
+                zeroStateCard(zero)
+                    .padding(.top, DT.s3)
+            } else {
+                pauseButton
+                    .padding(.top, DT.s3)
+            }
 
             // Fixed extra below the cluster biases it slightly above center.
             Color.clear.frame(height: 28)
@@ -44,6 +51,32 @@ struct TimerView: View {
         }
         .padding(.horizontal, DT.s5)
         .padding(.bottom, DT.s4)
+    }
+
+    @ViewBuilder
+    private func zeroStateCard(_ state: AppModel.ZeroState) -> some View {
+        VStack(spacing: DT.s2) {
+            Text(AppModel.zeroStateTitle(state))
+                .font(DT.bodyBold)
+                .foregroundStyle(DT.text)
+            Text(AppModel.zeroStateHint(state))
+                .font(DT.captionMedium)
+                .foregroundStyle(DT.text3)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            if state == .noProject {
+                Button("Create your first project") { model.showNewProjectSheet = true }
+                    .buttonStyle(.borderedProminent)
+                    .tint(DT.orange)
+                    .padding(.top, DT.s1)
+            }
+        }
+        .frame(maxWidth: 320)
+        .padding(.horizontal, DT.s4)
+        .padding(.vertical, DT.s3)
+        .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
+        .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
+        .accessibilityElement(children: .contain)
     }
 
     private var pauseButton: some View {

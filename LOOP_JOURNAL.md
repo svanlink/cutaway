@@ -7,6 +7,32 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:01 — [ux] Zero state — KEPT
+Cancel the first-run sheet and the app was a 0:00 ring, a red pill and no
+explanation; the meaning of red lived in the README. The timer now answers
+the question itself. Pure `AppModel.zeroState(hasProject:trackedSeconds:
+isRecording:resolveRunning:)` -> nil | .noProject | .nothingTrackedYet, with
+the card replacing the pause button (a zero state has nothing to pause).
+
+Two judgment calls worth recording:
+- Scope. The goal as written listed "no Accessibility" as a third branch. It
+  is NOT implemented here: the next goal offers Accessibility in context,
+  and two surfaces asking for the same permission is worse than one. The
+  goal was narrowed deliberately, not missed.
+- Honesty of the hint. `.nothingTrackedYet` reads differently depending on
+  whether Resolve is actually running — with Resolve closed it names the
+  manual path (work in a workflow app) instead of promising detection that
+  cannot happen. Locked by test.
+
+The branch that matters most is the nil one: a project with recorded
+history and a quiet afternoon is NOT an empty app, and must not be told it
+is. Tested explicitly.
+
+VERIFY met: ZeroStateTests, 6 tests, every branch including nil.
+Gate 126/126 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+No new hardcoded colors/sizes — DT.card, DT.strokeSubtle, DT.rLg, DT.s*.
+DESIGN GATE PARTIAL: blind 3-judge panel still not runnable in-session.
+
 ## 2026-08-20 ~18:05 — [ux] First-run money defaults — KEPT
 The defaults question had three answers on one Mac: SettingsView defaulted
 to CHF, NewProjectSheet hardcoded `rate = "85.00"` / `currency = .chf` as

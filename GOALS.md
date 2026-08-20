@@ -67,14 +67,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [ux] The zero state says nothing. Cancel the first-run sheet and the timer
-  is a 0:00 ring, a red pill, and no explanation — the meaning of red lives
-  in the README, not the app. Give it a real zero state: name what Cutaway
-  is waiting for (no project / Resolve not running / no Accessibility) and
-  offer one primary action out of it.
-  VERIFY: AppModel exposes a pure `zeroState` reason; unit test covers every
-  branch including the nil "nothing is wrong" case; design gate for the view.
-
 - [ux] Accessibility is never explained at the moment it matters. It is the
   difference between instant project switching and a 30–120s scripting poll,
   and a first-run user only ever meets it buried in Settings. Offer it once,
@@ -95,6 +87,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [ux] Zero state — the timer says why it is not counting — PENDING
 
 - [ux] First-run money defaults — one source, locale-seeded — b257e77
 
