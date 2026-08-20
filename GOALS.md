@@ -56,7 +56,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — d7e6f4b
+- [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — 4adfe94
 
 (The loop moves completed goals here with the commit hash.)
 
