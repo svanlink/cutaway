@@ -128,7 +128,7 @@ struct StatsView: View {
     private func budgetRow(_ p: Project, used: Double) -> some View {
         let status = BillingEngine.budgetStatus(usedAmount: used, budget: p.budget)
         let barColor: Color = switch status.warning {
-        case .none: DT.orange
+        case .none: DT.signal
         case .warn75: DT.amber
         case .warn90, .over: DT.red
         }
@@ -226,7 +226,7 @@ struct StatsView: View {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(isToday ? "Today" : d.day.formatted(.dateTime.month(.abbreviated).day()))
                     .font(DT.small)
-                    .foregroundStyle(isToday ? DT.orange : DT.text)
+                    .foregroundStyle(isToday ? DT.signal : DT.textPrimary)
                 Text(d.day.formatted(.dateTime.weekday(.abbreviated)))
                     .font(DT.captionMedium).foregroundStyle(DT.text3)
             }
@@ -236,7 +236,7 @@ struct StatsView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.07))
-                    Capsule().fill(DT.orange.opacity(0.85))
+                    Capsule().fill(DT.signal.opacity(0.75))
                         .frame(width: geo.size.width * (maxSeconds > 0 ? d.activeSeconds / maxSeconds : 0))
                 }
             }
@@ -250,9 +250,9 @@ struct StatsView: View {
         .padding(.vertical, 8)
         .padding(.leading, isToday ? 12 : 14)
         .padding(.trailing, 14)
-        .background(isToday ? DT.orange.opacity(0.05) : .clear)
+        .background(isToday ? DT.signal.opacity(0.06) : .clear)
         .overlay(alignment: .leading) {
-            if isToday { Rectangle().fill(DT.orange).frame(width: 2) }
+            if isToday { Rectangle().fill(DT.signal).frame(width: 2) }
         }
         .overlay(alignment: .bottom) {
             Rectangle().fill(Color.white.opacity(0.04)).frame(height: 1)
@@ -299,10 +299,10 @@ struct StatsView: View {
         HStack(spacing: DT.s3) {
             Text(range)
                 .font(DT.captionMedium)
-                .foregroundStyle(isLive ? DT.orange : DT.text2)
+                .foregroundStyle(isLive ? DT.recording : DT.textSecondary)
                 .monospacedDigit()
             if isLive {
-                Text("running").font(DT.tag).foregroundStyle(DT.orange)
+                Text("running").font(DT.tag).foregroundStyle(DT.recording)
             }
             Spacer(minLength: DT.s2)
             Text(String(format: "%.1fh", seconds / 3600))

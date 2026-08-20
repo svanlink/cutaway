@@ -4,42 +4,59 @@ import AppKit
 /// 1:1 mirror of the Figma "02 Foundations" variables and the HTML :root
 /// tokens. Change values HERE only — never inline in views.
 enum DT {
-    // surfaces
-    static let window = Color(red: windowRGB.r, green: windowRGB.g, blue: windowRGB.b)
-    static let card = Color(red: cardRGB.r, green: cardRGB.g, blue: cardRGB.b)
-    static let card2 = Color(red: 28/255, green: 28/255, blue: 32/255)
-    static let popover = Color(red: 32/255, green: 32/255, blue: 36/255)
-    static let strokeSubtle = Color.white.opacity(0.07)
-    static let strokeWindow = Color.white.opacity(0.09)
+    // ── Surfaces ──────────────────────────────────────────────────────
+    // A five-step ramp ~5 L* apart, lifted off pure black. The old system
+    // fit window/card/card2/popover inside L* 3.7–12.4 — card against window
+    // was 1.085:1, so on a second display beside a grading suite the app was
+    // a black rectangle with hairlines drawn on it. Resolve's own panels sit
+    // at L* 17–20; these now share that register without matching its hue.
+    static let sunken: Color = hex(0x0E0F11)    // L*  4.3 — wells, insets
+    static let base: Color = hex(0x18191C)      // L*  8.8 — window ground
+    static let raised: Color = hex(0x232428)    // L* 14.2 — cards, rows
+    static let overlay: Color = hex(0x2D2F33)   // L* 19.4 — popovers, sheets
+    static let float: Color = hex(0x383A3F)     // L* 24.4 — menus, tooltips
 
-    // text — raw components exposed so ContrastTests can verify WCAG AA
-    // (4.5:1) mathematically against the surface tokens.
-    static let baseTextRGB = (r: 245.0 / 255, g: 245.0 / 255, b: 247.0 / 255)
-    static let cardRGB = (r: 23.0 / 255, g: 23.0 / 255, b: 26.0 / 255)
-    static let windowRGB = (r: 13.0 / 255, g: 13.0 / 255, b: 15.0 / 255)
-    static let text2Alpha = 0.62
-    static let text3Alpha = 0.55
-    static let text = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b)
-    static let text2 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text2Alpha)
-    static let text3 = Color(red: baseTextRGB.r, green: baseTextRGB.g, blue: baseTextRGB.b).opacity(text3Alpha)
+    // ── Text ──────────────────────────────────────────────────────────
+    // Solid, not alpha over a surface. The old ladder was alpha-composited,
+    // which is how text2 and text3 drifted to 6 L* apart — one colour
+    // wearing two names, and why Stats had no reading order.
+    static let textPrimary: Color = hex(0xF2F3F5)     // L* 95.8
+    static let textSecondary: Color = hex(0xAAAEB6)   // L* 71.0  (gap 24.8)
+    static let textTertiary: Color = hex(0x8A8F98)    // L* 59.3  (gap 11.7)
 
-    // MENU BAR — these must adapt to the SYSTEM appearance.
-    //
-    // Everything else in this app renders inside a window forced to
-    // .preferredColorScheme(.dark), so fixed light-on-dark tokens are safe
-    // there. The status item is not in a window: it sits on the system menu
-    // bar, which follows the user's appearance setting. Using the dark tokens
-    // there put near-white text on a light menu bar at 1.13:1 — the number
-    // the whole app exists to show, invisible.
-    static let barText = Color.primary
-    static let barText2 = Color.secondary
-    // Apple's own systemGreen/Orange/Red are tuned as FILLS. As a 1pt border
-    // on a light menu bar they measure 1.8–2.9:1 — below the 3:1 a status
-    // indicator needs. These carry the app's dark-mode hues unchanged and
-    // drop to deeper variants in light, where they reach 4.7–5.1:1.
-    static let barGreen = barAdaptive(dark: (52, 199, 89), light: (30, 110, 50))
-    static let barAmber = barAdaptive(dark: (254, 188, 46), light: (150, 86, 0))
-    static let barRed = barAdaptive(dark: (255, 69, 58), light: (190, 30, 25))
+    // ── Money ─────────────────────────────────────────────────────────
+    // Currency is ALWAYS this and never an accent. Warm off-white: reads as
+    // ledger paper, and stops the app implying a judgement about a figure by
+    // colouring it.
+    static let money: Color = hex(0xF4F1EA)
+
+    // ── Signal ────────────────────────────────────────────────────────
+    // Instrument cyan, deliberately not orange. #FF6B1A sits inside
+    // Resolve's own warm accent family (its "effect enabled" red-orange is
+    // #D54451), so an orange Cutaway read as a worse Resolve panel. Cyan
+    // reads as scope and graticule, and leaves the whole warm half of the
+    // wheel to mean money and warning exclusively.
+    static let signal: Color = hex(0x3FD0E0)
+    static let signalSoft: Color = hex(0x3FD0E0).opacity(0.14)
+    static let onSignal: Color = hex(0x081417)
+
+    // ── State ─────────────────────────────────────────────────────────
+    // Hue is the SECOND encoding everywhere; shape carries it first.
+    static let recording: Color = hex(0x5AD18C)
+    static let held: Color = hex(0xE8B14C)
+    static let alarm: Color = hex(0xF06A5E)
+    static let idle: Color = hex(0x6E747E)
+
+    // ── Menu bar ──────────────────────────────────────────────────────
+    // The one surface NOT inside a window forced to dark: the status bar
+    // follows the SYSTEM appearance. Apple's own systemGreen/Orange/Red are
+    // tuned as fills and measure 1.8–2.9:1 as a 1pt border on a light bar,
+    // so these carry the dark hues and drop to deeper variants in light.
+    static let barText: Color = .primary
+    static let barText2: Color = .secondary
+    static let barGreen: Color = barAdaptive(dark: (90, 209, 140), light: (30, 110, 50))
+    static let barAmber: Color = barAdaptive(dark: (232, 177, 76), light: (150, 86, 0))
+    static let barRed: Color = barAdaptive(dark: (240, 106, 94), light: (190, 30, 25))
 
     static func barAdaptive(dark: (Int, Int, Int), light: (Int, Int, Int)) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
@@ -50,15 +67,32 @@ enum DT {
         })
     }
 
-    // accent + states
-    static let orange = Color(red: 1, green: 107/255, blue: 26/255)
-    static let orangeSoft = Color(red: 1, green: 107/255, blue: 26/255).opacity(0.14)
-    static let onOrange = Color(red: 20/255, green: 10/255, blue: 4/255)
-    static let green = Color(red: 52/255, green: 199/255, blue: 89/255)
-    static let amber = Color(red: 254/255, green: 188/255, blue: 46/255)
-    static let red = Color(red: 1, green: 69/255, blue: 58/255)
-    static let ringTrack = Color.white.opacity(0.07)
-    static let ringPaused = Color.white.opacity(0.22)
+    static func hex(_ value: Int) -> Color {
+        let r: Double = Double((value >> 16) & 0xFF)
+        let g: Double = Double((value >> 8) & 0xFF)
+        let b: Double = Double(value & 0xFF)
+        return Color(.sRGB, red: r / 255, green: g / 255, blue: b / 255, opacity: 1)
+    }
+
+    // ── Compatibility ─────────────────────────────────────────────────
+    // The old names, re-pointed. Kept so the repaint lands everywhere at
+    // once rather than through a hundred hand-edits; the orange sites are
+    // split explicitly at their call sites, because orange was doing six
+    // unrelated jobs and only one of them is the accent.
+    static let window: Color = base
+    static let card: Color = raised
+    static let card2: Color = raised
+    static let popover: Color = overlay
+    static let text: Color = textPrimary
+    static let text2: Color = textSecondary
+    static let text3: Color = textTertiary
+    static let green: Color = recording
+    static let amber: Color = held
+    static let red: Color = alarm
+    static let strokeSubtle: Color = Color.white.opacity(0.08)
+    static let strokeWindow: Color = Color.white.opacity(0.12)
+    static let ringTrack: Color = Color.white.opacity(0.10)
+    static let ringPaused: Color = Color.white.opacity(0.30)
 
     // spacing (4pt grid)
     static let s1: CGFloat = 4, s2: CGFloat = 8, s3: CGFloat = 12
@@ -78,7 +112,9 @@ enum DT {
     // room and is the standard tell of a design that reached for elegant.
     static let hero = Font.system(size: 44, weight: .medium)
     static let heroSec = Font.system(size: 24, weight: .regular)
-    static let money = Font.system(size: 17, weight: .semibold)
+    /// Currency figures. Monospaced: a money column that shifts as digits
+    /// change is the tell of a timer, not a ledger.
+    static let moneyFont = Font.system(size: 17, weight: .semibold).monospacedDigit()
     /// Supporting figures — one step DOWN in weight from the lead, so size
     /// and weight say the same thing instead of cancelling.
     static let statValue = Font.system(size: 16, weight: .medium)

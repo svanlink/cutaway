@@ -7,7 +7,7 @@ struct MenuBarPanel: View {
 
     private var isRecording: Bool { model.engine.state == .recording }
     private var goalReached: Bool { model.goalProgress.reached }
-    private var accent: Color { goalReached ? DT.green : DT.orange }
+    private var accent: Color { goalReached ? DT.signal : DT.recording }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -129,11 +129,11 @@ struct MenuBarPanel: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(model.researchWindowIsClosing ? DT.amber : DT.text3)
+            .foregroundStyle(model.researchWindowIsClosing ? DT.held : DT.textTertiary)
             .padding(.horizontal, DT.rowInset)
             .padding(.vertical, DT.s2)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(model.researchWindowIsClosing ? DT.amber.opacity(0.10) : Color.clear)
+            .background(model.researchWindowIsClosing ? DT.held.opacity(0.12) : Color.clear)
             .overlay(alignment: .top) {
                 Rectangle().fill(DT.strokeSubtle).frame(height: 1)
             }
@@ -229,11 +229,11 @@ private struct PanelRow: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 ZStack {
-                    Circle().fill(isRunning ? AnyShapeStyle(DT.orange) : AnyShapeStyle(Color.white.opacity(0.08)))
+                    Circle().fill(isRunning ? AnyShapeStyle(DT.recording) : AnyShapeStyle(Color.white.opacity(0.08)))
                     if isRunning {
                         Circle()
                             .trim(from: 0, to: 0.75)
-                            .stroke(DT.onOrange, style: StrokeStyle(lineWidth: 2.4, lineCap: .round))
+                            .stroke(DT.onSignal, style: StrokeStyle(lineWidth: 2.4, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                             .frame(width: 11, height: 11)
                     } else {
@@ -254,7 +254,7 @@ private struct PanelRow: View {
                 if isRunning, sessionSeconds >= 1 {
                     Text(shortTime(sessionSeconds))
                         .font(DT.panelChip)
-                        .foregroundStyle(DT.orange)
+                        .foregroundStyle(DT.recording)
                         .monospacedDigit()
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
@@ -269,7 +269,7 @@ private struct PanelRow: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(
-                isRunning ? AnyShapeStyle(DT.orangeSoft) :
+                isRunning ? AnyShapeStyle(DT.recording.opacity(0.12)) :
                     hovering ? AnyShapeStyle(Color.white.opacity(0.04)) : AnyShapeStyle(.clear)
             )
             .overlay(alignment: .top) {

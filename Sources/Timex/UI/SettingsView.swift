@@ -44,7 +44,7 @@ struct SettingsView: View {
                     ))
                     .labelsHidden()
                     .toggleStyle(.switch)
-                    .tint(DT.orange)
+                    .tint(DT.signal)
                 }
                 divider
                 row("Workflow apps", sub: "Time in these counts toward the project") {
@@ -130,7 +130,7 @@ struct SettingsView: View {
                     ))
                     .labelsHidden()
                     .toggleStyle(.switch)
-                    .tint(DT.orange)
+                    .tint(DT.signal)
                 }
                 if model.hotkeyUnavailable {
                     divider

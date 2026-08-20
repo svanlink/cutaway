@@ -71,7 +71,7 @@ struct TimerView: View {
             if state == .noProject {
                 Button("Create your first project") { model.showNewProjectSheet = true }
                     .buttonStyle(.borderedProminent)
-                    .tint(DT.orange)
+                    .tint(DT.signal)
                     .padding(.top, DT.s1)
             }
         }
@@ -99,7 +99,7 @@ struct TimerView: View {
             VStack(spacing: DT.s1) {
                 Button("Enable…") { model.detector.requestAccessibility() }
                     .buttonStyle(.borderedProminent)
-                    .tint(DT.orange)
+                    .tint(DT.signal)
                 Button("Not now") { model.accessibilityOfferDismissed = true }
                     .buttonStyle(.plain)
                     .font(DT.captionMedium)
@@ -141,11 +141,11 @@ private struct PauseButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(paused ? DT.text : DT.onOrange)
+            .foregroundStyle(paused ? DT.textPrimary : DT.onSignal)
             .padding(.horizontal, 32)
             .frame(minHeight: 44)
             .background(
-                paused ? AnyShapeStyle(DT.card2) : AnyShapeStyle(DT.orange),
+                paused ? AnyShapeStyle(DT.raised) : AnyShapeStyle(DT.signal),
                 in: RoundedRectangle(cornerRadius: DT.rMd)
             )
             .overlay(

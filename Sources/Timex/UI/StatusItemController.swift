@@ -104,7 +104,7 @@ struct PillView: View {
 
     private var isRecording: Bool { model.engine.state == .recording }
     private var goalReached: Bool { model.goalProgress.reached }
-    private var accent: Color { goalReached ? DT.green : DT.orange }
+    private var accent: Color { goalReached ? DT.signal : DT.recording }
     /// Traffic-light border: green = recording · amber = paused · red = no project.
     private var stateColor: Color {
         if model.selectedProject == nil { return DT.barRed }

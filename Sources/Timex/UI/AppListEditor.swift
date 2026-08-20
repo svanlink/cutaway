@@ -53,7 +53,7 @@ struct AppListEditor: View {
             Button("Reset to defaults") { save(defaults) }
                 .font(DT.captionMedium)
                 .buttonStyle(.plain)
-                .foregroundStyle(DT.orange)
+                .foregroundStyle(DT.signal)
         }
         .padding(DT.s3)
         .frame(width: 320)

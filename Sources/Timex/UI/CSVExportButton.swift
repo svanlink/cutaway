@@ -22,7 +22,7 @@ struct CSVExportButton: View {
             .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
             .overlay(
                 RoundedRectangle(cornerRadius: DT.rMd)
-                    .stroke(hovering ? DT.orange.opacity(0.4) : DT.strokeSubtle, lineWidth: 1)
+                    .stroke(hovering ? DT.signal.opacity(0.5) : DT.strokeSubtle, lineWidth: 1)
             )
         }
         .menuStyle(.borderlessButton)

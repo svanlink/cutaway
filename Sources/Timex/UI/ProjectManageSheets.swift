@@ -28,7 +28,7 @@ struct RenameProjectSheet: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
-                .tint(DT.orange)
+                .tint(DT.signal)
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }

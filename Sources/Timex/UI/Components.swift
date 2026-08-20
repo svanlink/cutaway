@@ -10,12 +10,12 @@ struct ModeTag: View {
     var body: some View {
         Text(mode == .hourly ? "HOURLY" : "BUDGET")
             .font(DT.tag)
-            .foregroundStyle(prominent ? DT.orange : DT.text3)
+            .foregroundStyle(prominent ? DT.signal : DT.text3)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(prominent ? DT.orange.opacity(0.4) : DT.strokeSubtle, lineWidth: 1)
+                    .stroke(prominent ? DT.signal.opacity(0.4) : DT.strokeSubtle, lineWidth: 1)
             )
     }
 }
@@ -32,7 +32,7 @@ struct ProjectPill: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Circle()
-                    .fill(DT.orange)
+                    .fill(DT.signal)
                     .frame(width: 8, height: 8)
                     
                 Text(project?.name ?? "No project")
@@ -50,7 +50,7 @@ struct ProjectPill: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
             .frame(maxWidth: 340)
-            .background(hovering ? DT.orange.opacity(0.22) : DT.orangeSoft,
+            .background(hovering ? DT.signal.opacity(0.22) : DT.signalSoft,
                         in: RoundedRectangle(cornerRadius: DT.rMd))
         }
         .buttonStyle(.plain)
@@ -121,7 +121,7 @@ private struct SwitcherRow: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Circle()
-                    .fill(isCurrent ? DT.orange : DT.text3)
+                    .fill(isCurrent ? DT.signal : DT.text3)
                     .frame(width: 7, height: 7)
                 Text(project.name)
                     .font(DT.body)
@@ -133,7 +133,7 @@ private struct SwitcherRow: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .background(
-                isCurrent ? AnyShapeStyle(DT.orangeSoft) :
+                isCurrent ? AnyShapeStyle(DT.signalSoft) :
                     hovering ? AnyShapeStyle(Color.white.opacity(0.06)) : AnyShapeStyle(.clear),
                 in: RoundedRectangle(cornerRadius: DT.rSm)
             )

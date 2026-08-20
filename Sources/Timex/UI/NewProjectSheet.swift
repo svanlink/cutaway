@@ -65,7 +65,7 @@ struct NewProjectSheet: View {
                 Button("Create Project") { create() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
-                    .tint(DT.orange)
+                    .tint(DT.signal)
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty
                               || Double(rate) == nil || isDuplicate)
             }
@@ -117,10 +117,10 @@ struct NewProjectSheet: View {
         Button { mode = m } label: {
             Text(title)
                 .font(DT.smallSemibold)
-                .foregroundStyle(on ? DT.orange : DT.text3)
+                .foregroundStyle(on ? DT.signal : DT.text3)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 5)
-                .background(on ? AnyShapeStyle(DT.orangeSoft) : AnyShapeStyle(.clear),
+                .background(on ? AnyShapeStyle(DT.signalSoft) : AnyShapeStyle(.clear),
                             in: RoundedRectangle(cornerRadius: DT.rSm))
         }
         .buttonStyle(.plain)

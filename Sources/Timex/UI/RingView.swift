@@ -13,7 +13,7 @@ struct RingView: View {
 
     private var ringColor: Color {
         if isPaused { return DT.ringPaused }
-        return goal.reached ? DT.green : DT.orange
+        return goal.reached ? DT.signal : DT.recording
     }
     var body: some View {
         ZStack {
@@ -42,8 +42,8 @@ struct RingView: View {
                     .foregroundStyle(DT.text3)
                 elapsedText
                 Text(money)
-                    .font(DT.money)
-                    .foregroundStyle(isPaused ? DT.text2 : DT.orange)
+                    .font(DT.moneyFont)
+                    .foregroundStyle(isPaused ? DT.textSecondary : DT.money)
                     .monospacedDigit()
                 Text(goalLine)
                     .font(DT.captionMedium)
