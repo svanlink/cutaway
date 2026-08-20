@@ -1,5 +1,45 @@
 import Foundation
 
+/// The period an invoice covers. Presets rather than a date picker: the
+/// question is always "bill last month", never "bill March 3rd to the 19th".
+enum InvoicePeriod: String, CaseIterable, Sendable {
+    case allTime = "All time"
+    case thisMonth = "This month"
+    case lastMonth = "Last month"
+    case thisYear = "This year"
+
+    /// Half-open [start, end) in day terms. nil = everything.
+    func interval(now: Date = Date(), calendar: Calendar = .current) -> (start: Date, end: Date)? {
+        let today = calendar.startOfDay(for: now)
+        switch self {
+        case .allTime:
+            return nil
+        case .thisMonth:
+            guard let start = calendar.dateInterval(of: .month, for: today)?.start,
+                  let end = calendar.date(byAdding: .month, value: 1, to: start) else { return nil }
+            return (start, end)
+        case .lastMonth:
+            guard let thisStart = calendar.dateInterval(of: .month, for: today)?.start,
+                  let start = calendar.date(byAdding: .month, value: -1, to: thisStart) else { return nil }
+            return (start, thisStart)
+        case .thisYear:
+            guard let start = calendar.dateInterval(of: .year, for: today)?.start,
+                  let end = calendar.date(byAdding: .year, value: 1, to: start) else { return nil }
+            return (start, end)
+        }
+    }
+
+    /// Goes in the filename, so two invoices for one client stay apart.
+    func fileLabel(now: Date = Date(), calendar: Calendar = .current) -> String {
+        guard let i = interval(now: now, calendar: calendar) else { return "all time" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = calendar
+        f.dateFormat = self == .thisYear ? "yyyy" : "yyyy-MM"
+        return f.string(from: i.start)
+    }
+}
+
 /// Builds the 18-column CSV per spec. Pure string assembly — testable.
 enum CSVExporter {
 
@@ -13,9 +53,16 @@ enum CSVExporter {
 
     static func export(project name: String, client: String, mode: BillingMode,
                        currency: TimexCurrency, hourlyRate: Double, budget: Double,
-                       days: [DayTotal], calendar: Calendar = .current) -> String {
+                       days: [DayTotal], period: (start: Date, end: Date)? = nil,
+                       calendar: Calendar = .current) -> String {
+        // Filtering happens HERE, not at the call site: cumulative columns are
+        // computed over whatever survives, so a caller that filtered wrongly
+        // would produce a file that is wrong in a way that looks right.
+        let inPeriod = period.map { p in
+            days.filter { $0.day >= p.start && $0.day < p.end }
+        } ?? days
         // chronological for cumulative columns
-        let ordered = days.sorted { $0.day < $1.day }
+        let ordered = inPeriod.sorted { $0.day < $1.day }
         var lines = [header]
         var cumSeconds: TimeInterval = 0
         var cumEarned: Double = 0
@@ -73,6 +120,10 @@ enum CSVExporter {
         // summary block
         lines.append("")
         lines.append("summary")
+        // The client must be able to see what span they are paying for
+        // without inferring it from the rows.
+        lines.append("period_start,\(ordered.first.map { dateF.string(from: $0.day) } ?? "")")
+        lines.append("period_end,\(ordered.last.map { dateF.string(from: $0.day) } ?? "")")
         lines.append("total_days_worked,\(ordered.count)")
         lines.append("total_active_hours,\(String(format: "%.2f", cumSeconds / 3600))")
         lines.append("total_earned,\(String(format: "%.2f", cumEarned))")

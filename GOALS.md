@@ -70,15 +70,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [billing] There is no way to export an invoice PERIOD. Export dumps the
-  entire project history every time, so billing a month means hand-editing
-  the file in Excel — and the cumulative columns are computed over all time,
-  so a hand-filtered file carries wrong cumulative totals. Give the export a
-  date range, with cumulative columns computed within it.
-  VERIFY: unit test — a ranged export excludes days outside the range, its
-  cumulative columns start from zero inside the range, and its summary block
-  reconciles with its own rows.
-
 - [billing] The invoice does not add up. Per-day `earned` is rounded to
   cents for display while `total_earned` is the rounded sum of UNROUNDED
   day values, so the printed rows and the printed total can disagree.
@@ -101,6 +92,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [billing] Invoice period export — presets, filtered in the exporter — PENDING
 
 - [billing] Rate history — work bills at the rate it was worked at — 3a9d1c2
 

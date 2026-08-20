@@ -7,6 +7,33 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:21 — [billing] Invoice period export — KEPT
+Export dumped the whole project history every time, so billing a month meant
+editing the file in Excel — and the cumulative columns were all-time, so the
+hand-edited file was wrong in a way that looked right.
+
+`Export CSV` is now a menu: All time / This month / Last month / This year.
+Presets rather than a date picker, because the question is always "bill last
+month", never "bill March 3rd to the 19th" — and a preset cannot be
+mis-entered.
+
+Filtering happens INSIDE the exporter, not at the call site. That is the
+whole point: cumulative columns are computed over whatever survives the
+filter, so a caller that filtered wrongly (or filtered and forgot the
+cumulatives) would produce exactly the plausible-looking wrong file this
+goal exists to prevent. The exporter also now writes `period_start` /
+`period_end` into the summary, so a client can see what span they are paying
+for without inferring it from the rows.
+
+Filenames carry the period ("Nyx — 2026-07 — Cutaway.csv") so two invoices
+for one client stay apart in a downloads folder.
+
+VERIFY met: InvoicePeriodTests, 10 tests — outside days excluded, cumulative
+columns restart inside the period, summary reconciles with its own rows, an
+empty period produces an honestly empty file rather than claiming dates, and
+the presets are right including across a year boundary (Jan -> last December).
+Gate 147/147 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+
 ## 2026-08-20 ~18:17 — [billing] Rate history — KEPT
 The worst of the three invoicing defects. Every earnings figure in the app
 was `activeSeconds × project.hourlyRate` — the CURRENT rate — and
