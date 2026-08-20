@@ -7,6 +7,32 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:49 — Loop rules iteration — three rules earned in this run
+Not a code change: the loop's own rules, updated from things that actually
+happened over seventeen iterations rather than from principle.
+
+- FIX THE CLASS, NOT THE INSTANCE. Written because grepping for the second
+  instance found three more wall-clock leaks, and checking whether the new
+  hardcoded glyph size was the only one found the receipt's.
+- A RED GATE CAUSED BY THE CHANGE IS A DESIGN SIGNAL. Written because
+  persisting manual pause coupled every engine test to global defaults, and
+  the right fix was injecting the store rather than tidying setUp. Includes
+  the distinction that kept this honest twice: updating a FIXTURE for a new
+  required field is legitimate, and `git diff | grep XCTAssert` returning
+  empty is the proof — not an assurance.
+- PARTIAL IS NOT KEEP. Written because the transition-following fix narrowed
+  the stale-Tier-1 race without closing it, and that caveat existed only in
+  journal prose. The next iteration reads the ledger first. A `partial`
+  status and a rewritten Later entry make the gap structural instead of
+  something a human has to notice.
+
+Also pinned the ledger's status vocabulary, which had been used consistently
+but never defined — including what the one `PASS*` row means.
+
+The pattern worth noting: every one of these came from a failure or a near
+miss inside the run. None of them would have been written by thinking about
+what good rules look like.
+
 ## 2026-08-20 ~19:36 — [ux] Recording says why — KEPT
 `.recording` was opaque: identical whether Resolve was frontmost or a
 browser was holding the clock up inside the research window. That window

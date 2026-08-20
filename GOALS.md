@@ -32,6 +32,30 @@ is modelled on), because they were the parts we were only half-doing:
 - LEDGER. Every iteration gets a row in `LOOP_RESULTS.tsv` (tab-separated,
   untracked by design): commit, gate, test count, status keep/discard/crash,
   description. The prose journal explains; the ledger is greppable state.
+- FIX THE CLASS, NOT THE INSTANCE. A goal names one symptom; before fixing
+  it, grep for the pattern. Four wall-clock leaks were found by looking for
+  the second one after the first; two hardcoded glyph sizes by checking
+  whether the new one was the only one. Patching the named line and leaving
+  its siblings is how a defect gets "fixed" twice.
+- A RED GATE CAUSED BY THE CHANGE IS A DESIGN SIGNAL. When the gate fails
+  because of what this iteration did — not because the change was wrong, but
+  because it made something else untestable or order-dependent — fix the
+  design, never the test setup. Persisting pause coupled every engine test
+  to global state; the fix was injecting the store, not seeding defaults in
+  setUp. If the design cannot be fixed inside the budget, REVERT. Editing a
+  test so a change can pass is the one move this loop never makes. Updating
+  a FIXTURE to satisfy a new required field is not that — but prove it:
+  `git diff <test files> | grep XCTAssert` must come back empty.
+- PARTIAL IS NOT KEEP. A goal that closes only part of its defect does not
+  move to Done. It stays in Later, rewritten to describe the REMAINING gap,
+  and its ledger row reads `partial`, not `keep`. The next iteration reads
+  the ledger before the journal — a caveat that lives only in prose is a
+  caveat the loop will not see at 3am.
+- LEDGER STATUS VOCABULARY: `keep` (gate green, defect closed), `partial`
+  (gate green, defect narrowed — remaining gap still in Later), `discard`
+  (gate red, reverted), `crash` (could not complete). A `PASS*` gate column
+  means the gate passed but something about the run is unexplained; the
+  journal says what.
 - SIMPLICITY CRITERION. All else equal, simpler wins. A small improvement
   that adds ugly complexity is not worth it. An improvement that DELETES
   code is the best outcome there is. Equal result with less code: keep.
