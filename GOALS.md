@@ -10,6 +10,10 @@ Rules of the loop (Karpathy autoresearch style):
   (Autoresearch rule: the evaluator lives outside the editable surface.)
 - Gate for every iteration: ALL unit tests green (101 and rising) AND `./scripts/smoke.sh "" 3`
   ALL PASS. A change that fails the gate is reverted, not patched forward.
+- Never let a fixture come from another tool's arithmetic. A figure computed
+  in Python (or a spreadsheet) imports that tool's rounding mode; assert the
+  file's internal consistency instead, and if a fixture must be literal,
+  re-derive it under the app's own semantics.
 - Never pipe a gate run through `tail` or a narrow `grep`. A failing
   scenario name is the whole point of running the gate; losing it turns a
   reproducible failure into an unattributable flake.
@@ -70,17 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [billing] The invoice does not add up. Per-day `earned` is rounded to
-  cents for display while `total_earned` is the rounded sum of UNROUNDED
-  day values, so the printed rows and the printed total can disagree.
-  Proven, not theorised: 12 days at 85/h where the rows sum to 5572.71 and
-  total_earned prints 5572.72. A client checking the arithmetic finds a
-  one-cent hole in a document they are paying against. Round each day once
-  and sum the rounded values.
-  VERIFY: unit test — that exact 12-day fixture, asserting the summary total
-  equals the sum of the row values character-for-character; plus a random
-  sweep over many day sets asserting the invariant always holds.
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
@@ -92,6 +85,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [billing] Invoice arithmetic — round once, then sum — PENDING
 
 - [billing] Invoice period export — presets, filtered in the exporter — 557f59c
 

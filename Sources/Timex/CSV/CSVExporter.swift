@@ -64,7 +64,7 @@ enum CSVExporter {
         // chronological for cumulative columns
         let ordered = inPeriod.sorted { $0.day < $1.day }
         var lines = [header]
-        var cumSeconds: TimeInterval = 0
+        var cumHours: Double = 0
         var cumEarned: Double = 0
         // POSIX locale pins Gregorian digits and English weekday names — a
         // client-facing CSV must not change shape with the Mac's locale
@@ -84,16 +84,21 @@ enum CSVExporter {
         timeF.calendar = calendar
 
         for d in ordered {
+            // Round to the PRINTED precision before summing. Printing rounded
+            // rows while totalling unrounded values is how an invoice ends up
+            // one cent short of its own arithmetic — a small hole in a
+            // document a client is paying against is a large credibility one.
+            let hours = round2(d.activeSeconds / 3600)
             // The day carries what it earned, at the rates it was worked at.
             // Recomputing from the project's CURRENT rate is what used to
             // rewrite invoices that had already been sent.
-            let earned = d.earned
+            let earned = round2(d.earned)
             let rowRate = d.effectiveRate > 0 ? d.effectiveRate : hourlyRate
-            cumSeconds += d.activeSeconds
+            cumHours += hours
             cumEarned += earned
             let wall = d.lastEnd.timeIntervalSince(d.firstStart)
-            let idleExcluded = max(wall - d.activeSeconds, 0)
-            let budgetRemaining = mode == .budget ? budget - cumEarned : 0
+            let idleExcluded = round2(max(wall - d.activeSeconds, 0) / 3600)
+            let budgetRemaining = mode == .budget ? round2(budget - cumEarned) : 0
             let budgetPct = mode == .budget && budget > 0 ? cumEarned / budget * 100 : 0
             lines.append([
                 dateF.string(from: d.day),
@@ -105,14 +110,14 @@ enum CSVExporter {
                 String(d.sessionCount),
                 timeF.string(from: d.firstStart),
                 timeF.string(from: d.lastEnd),
-                String(format: "%.2f", d.activeSeconds / 3600),
-                String(format: "%.2f", idleExcluded / 3600),
+                String(format: "%.2f", hours),
+                String(format: "%.2f", idleExcluded),
                 String(format: "%.2f", rowRate),
                 String(format: "%.2f", earned),
                 mode == .budget ? String(format: "%.2f", budget) : "",
                 mode == .budget ? String(format: "%.2f", budgetRemaining) : "",
                 mode == .budget ? String(format: "%.1f", budgetPct) : "",
-                String(format: "%.2f", cumSeconds / 3600),
+                String(format: "%.2f", cumHours),
                 String(format: "%.2f", cumEarned),
             ].joined(separator: ","))
         }
@@ -125,14 +130,20 @@ enum CSVExporter {
         lines.append("period_start,\(ordered.first.map { dateF.string(from: $0.day) } ?? "")")
         lines.append("period_end,\(ordered.last.map { dateF.string(from: $0.day) } ?? "")")
         lines.append("total_days_worked,\(ordered.count)")
-        lines.append("total_active_hours,\(String(format: "%.2f", cumSeconds / 3600))")
+        lines.append("total_active_hours,\(String(format: "%.2f", cumHours))")
         lines.append("total_earned,\(String(format: "%.2f", cumEarned))")
         lines.append("billing_mode,\(mode.rawValue)")
         if mode == .budget {
             lines.append("budget,\(String(format: "%.2f", budget))")
-            lines.append("budget_remaining,\(String(format: "%.2f", budget - cumEarned))")
+            lines.append("budget_remaining,\(String(format: "%.2f", round2(budget - cumEarned)))")
         }
         return lines.joined(separator: "\n") + "\n"
+    }
+
+    /// The precision every money and hours column prints at. Rounding once,
+    /// here, is what keeps rows and totals in agreement.
+    static func round2(_ value: Double) -> Double {
+        (value * 100).rounded() / 100
     }
 
     static func csvEscape(_ field: String) -> String {

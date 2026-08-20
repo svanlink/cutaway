@@ -7,6 +7,43 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:31 — [billing] Invoice arithmetic — KEPT (with a correction
+to the audit that opened it)
+Rows printed rounded to cents while totals printed the rounded sum of
+UNROUNDED values, so a client adding up the rows could land a cent away from
+the total. Fixed at the root: `round2` once, at the printed precision, and
+every cumulative sums the rounded values. Applied to earnings AND hours —
+same defect, same line of code, and an hours column that does not add up is
+the same credibility problem. `budget_remaining` rounds through the same
+helper so what is left agrees with what was earned.
+
+CORRECTION TO THE AUDIT. The 12-day fixture cited as proof ("rows sum to
+5572.71, total prints 5572.72") does NOT reproduce in this app. It was
+derived in Python, which rounds half-to-even; Swift rounds half-away-from-
+zero, and under those semantics that month adds up fine. The DEFECT CLASS
+was real — round-then-sum vs sum-then-round genuinely diverges — but that
+particular example was an artifact of the tool I checked it with. Re-found
+two real cases under the app's own arithmetic (22 days at 157/h: 15651.25 vs
+15651.24; and an hours case: 107.03 vs 107.02) and used those instead.
+
+Three test failures on the way, all mine, none in the app:
+1. A hardcoded budget expectation, Python-derived — same root cause.
+2. `column()` counted summary lines as day rows and indexed off the end;
+   `split` drops the blank line, so `prefix(while: !isEmpty)` never stopped.
+   Now filters on an 18-field row.
+3. Swift refused to type-check a chained `Double(try! XCTUnwrap(...))!`
+   expression — broken into typed locals.
+
+Rule added to GOALS: never let a fixture come from another tool's
+arithmetic. Assert internal consistency; re-derive literals under the app's
+own semantics.
+
+VERIFY met: InvoiceArithmeticTests — the two genuine drift fixtures, a
+300-iteration random sweep asserting rows always sum to the printed total
+for both money and hours, the final cumulative row equalling the summary
+total, and budget_remaining agreeing with total_earned.
+Gate 152/152 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+
 ## 2026-08-20 ~18:21 — [billing] Invoice period export — KEPT
 Export dumped the whole project history every time, so billing a month meant
 editing the file in Excel — and the cumulative columns were all-time, so the
