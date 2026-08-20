@@ -7,6 +7,37 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:06 — [ux] In-context Accessibility offer — KEPT
+Accessibility is the difference between instant project switching and a
+30–120s scripting poll, and it was discoverable only by wandering into
+Settings. The timer now offers it once, in place, saying what the user GETS
+rather than what the OS calls the permission — and admitting the app works
+without it. "Not now" persists to Prefs and is never asked again.
+
+Fenced by `shouldOfferAccessibility(granted:dismissed:hasProject:
+zeroStateShowing:)`: never when granted, never after a decline, never
+before a project exists (nothing to detect for), never stacked on a zero
+state that is already asking for attention. One ask at a time.
+
+GATE FAILURE ON THE WAY — recorded because it is data, not noise:
+the first `smoke.sh "" 3` after this change came back "RESULT: 1 FAILURES".
+Reruns (1x, 3x, 5x, 3x) all came back ALL PASS, so the failing scenario name
+was never captured — the run had been piped through `tail -3`. Not
+attributed, not dismissed.
+
+What DID come out of it: the offer was rendering during scenario runs, which
+is a real inconsistency — verification runs must never be steered by
+onboarding UI, and the first-run project sheet already follows exactly that
+rule (`!ScenarioMode.isActive`). The offer now follows it too. Whether that
+was the flake's cause is unproven; the fix is right on its own terms.
+
+Lesson for the loop: never pipe a gate run through `tail`. The failing line
+is the whole point of running it.
+
+VERIFY met: AccessibilityOfferTests, 6 tests, every branch plus persistence.
+Gate 132/132 + smoke ALL PASS (5 + 3 iterations after the fix) +
+accessibility audit passes.
+
 ## 2026-08-20 ~18:01 — [ux] Zero state — KEPT
 Cancel the first-run sheet and the app was a 0:00 ring, a red pill and no
 explanation; the meaning of red lived in the README. The timer now answers

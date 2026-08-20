@@ -10,6 +10,9 @@ Rules of the loop (Karpathy autoresearch style):
   (Autoresearch rule: the evaluator lives outside the editable surface.)
 - Gate for every iteration: ALL unit tests green (101 and rising) AND `./scripts/smoke.sh "" 3`
   ALL PASS. A change that fails the gate is reverted, not patched forward.
+- Never pipe a gate run through `tail` or a narrow `grep`. A failing
+  scenario name is the whole point of running the gate; losing it turns a
+  reproducible failure into an unattributable flake.
 - JOURNAL every iteration in LOOP_JOURNAL.md: what was tried, result,
   kept or reverted, and why. Failures are data — record them so the loop
   resumes instead of restarts.
@@ -67,15 +70,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [ux] Accessibility is never explained at the moment it matters. It is the
-  difference between instant project switching and a 30–120s scripting poll,
-  and a first-run user only ever meets it buried in Settings. Offer it once,
-  in context, after the first project exists — and never again once
-  dismissed.
-  VERIFY: pure `shouldOfferAccessibility(granted:dismissed:hasProject:)`;
-  unit test proves it fires exactly once, never when already granted, never
-  after dismissal, never before a project exists.
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
@@ -87,6 +81,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [ux] Accessibility offered once, in context, with a real decline — PENDING
 
 - [ux] Zero state — the timer says why it is not counting — 0b947a4
 

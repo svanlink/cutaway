@@ -18,6 +18,11 @@ final class AppModel {
     var mainTab: MainTab = .timer
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
+    /// The user said "not now" to the Accessibility offer. Persisted: a
+    /// permission prompt someone has already declined is nagware.
+    var accessibilityOfferDismissed: Bool = Prefs.bool(forKey: "accessibilityOfferDismissed") {
+        didSet { Prefs.set(accessibilityOfferDismissed, forKey: "accessibilityOfferDismissed") }
+    }
     /// Captured from the main window's environment so AppKit surfaces
     /// (status-item panel) can reopen it.
     var openMainWindow: (() -> Void)?
@@ -366,6 +371,32 @@ final class AppModel {
                                  lastEnd: Date()), at: 0)
         }
         return days
+    }
+
+    // MARK: - Accessibility offer
+
+    /// Accessibility is the difference between instant project switching and
+    /// a 30–120s scripting poll, and it used to be discoverable only by
+    /// wandering into Settings. Offer it ONCE, in context — never before
+    /// there is a project to detect for, never when it is already granted,
+    /// never again after a decline, and never stacked on top of a zero state
+    /// that is already asking for the user's attention.
+    static func shouldOfferAccessibility(granted: Bool, dismissed: Bool, hasProject: Bool,
+                                         zeroStateShowing: Bool = false) -> Bool {
+        guard hasProject, !granted, !dismissed, !zeroStateShowing else { return false }
+        return true
+    }
+
+    var shouldOfferAccessibility: Bool {
+        // Verification runs must never be steered by onboarding UI — same
+        // rule the first-run project sheet already follows.
+        guard !ScenarioMode.isActive else { return false }
+        return Self.shouldOfferAccessibility(
+            granted: detector.accessibilityGranted,
+            dismissed: accessibilityOfferDismissed,
+            hasProject: selectedProject != nil,
+            zeroStateShowing: zeroState != nil
+        )
     }
 
     // MARK: - Zero state

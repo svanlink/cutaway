@@ -35,6 +35,10 @@ struct TimerView: View {
             Color.clear.frame(height: 28)
             Spacer(minLength: DT.s2)
 
+            if model.shouldOfferAccessibility {
+                accessibilityOffer
+            }
+
             ProjectPill(project: model.selectedProject, pointsUp: true) {
                 switcherOpen.toggle()
             }
@@ -73,6 +77,37 @@ struct TimerView: View {
         }
         .frame(maxWidth: 320)
         .padding(.horizontal, DT.s4)
+        .padding(.vertical, DT.s3)
+        .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
+        .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
+        .accessibilityElement(children: .contain)
+    }
+
+    /// Asked once, where the timer lives, with a real decline. Says what the
+    /// user gets — not what the OS calls the permission.
+    private var accessibilityOffer: some View {
+        HStack(alignment: .top, spacing: DT.s3) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Follow project switches instantly")
+                    .font(DT.smallSemibold)
+                    .foregroundStyle(DT.text)
+                Text("Cutaway can read Resolve's window title to switch projects the moment you do. It works without this — switching is just slower.")
+                    .font(DT.captionMedium)
+                    .foregroundStyle(DT.text3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            VStack(spacing: DT.s1) {
+                Button("Enable…") { model.detector.requestAccessibility() }
+                    .buttonStyle(.borderedProminent)
+                    .tint(DT.orange)
+                Button("Not now") { model.accessibilityOfferDismissed = true }
+                    .buttonStyle(.plain)
+                    .font(DT.captionMedium)
+                    .foregroundStyle(DT.text3)
+            }
+            .fixedSize()
+        }
+        .padding(.horizontal, DT.rowInset)
         .padding(.vertical, DT.s3)
         .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
         .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
