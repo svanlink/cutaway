@@ -87,7 +87,8 @@ struct NewProjectSheet: View {
             mode: mode,
             rate: AppModel.clampedRate(Double(rate) ?? 0),
             budget: max(0, Double(budget) ?? 0),
-            currency: currency
+            currency: currency,
+            isManual: true
         )
         dismiss()
     }

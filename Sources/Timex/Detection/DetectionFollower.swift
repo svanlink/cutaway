@@ -43,3 +43,26 @@ struct DetectionFollower {
         lastSeen = nil
     }
 }
+
+/// Explicit user choices, counted.
+///
+/// Tier 1 spawns fuscript and answers seconds later. Without this, an answer
+/// that started before the user picked a project lands on top of that pick —
+/// the same automation-beats-intent defect as steady-state switching, but
+/// racy, so it reads as "the app randomly changed my project".
+///
+/// A detection carries the count from when it STARTED. If the count has moved
+/// by the time it answers, the user chose in the meantime and the answer
+/// describes a world they have already left.
+struct ManualIntent {
+    typealias Token = Int
+    private(set) var token: Token = 0
+
+    mutating func userChose() {
+        token += 1
+    }
+
+    func hasMovedSince(_ started: Token) -> Bool {
+        started != token
+    }
+}

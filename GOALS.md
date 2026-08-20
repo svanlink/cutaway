@@ -74,17 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [logic] A stale Tier-1 answer can overwrite a newer manual choice.
-  `detectViaScriptingAPI` runs in a detached Task and spawns fuscript, which
-  takes seconds; the result is applied on return with no check that it is
-  still relevant. Switch projects by hand while one is in flight and the old
-  answer lands on top of your choice — the same automation-beats-intent
-  defect, but racy and therefore intermittent, which is worse.
-  VERIFY: unit test — start a Tier-1 request, manually select another
-  project before it resolves, deliver the stale result: the manual selection
-  survives. A result that arrives with no intervening manual change still
-  applies.
-
 - [perf] Switching cost scales with history. The menu-bar panel renders a
   row per project on every tick, and each row calls `activeSecondsToday`,
   which filters that project's ENTIRE session history. Ten projects with two
@@ -106,6 +95,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [logic] Stale Tier-1 answers cannot overrule a newer manual choice — PENDING
 
 - [logic] Auto-switch follows transitions in Resolve, not steady state — 7ef3870
 

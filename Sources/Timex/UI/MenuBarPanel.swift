@@ -103,7 +103,7 @@ struct MenuBarPanel: View {
                         todaySeconds: model.todaySecondsFor(p),
                         sessionSeconds: model.engine.accumulator.activeSeconds
                     ) {
-                        model.select(p)
+                        model.selectManually(p)
                     }
                 }
             }

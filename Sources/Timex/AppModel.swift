@@ -14,6 +14,9 @@ final class AppModel {
     /// Turns Resolve's steady state into transitions, so a manual switch is
     /// not overwritten by the next poll of a window that never moved.
     private var follower = DetectionFollower()
+    /// Counts explicit choices, so an in-flight Tier-1 answer can tell
+    /// whether the user moved on while it was running.
+    private var intent = ManualIntent()
     var showNewProjectSheet = false
     /// Non-nil while the rename / delete sheet is up for that project.
     var renameTarget: Project?
@@ -259,6 +262,13 @@ final class AppModel {
                       rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency)
     }
 
+    /// The user picked this project. Explicit intent — it outranks any
+    /// detection already in flight.
+    func selectManually(_ project: Project) {
+        intent.userChose()
+        select(project)
+    }
+
     func select(_ project: Project) {
         guard project.persistentModelID != selectedProjectID else { return }
         // Close the running span first so its time stays with the old project.
@@ -269,10 +279,14 @@ final class AppModel {
     }
 
     func createProject(name: String, client: String, mode: BillingMode,
-                       rate: Double, budget: Double, currency: TimexCurrency) {
+                       rate: Double, budget: Double, currency: TimexCurrency,
+                       isManual: Bool = false) {
         guard let p = try? store.createProject(name: name, client: client, mode: mode,
                                                hourlyRate: rate, budget: budget, currency: currency) else { return }
         invalidateProjectCache()
+        // Auto-creation routes here too, so only stamp intent when a human
+        // filled in the sheet — `switchOrCreate` calls this as well.
+        if isManual { intent.userChose() }
         select(p)
         engine.hasActiveProject = true
     }

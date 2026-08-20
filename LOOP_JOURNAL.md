@@ -7,6 +7,40 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:52 — [logic] Stale Tier-1 race — KEPT (closes what the last
+iteration only narrowed)
+`detectViaScriptingAPI` spawns fuscript and answers seconds later, and the
+result was applied with no check that it was still relevant. Pick a project
+by hand while one is in flight and the old answer landed on top. Same
+automation-beats-intent defect as the steady-state bug, but intermittent —
+which is worse, because it reads as the app randomly changing your project
+rather than as a rule you can learn.
+
+`ManualIntent` counts explicit choices. A Tier-1 request stamps the count
+BEFORE it starts; if the count has moved when it answers, the user chose in
+the meantime and the answer is dropped — before the DetectionFollower ever
+sees it. That ordering is the point: a stale answer naming a DIFFERENT
+project looks exactly like a legitimate transition, so the follower cannot
+be the thing that catches it. Locked by a test that asserts the follower's
+`lastSeen` is untouched, with a sanity assertion proving the same name WOULD
+have read as a transition had it got that far.
+
+`select` now has an explicit-intent sibling, `selectManually`, used by the
+three UI switch points; `createProject` takes `isManual` because
+auto-creation routes through it too. Automation keeps calling the plain
+paths, so the counter means exactly what its name says.
+
+Dropping the answer does not lose a real change: if Resolve genuinely moved
+while the user was choosing, the next poll reports the new name and the
+follower treats it as the transition it is. Ignoring one round is the
+correct cost.
+
+VERIFY met: ManualIntentTests — an uninterrupted detection still applies, a
+choice during the request invalidates it, choices made BEFORE the request
+started do not, concurrent requests judge themselves against their own
+start, and the different-project stale answer never reaches the follower.
+Gate 165/165 + smoke ALL PASS (3 iterations) + UI tests pass.
+
 ## 2026-08-20 ~18:47 — [logic] Auto-switch follows transitions — KEPT
 `switchOrCreate` selected whenever the detected name differed from the
 selected project, and Tier 2 polls every 5s — so the app re-asserted
