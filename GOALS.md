@@ -86,7 +86,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [ux] Recording says why — the research window is visible and counts down — PENDING
+- [ux] Recording says why — the research window is visible and counts down — d92f92a
 
 - [hardening] Every engine time read goes through the injectable clock — 0ddb8c2
 
