@@ -40,7 +40,7 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
-- [design] Font sizes tokenised, and the rule checked by a test — PENDING-A
+- [design] Font sizes tokenised, and the rule checked by a test — 9401126
 - [perf] The status item runs on the engine's tick, not its own timer — PENDING-B
 
 - [a11y] The pill says the time and the project to VoiceOver — ca5ab62
