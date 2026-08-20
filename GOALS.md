@@ -88,7 +88,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [ux] Zero state — the timer says why it is not counting — PENDING
+- [ux] Zero state — the timer says why it is not counting — 0b947a4
 
 - [ux] First-run money defaults — one source, locale-seeded — b257e77
 
