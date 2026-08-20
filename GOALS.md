@@ -74,6 +74,41 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [logic] Auto-detection overrides the user every 5 seconds. Tier 2 polls
+  Resolve's window title and calls `switchOrCreate` with whatever it finds,
+  which re-selects Resolve's CURRENT project whenever it differs from the
+  selected one. So a manual switch cannot be held: pick project B while
+  Resolve has A open and within five seconds you are back on A, forever.
+  An editor doing B's work in After Effects while A sits open in Resolve
+  bills every second of it to A. The app's own stated principle is that
+  explicit user intent outranks automation; here automation wins on a timer.
+  Auto-switch should follow TRANSITIONS in Resolve — the detected name
+  CHANGING — not continuously assert its steady state.
+  VERIFY: unit test — detect A, manually select B, poll A repeatedly: the
+  selection stays B; then detect C (a real change in Resolve) and the
+  selection follows to C.
+
+- [logic] A stale Tier-1 answer can overwrite a newer manual choice.
+  `detectViaScriptingAPI` runs in a detached Task and spawns fuscript, which
+  takes seconds; the result is applied on return with no check that it is
+  still relevant. Switch projects by hand while one is in flight and the old
+  answer lands on top of your choice — the same automation-beats-intent
+  defect, but racy and therefore intermittent, which is worse.
+  VERIFY: unit test — start a Tier-1 request, manually select another
+  project before it resolves, deliver the stale result: the manual selection
+  survives. A result that arrives with no intervening manual change still
+  applies.
+
+- [perf] Switching cost scales with history. The menu-bar panel renders a
+  row per project on every tick, and each row calls `activeSecondsToday`,
+  which filters that project's ENTIRE session history. Ten projects with two
+  years of work is tens of thousands of comparisons a second, forever, for
+  numbers that change once a second at most. Cache the per-day totals and
+  invalidate on record / switch / delete.
+  VERIFY: unit test — 10 projects x 5000 sessions; a probe counts session
+  traversals across a simulated second of rendering and asserts it does not
+  scale with history (one pass per project per invalidation, not per render).
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 

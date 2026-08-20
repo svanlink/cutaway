@@ -7,6 +7,42 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:43 — AUDIT iteration (bias: multi-project switching) — 3 goals
+Read the switching paths end to end — Tier 2 polling, the Tier 1 Task,
+manual `select`, session close-and-reattribute — rather than reasoning about
+them. Two of the three findings are the same defect wearing different
+clothes: automation beating explicit intent.
+
+1. AUTO-DETECTION OVERRIDES THE USER ON A TIMER. `switchOrCreate` selects
+   whenever the detected name differs from the selected project, and Tier 2
+   runs every 5s. A manual switch therefore cannot be held: pick B while
+   Resolve has A open and you are back on A within five seconds, forever.
+   Work done in After Effects for project B, with A open in Resolve, bills
+   to A. The app states that explicit intent outranks automation (it is why
+   manual pause is sacred) — here automation wins on a timer. The fix is
+   conceptual, not a patch: auto-switch should follow TRANSITIONS in
+   Resolve, not assert its steady state.
+
+2. STALE TIER-1 RESULT WINS A RACE. The scripting-API call is a detached
+   Task that spawns fuscript for seconds, and its result is applied with no
+   relevance check. Switch by hand while one is in flight and the old answer
+   lands on top. Same defect, but intermittent — which makes it worse, since
+   it will read as "the app randomly changed my project".
+
+3. SWITCHING COST SCALES WITH HISTORY. The panel renders a row per project
+   every tick and each row filters that project's entire session history.
+   Not a correctness bug, but it is the one part of the app whose cost grows
+   with success, and it grows multiplicatively in the number of projects —
+   which is exactly what this audit was asked to look at.
+
+Checked and found FINE, worth recording so a later audit does not re-tread:
+session attribution across a switch (the open span closes before the id
+changes, so it stays with the old project); bridge gaps across a switch (the
+credit guard refuses an ended session); duplicate creation across tiers
+(normalised matching); delete-while-recording (closes, then reassigns).
+
+No code changed this iteration.
+
 ## 2026-08-20 ~18:31 — [billing] Invoice arithmetic — KEPT (with a correction
 to the audit that opened it)
 Rows printed rounded to cents while totals printed the rounded sum of
