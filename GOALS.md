@@ -93,7 +93,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [billing] Invoice period export — presets, filtered in the exporter — PENDING
+- [billing] Invoice period export — presets, filtered in the exporter — 557f59c
 
 - [billing] Rate history — work bills at the rate it was worked at — 3a9d1c2
 
