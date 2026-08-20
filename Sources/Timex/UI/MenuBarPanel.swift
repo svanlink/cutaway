@@ -13,6 +13,7 @@ struct MenuBarPanel: View {
         VStack(spacing: 0) {
             hero
             projectList
+            researchWindow
             receipt
             footer
         }
@@ -111,6 +112,36 @@ struct MenuBarPanel: View {
         .frame(maxHeight: 176)
     }
 
+    // MARK: - Research window
+
+    /// Only shown while a satellite app is holding the clock up. Recording
+    /// from Resolve needs no explanation — it stops when the work does. This
+    /// one stops on a timer the user cannot otherwise see.
+    @ViewBuilder
+    private var researchWindow: some View {
+        if let label = model.engine.recordingSource?.label {
+            HStack(spacing: 6) {
+                Image(systemName: "hourglass")
+                    .font(DT.glyph)
+                Text(label)
+                    .font(DT.captionMedium)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(model.researchWindowIsClosing ? DT.amber : DT.text3)
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(model.researchWindowIsClosing ? DT.amber.opacity(0.10) : Color.clear)
+            .overlay(alignment: .top) {
+                Rectangle().fill(DT.strokeSubtle).frame(height: 1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(label)
+        }
+    }
+
     // MARK: - Receipt
 
     /// The last banked session, stated plainly and permanently. The pill's
@@ -120,7 +151,7 @@ struct MenuBarPanel: View {
         if let line = model.lastSessionLine {
             HStack(spacing: 6) {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(DT.glyph)
                 Text(line)
                     .font(DT.captionMedium)
                     .monospacedDigit()

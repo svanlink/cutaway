@@ -10,6 +10,9 @@ import Observation
 final class DetectionEngine {
     private(set) var state: DetectionState = .paused(.notFrontmost)
     private(set) var accumulator = SessionAccumulator()
+    /// Why the clock is running, for the UI to say out loud. nil when not
+    /// recording.
+    private(set) var recordingSource: RecordingSource?
     /// Closed sessions this run — milestone (b) moves these into SwiftData.
     private(set) var closedSessions: [SessionRecord] = []
 
@@ -203,6 +206,10 @@ final class DetectionEngine {
             closeSessionIfOpen(reason: "bridge-expired")
             awayGapStart = nil
         }
+        let source = RecordingSource.evaluate(state: newState, input: input,
+                                              lastAnchorActive: lastAnchorActive,
+                                              window: satelliteWindow, now: now())
+        if source != recordingSource { recordingSource = source }
         if accumulate {
             // Real wall-clock delta, not an assumed 1s — RunLoop stalls and
             // App Nap would otherwise silently undercount. Capped so a

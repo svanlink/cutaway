@@ -56,6 +56,9 @@ enum DT {
     static let caption = Font.system(size: 11, weight: .semibold)
     static let captionMedium = Font.system(size: 11, weight: .medium)
     static let tag = Font.system(size: 10.5, weight: .semibold)
+    /// Inline leading glyph (checkmark, hourglass) — sits a step below
+    /// caption so the symbol reads as punctuation, not as a second voice.
+    static let glyph = Font.system(size: 9, weight: .bold)
 
     // canvas
     static let windowSize = CGSize(width: 480, height: 660)

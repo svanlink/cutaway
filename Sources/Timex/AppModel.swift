@@ -429,6 +429,15 @@ final class AppModel {
         )
     }
 
+    /// Under five minutes left is when a warning is still actionable — enough
+    /// to touch Resolve and keep the block alive, not so early it nags.
+    static let researchWindowWarning: TimeInterval = 300
+
+    var researchWindowIsClosing: Bool {
+        guard case .satellite(let left) = engine.recordingSource else { return false }
+        return left <= Self.researchWindowWarning
+    }
+
     // MARK: - Zero state
 
     /// Why the timer has nothing to show. The app's own answer to the

@@ -7,6 +7,40 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:36 — [ux] Recording says why — KEPT
+`.recording` was opaque: identical whether Resolve was frontmost or a
+browser was holding the clock up inside the research window. That window
+expires silently, so an editor researching in Chrome found out only by
+noticing the timer had stopped some time ago. The app is scrupulous about
+not over-billing; it should be equally clear about when it is about to stop
+counting.
+
+`RecordingSource` (.anchor / .satellite(secondsLeft:)) is computed purely
+and exposed by the engine. The panel shows a line ONLY for the satellite
+case — anchor recording stops when the work does and needs no explanation,
+and a line the user cannot act on is noise. Under five minutes the row turns
+amber: late enough not to nag, early enough to touch Resolve and keep the
+block alive.
+
+The countdown rounds DOWN, so it never promises time the window does not
+still have — 1:59 reads "1 min left", and anything under a minute says so
+rather than showing "0 min".
+
+Design gate caught something real: the new hourglass used a hardcoded
+`size: 9`, which the gate forbids. Rather than tokenising just the new one,
+took the pattern — the receipt's checkmark had the same literal inline — and
+both now use `DT.glyph`. Fix the class, not the instance.
+
+VERIFY met: RecordingSourceTests, 8 tests — anchor vs satellite, seconds
+left, rounding down, no label for anchor, no source when paused (all four
+reasons), no window without anchor history, clamping at zero rather than
+going negative, and an unknown app being neither.
+Gate 189/189 + smoke ALL PASS (3 iterations, s5-satellite included) +
+accessibility audit passes. No hardcoded values outside DT.
+DESIGN GATE PARTIAL: blind 3-judge panel still not runnable in-session.
+
+This closes the detection-engine audit — all three findings fixed.
+
 ## 2026-08-20 ~19:24 — [hardening] The engine has one clock — KEPT
 `closeSessionIfOpen` called `endSession()` with its default `Date()`, so the
 moment that decides a session's END — and through DaySplitter, which DAY the

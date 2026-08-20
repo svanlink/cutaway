@@ -14,6 +14,24 @@ enum DetectionState: Equatable, Sendable {
     case paused(PauseReason)
 }
 
+/// WHY the clock is still running. `.recording` alone is opaque: it looks
+/// identical whether Resolve is in front or a browser is holding the clock up
+/// inside the research window — and that window expires silently, so the user
+/// finds out only by noticing the timer stopped. The app is careful not to
+/// over-bill; it should be equally clear about when it is about to stop.
+enum RecordingSource: Equatable, Sendable {
+    /// An anchor app is frontmost — this runs as long as the work does.
+    case anchor
+    /// A satellite app is sustaining the clock, and will stop when the
+    /// research window closes.
+    case satellite(secondsLeft: TimeInterval)
+
+    var isTimeLimited: Bool {
+        if case .satellite = self { return true }
+        return false
+    }
+}
+
 /// Everything the state machine needs for one evaluation. Pure data — the
 /// live probes (NSWorkspace, CGEventSource) fill this in; tests build it directly.
 struct DetectionInput: Sendable {
@@ -110,6 +128,28 @@ extension DetectionState {
             return .paused(.inputIdle)
         }
         return .recording
+    }
+}
+
+extension RecordingSource {
+    /// Pure so every branch is testable without an engine.
+    static func evaluate(state: DetectionState, input: DetectionInput,
+                         lastAnchorActive: Date?, window: TimeInterval,
+                         now: Date) -> RecordingSource? {
+        guard state == .recording else { return nil }
+        if input.frontmostIsAnchor { return .anchor }
+        guard input.frontmostIsSatellite, let last = lastAnchorActive else { return nil }
+        return .satellite(secondsLeft: max(0, window - now.timeIntervalSince(last)))
+    }
+
+    /// What the panel prints. Rounds DOWN, so the number never promises time
+    /// the window does not still have.
+    var label: String? {
+        guard case .satellite(let secondsLeft) = self else { return nil }
+        let minutes = Int(secondsLeft / 60)
+        return minutes >= 1
+            ? "Research time · \(minutes) min left"
+            : "Research time · under a minute left"
     }
 }
 

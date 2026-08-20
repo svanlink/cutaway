@@ -74,17 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [ux] The user cannot tell WHY the timer is still running. `.recording` is
-  opaque: it looks identical whether Resolve is frontmost or whether a
-  browser is sustaining the clock inside the research window. So an editor
-  researching in Chrome has no idea they are inside a 20-minute window that
-  will expire silently — and when it does, tracking stops with no event they
-  can perceive. Trust runs both directions: the app is careful not to
-  over-bill, and it should be equally clear about when it is about to stop.
-  VERIFY: recording carries its sustaining reason (anchor vs satellite, with
-  time left in the window); unit tests cover each branch; the pill or panel
-  surfaces it; design gate for the view.
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
@@ -96,6 +85,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [ux] Recording says why — the research window is visible and counts down — PENDING
 
 - [hardening] Every engine time read goes through the injectable clock — 0ddb8c2
 
