@@ -1,7 +1,9 @@
 import SwiftUI
 
 /// The hero ring: progress toward the daily goal, money in the center.
-/// Recording = orange + glow · paused = gray, no glow · goal reached = green.
+/// Recording = accent · paused = gray · goal reached = green. No glow: a
+/// coloured blur behind a stroke is the clearest marker of consumer visual
+/// language, and this sits beside a grading suite.
 struct RingView: View {
     let elapsed: TimeInterval
     let money: String
@@ -13,21 +15,25 @@ struct RingView: View {
         if isPaused { return DT.ringPaused }
         return goal.reached ? DT.green : DT.orange
     }
-    private var glow: Color {
-        if isPaused { return .clear }
-        return (goal.reached ? DT.green : DT.orange).opacity(0.55)
-    }
-
     var body: some View {
         ZStack {
             Circle()
-                .stroke(DT.ringTrack, style: StrokeStyle(lineWidth: 18))
+                .stroke(DT.ringTrack, style: StrokeStyle(lineWidth: 12))
+            // A round cap on an 18pt stroke turns a 0.4% trim into a lozenge
+            // wider than it is long, centred at 12 o'clock — it read as a
+            // slider thumb the user should grab. Butt cap, and nothing drawn
+            // at zero.
             Circle()
-                .trim(from: 0, to: max(goal.fraction, 0.004))
-                .stroke(ringColor, style: StrokeStyle(lineWidth: 18, lineCap: .round))
+                .trim(from: 0, to: goal.fraction)
+                .stroke(ringColor, style: StrokeStyle(lineWidth: 12, lineCap: .butt))
                 .rotationEffect(.degrees(-90))
-                .shadow(color: glow, radius: 6)
-                .animation(.easeOut(duration: 0.3), value: goal.fraction)
+                // No animation on the value: one second against an 8h goal
+                // moves this arc 0.026pt, and easing that for 300ms every
+                // second, forever, on a machine rendering video, is a design
+                // bug and a performance bug in the same line. State changes
+                // animate; the number does not.
+                .animation(.easeOut(duration: 0.25), value: goal.reached)
+                .animation(.easeOut(duration: 0.25), value: isPaused)
 
             VStack(spacing: 3) {
                 Text("TODAY")

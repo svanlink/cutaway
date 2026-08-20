@@ -34,7 +34,7 @@ struct ProjectPill: View {
                 Circle()
                     .fill(DT.orange)
                     .frame(width: 8, height: 8)
-                    .shadow(color: DT.orange.opacity(0.8), radius: 4)
+                    
                 Text(project?.name ?? "No project")
                     .font(DT.body)
                     .foregroundStyle(DT.text)

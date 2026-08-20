@@ -103,7 +103,7 @@ struct StatsView: View {
             Text("EARNED").font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
             HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
                 Text(p.currency.formatWhole(earned))
-                    .font(DT.heroSec).foregroundStyle(DT.text).monospacedDigit()
+                    .font(DT.statLead).foregroundStyle(DT.text).monospacedDigit()
                 Text("@ \(String(format: "%.2f", p.hourlyRate)) / h")
                     .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
             }

@@ -153,8 +153,7 @@ private struct PauseButtonStyle: ButtonStyle {
                     .stroke(paused ? Color.white.opacity(hovering ? 0.24 : 0.14)
                                    : Color.white.opacity(hovering ? 0.25 : 0), lineWidth: 1)
             )
-            .shadow(color: paused ? .clear : DT.orange.opacity(hovering ? 0.45 : 0.22),
-                    radius: hovering ? 14 : 8, y: 3)
+
             .brightness(configuration.isPressed ? -0.06 : (hovering ? 0.05 : 0))
             .scaleEffect(configuration.isPressed ? 0.97 : (hovering ? 1.02 : 1))
             .animation(.easeOut(duration: 0.12), value: hovering)

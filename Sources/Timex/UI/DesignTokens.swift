@@ -72,10 +72,20 @@ enum DT {
     static let rSm: CGFloat = 6, rMd: CGFloat = 8, rLg: CGFloat = 12
 
     // type
-    static let hero = Font.system(size: 48, weight: .thin)
-    static let heroSec = Font.system(size: 25, weight: .light)
+    // Apple's HIG, Typography → Ensuring legibility: "avoid Ultralight, Thin
+    // and Light font weights". The hero readout — the number the whole app
+    // exists to show — was 48pt Thin, which renders as hairlines in a dark
+    // room and is the standard tell of a design that reached for elegant.
+    static let hero = Font.system(size: 44, weight: .medium)
+    static let heroSec = Font.system(size: 24, weight: .regular)
     static let money = Font.system(size: 17, weight: .semibold)
-    static let statValue = Font.system(size: 16, weight: .semibold)
+    /// Supporting figures — one step DOWN in weight from the lead, so size
+    /// and weight say the same thing instead of cancelling.
+    static let statValue = Font.system(size: 16, weight: .medium)
+    /// The lead figure in Stats: the money. Semibold at 25 so it wins on both
+    /// axes; it used to be 25 Light against 16 Semibold supports, which is
+    /// why three cards claiming "one lead, two supports" read as equals.
+    static let statLead = Font.system(size: 25, weight: .semibold)
     static let title = Font.system(size: 16, weight: .bold)
     static let body = Font.system(size: 13, weight: .medium)
     static let bodyBold = Font.system(size: 13, weight: .bold)
@@ -104,8 +114,8 @@ enum DT {
     static let pillMessage = Font.system(size: 12, weight: .bold)
 
     // menu-bar panel — its own scale, one step down from the main window
-    static let panelHero = Font.system(size: 38, weight: .thin)
-    static let panelHeroSeconds = Font.system(size: 20, weight: .light)
+    static let panelHero = Font.system(size: 36, weight: .medium)
+    static let panelHeroSeconds = Font.system(size: 19, weight: .regular)
     static let panelClient = Font.system(size: 10.5, weight: .bold)
     static let panelProject = Font.system(size: 15, weight: .semibold)
     static let panelRowActive = Font.system(size: 13, weight: .semibold)

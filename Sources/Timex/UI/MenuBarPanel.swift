@@ -75,7 +75,7 @@ struct MenuBarPanel: View {
                 .stroke(isRecording ? accent : DT.ringPaused,
                         style: StrokeStyle(lineWidth: 7, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .shadow(color: isRecording ? accent.opacity(0.6) : .clear, radius: 4)
+                
         }
         .frame(width: 52, height: 52)
     }
