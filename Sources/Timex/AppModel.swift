@@ -292,6 +292,26 @@ final class AppModel {
                        : "✓ \(m) min banked"
     }
 
+    /// The durable receipt. The 4s banked flash is a peak-end moment, but it
+    /// often fires after the editor already walked away — this line is still
+    /// there when they come back and ask "did that block get counted?".
+    var lastSessionLine: String? {
+        guard let p = selectedProject, let s = store.lastSession(for: p) else { return nil }
+        return Self.lastSessionText(activeSeconds: s.activeSeconds, end: s.end)
+    }
+
+    /// A receipt without its date lies the moment the day rolls over, so
+    /// anything older than today carries its day.
+    static func lastSessionText(activeSeconds: TimeInterval, end: Date,
+                                now: Date = Date(), calendar: Calendar = .current) -> String {
+        let m = max(1, Int((activeSeconds / 60).rounded()))
+        let duration = m >= 60 ? String(format: "%d:%02d h", m / 60, m % 60) : "\(m) min"
+        let when = calendar.isDate(end, inSameDayAs: now)
+            ? end.formatted(.dateTime.hour().minute())
+            : end.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+        return "Last session: \(duration) · \(when)"
+    }
+
     var pillSeconds: TimeInterval {
         switch Prefs.string(forKey: "pillDisplay") ?? "today" {
         case "session":

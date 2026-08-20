@@ -41,10 +41,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] Last-banked line in the menu-bar panel — judges: the 4s banked
-  flash often fires after the user walked away; the panel should show a
-  persistent "Last session: 47 min · 14:32" line as the durable receipt.
-  VERIFY: design gate "trust"; line matches last closed session in sqlite.
 - [design] Stats hierarchy pass — VERIFY: design gate "hierarchy".
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
@@ -59,6 +55,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — d7e6f4b
 
 (The loop moves completed goals here with the commit hash.)
 

@@ -68,6 +68,13 @@ final class SessionStore {
 
     // MARK: - Aggregation
 
+    /// Newest closed session — the durable receipt behind the menu-bar
+    /// "Last session" line. Ordered by `end`: a midnight-split session's
+    /// second half is the one the user actually finished.
+    func lastSession(for project: Project) -> WorkSession? {
+        project.sessions.max { $0.end < $1.end }
+    }
+
     func totalActiveSeconds(for project: Project) -> TimeInterval {
         project.sessions.reduce(0) { $0 + $1.activeSeconds }
     }

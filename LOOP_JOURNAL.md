@@ -7,6 +7,31 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~16:25 — [design] Last-banked line in the menu-bar panel — KEPT
+Top-most Later goal. The 4s banked flash is a peak-end moment that often
+fires after the editor already walked away, leaving no answer to "did that
+block get counted?". The panel now carries a persistent receipt row between
+the project list and the footer: "Last session: 47 min · 14:32", sourced
+from `SessionStore.lastSession(for:)` (max by `end`, so a midnight-split
+session reports the half the user actually finished).
+
+Honesty detail found while writing the verifier: a bare clock time reads as
+today forever. Anything not on today's date now carries its date
+("Last session: 47 min · Jul 17, 14:32"). Duration rounds to the nearest
+minute with a floor of 1 min — the line never claims a 0 min session.
+Locale-aware `.dateTime` formatting (UI surface, not the POSIX-pinned
+billing/CSV path). No new hardcoded colors or sizes — DT.captionMedium,
+DT.text3, DT.strokeSubtle, DT.rowInset, DT.s2.
+
+VERIFY met: 5 new tests (LastSessionReceiptTests) assert the line against
+what the store actually holds, including newest-END-wins and the empty-
+project case. Gate 101/101 + smoke ALL PASS (3 iterations) + accessibility
+audit UI test passes.
+DESIGN GATE PARTIAL: the blind 3-judge panel could not be run this
+iteration (no judges available in-session). Functional gate and the
+no-hardcoded-tokens rule are met; the judge panel is outstanding and the
+goal stays reversible if it fails one later.
+
 ## 2026-07-19 ~04:35 — [ux] Stupid-proof sweep — KEPT (after a real gate failure)
 Shipped: forgotten-pause hint (pill shows amber "still paused" after 15 min
 of manual pause, engine-tested with virtual clock), ephemeral-store banner

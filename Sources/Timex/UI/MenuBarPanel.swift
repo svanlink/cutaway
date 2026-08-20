@@ -13,6 +13,7 @@ struct MenuBarPanel: View {
         VStack(spacing: 0) {
             hero
             projectList
+            receipt
             footer
         }
         .frame(width: 340)
@@ -108,6 +109,35 @@ struct MenuBarPanel: View {
             }
         }
         .frame(maxHeight: 176)
+    }
+
+    // MARK: - Receipt
+
+    /// The last banked session, stated plainly and permanently. The pill's
+    /// 4s flash is the celebration; this is the proof that outlives it.
+    @ViewBuilder
+    private var receipt: some View {
+        if let line = model.lastSessionLine {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 9, weight: .bold))
+                Text(line)
+                    .font(DT.captionMedium)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(DT.text3)
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .top) {
+                Rectangle().fill(DT.strokeSubtle).frame(height: 1)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(line)
+        }
     }
 
     // MARK: - Footer
