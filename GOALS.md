@@ -60,7 +60,7 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
-- [a11y] The pill says the time and the project to VoiceOver — PENDING
+- [a11y] The pill says the time and the project to VoiceOver — ca5ab62
 
 - [perf] Backup decided from size+mtime, contents only as fallback — cf0311c
 
