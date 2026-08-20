@@ -7,6 +7,39 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:47 — [logic] Auto-switch follows transitions — KEPT
+`switchOrCreate` selected whenever the detected name differed from the
+selected project, and Tier 2 polls every 5s — so the app re-asserted
+Resolve's steady state twelve times a minute and a manual switch survived at
+most five seconds. An editor doing project B's work in After Effects, with A
+open in Resolve, billed all of it to A. The app calls manual pause sacred
+because explicit intent outranks automation; this was the same principle
+being broken on a timer.
+
+The fix is conceptual rather than defensive: a `DetectionFollower` turns
+Resolve's steady state into transitions, and only a CHANGE moves
+attribution. The first sighting is always a transition, which is how a fresh
+install still adopts whatever is already open (scenario s1 proves that path
+is untouched). Case/whitespace/diacritic drift between tiers is explicitly
+not a transition — otherwise Tier 1 and Tier 2 disagreeing about spelling
+would look like the user switching projects twice a minute.
+
+Simplification on the way: `switchOrCreate` carried a private `normalized`
+closure that duplicated the dedup rule. Both now use `ProjectName.matches`,
+so the rule that decides "same project" exists once.
+
+Deliberately NOT done here: the stale-Tier-1 race is the next goal. The
+follower narrows it (a stale answer naming the same project is now ignored)
+but does not close it — a stale answer naming a DIFFERENT project still
+reads as a transition. Recorded so the next iteration does not assume it
+inherited a fix it did not get.
+
+VERIFY met: DetectionFollowerTests — first sighting adopts, 100 polls of the
+same name never move attribution, a real change follows, tier spelling drift
+is not a transition, blank readings cannot fake one, reset makes the next
+sighting fresh.
+Gate 159/159 + smoke ALL PASS (3 iterations, s1-zerostate-detect included).
+
 ## 2026-08-20 ~18:43 — AUDIT iteration (bias: multi-project switching) — 3 goals
 Read the switching paths end to end — Tier 2 polling, the Tier 1 Task,
 manual `select`, session close-and-reattribute — rather than reasoning about

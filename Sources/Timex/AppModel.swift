@@ -11,6 +11,9 @@ final class AppModel {
     let detector = ProjectDetector()
 
     var selectedProjectID: PersistentIdentifier?
+    /// Turns Resolve's steady state into transitions, so a manual switch is
+    /// not overwritten by the next poll of a window that never moved.
+    private var follower = DetectionFollower()
     var showNewProjectSheet = false
     /// Non-nil while the rename / delete sheet is up for that project.
     var renameTarget: Project?
@@ -127,7 +130,7 @@ final class AppModel {
                 // Tier 2 (window title) may only SELECT — titles can carry
                 // suffixes/case drift; letting it create would spawn duplicate
                 // projects that silently split billing.
-                self.switchOrCreate(detected, canCreate: false)
+                self.autoDetected(detected, canCreate: false)
             }
             // Tier 1 fires fast the first time (tick 3) so a fresh install
             // picks up the open project within seconds. Steady-state interval:
@@ -141,7 +144,7 @@ final class AppModel {
                     await MainActor.run {
                         tier1InFlight = false
                         // Tier 1 is the exact API name — it may create.
-                        if let name { self?.switchOrCreate(name, canCreate: true) }
+                        if let name { self?.autoDetected(name, canCreate: true) }
                     }
                 }
             }
@@ -156,7 +159,15 @@ final class AppModel {
 
     /// Scenario hook: same path as a Tier-1 detection.
     func scenarioDetect(_ name: String) {
-        switchOrCreate(name, canCreate: true)
+        autoDetected(name, canCreate: true)
+    }
+
+    /// What Resolve just reported. Only a CHANGE moves attribution — polling
+    /// the same project again is not new information, and treating it as new
+    /// is what let a five-second timer overrule the user.
+    private func autoDetected(_ name: String, canCreate: Bool) {
+        guard let changed = follower.observe(name) else { return }
+        switchOrCreate(changed, canCreate: canCreate)
     }
 
     func rename(_ project: Project, to newName: String) {
@@ -239,11 +250,7 @@ final class AppModel {
     private func switchOrCreate(_ detectedName: String, canCreate: Bool) {
         let name = detectedName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
-        func normalized(_ s: String) -> String {
-            s.trimmingCharacters(in: .whitespaces)
-                .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
-        }
-        if let match = projects.first(where: { normalized($0.name) == normalized(name) }) {
+        if let match = projects.first(where: { ProjectName.matches($0.name, name) }) {
             if match.persistentModelID != selectedProjectID { select(match) }
             return
         }

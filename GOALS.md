@@ -74,20 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [logic] Auto-detection overrides the user every 5 seconds. Tier 2 polls
-  Resolve's window title and calls `switchOrCreate` with whatever it finds,
-  which re-selects Resolve's CURRENT project whenever it differs from the
-  selected one. So a manual switch cannot be held: pick project B while
-  Resolve has A open and within five seconds you are back on A, forever.
-  An editor doing B's work in After Effects while A sits open in Resolve
-  bills every second of it to A. The app's own stated principle is that
-  explicit user intent outranks automation; here automation wins on a timer.
-  Auto-switch should follow TRANSITIONS in Resolve — the detected name
-  CHANGING — not continuously assert its steady state.
-  VERIFY: unit test — detect A, manually select B, poll A repeatedly: the
-  selection stays B; then detect C (a real change in Resolve) and the
-  selection follows to C.
-
 - [logic] A stale Tier-1 answer can overwrite a newer manual choice.
   `detectViaScriptingAPI` runs in a detached Task and spawns fuscript, which
   takes seconds; the result is applied on return with no check that it is
@@ -120,6 +106,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [logic] Auto-switch follows transitions in Resolve, not steady state — PENDING
 
 - [billing] Invoice arithmetic — round once, then sum — 299c119
 
