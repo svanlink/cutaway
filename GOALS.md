@@ -86,7 +86,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [perf] Today's totals memoised — rendering no longer re-walks history — PENDING
+- [perf] Today's totals memoised — rendering no longer re-walks history — 9630250
 
 - [logic] Stale Tier-1 answers cannot overrule a newer manual choice — 8ecab2f
 
