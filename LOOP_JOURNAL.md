@@ -7,6 +7,42 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~20:31 — AUDIT iteration (menu-bar pill / status item) — 3 goals
+The surface a user actually looks at all day, and the last major one never
+audited.
+
+1. THE PILL HIDES ITS NUMBER FROM VOICEOVER. The accessibility label is
+   "Recording" / "Paused" / "No project selected" — never the time, never
+   which project, and never the banked-session confirmation or the
+   forgotten-pause hint, both of which REPLACE the visible readout for
+   seconds at a time. The audit UI test covers the main window only, so
+   nothing has ever looked at this. An app whose entire proposition is a
+   number in the menu bar does not tell that number to a screen reader.
+
+2. THE DESIGN GATE IS UNENFORCEABLE WHERE IT MATTERS MOST. The rule says no
+   hardcoded sizes outside DesignTokens; counted 18 font-size literals
+   across the UI — 10 in the menu-bar panel, 3 in the pill — plus radii,
+   ring widths and paddings. Two iterations ago the gate caught ONE new
+   literal because I happened to diff for it. A rule enforced by whether
+   someone remembers to look is a convention, not a gate.
+
+3. A SECOND 1 HZ TIMER EXISTS ONLY TO RESIZE THE PILL. It fires every second
+   for the life of the app — paused, no project selected, backgrounded,
+   number static — on a machine the user is rendering video on. The engine
+   already ticks at 1 Hz and the pill already re-renders from it.
+
+Checked and found CORRECT: the traffic-light states are shape-coded as well
+as hued (deuteranopia collapses green/amber), which PillRenderTests proves
+renders distinctly; the system highlight flash is suppressed deliberately;
+frame-based sizing is a documented workaround for autolayout blowing the
+status item to screen width, not an oversight.
+
+Finding 2 is the one that changes how this loop works rather than what the
+app does — it turns a gate we have been honouring into one that holds
+without us.
+
+No code changed this iteration.
+
 ## 2026-08-20 ~20:16 — [perf] The backup decision got cheap — KEPT
 Deciding whether to back up cost two full reads of the store, on the launch
 path, before the UI existed — fine at the 80 KB it is here, pointless at the
