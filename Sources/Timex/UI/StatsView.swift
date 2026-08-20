@@ -64,39 +64,60 @@ struct StatsView: View {
 
     // MARK: - Stat rows
 
+    /// Hierarchy: one lead, two supports. The question an editor opens Stats
+    /// to answer is a money question — that row gets the size. Time totals
+    /// are the evidence behind it, so they sit below at support weight.
     @ViewBuilder
     private func statRows(_ p: Project) -> some View {
         let total = model.store.totalActiveSeconds(for: p) + model.engine.accumulator.activeSeconds
         let days = model.dayTotalsIncludingLive(for: p)
         let dayCount = max(days.count, days.isEmpty && total > 0 ? 1 : days.count)
         let earned = BillingEngine.earnings(activeSeconds: total, hourlyRate: p.hourlyRate)
+        let avg = model.store.avgDailySeconds(for: p)
 
         VStack(spacing: DT.s2) {
-            statRow(key: "PROJECT TOTAL", value: hours(total), sub: "· \(dayCount) day\(dayCount == 1 ? "" : "s")")
-            statRow(key: p.mode == .budget ? "USED" : "EARNED",
-                    value: p.currency.formatWhole(earned),
-                    sub: "@ \(String(format: "%.2f", p.hourlyRate)) / h")
             if p.mode == .budget {
                 budgetRow(p, used: earned)
             } else {
-                let avg = model.store.avgDailySeconds(for: p)
-                statRow(key: "AVG PER DAY", value: hours(avg),
-                        sub: avg > 0 ? "\(p.currency.formatWhole(BillingEngine.earnings(activeSeconds: avg, hourlyRate: p.hourlyRate))) / day" : "—")
+                earnedLead(p, earned: earned)
+            }
+            HStack(spacing: DT.s2) {
+                supportStat(key: "PROJECT TOTAL", value: hours(total),
+                            sub: "\(dayCount) day\(dayCount == 1 ? "" : "s")")
+                supportStat(key: "AVG PER DAY", value: hours(avg),
+                            sub: avg > 0
+                                ? "\(p.currency.formatWhole(BillingEngine.earnings(activeSeconds: avg, hourlyRate: p.hourlyRate))) / day"
+                                : "—")
             }
         }
     }
 
-    private func statRow(key: String, value: String, sub: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
+    /// The lead figure — hourly projects. (Budget projects lead with
+    /// `budgetRow`, which already carries the visual weight of its bar.)
+    private func earnedLead(_ p: Project, earned: Double) -> some View {
+        VStack(alignment: .leading, spacing: DT.s1) {
+            Text("EARNED").font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
+            HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
+                Text(p.currency.formatWhole(earned))
+                    .font(DT.heroSec).foregroundStyle(DT.text).monospacedDigit()
+                Text("@ \(String(format: "%.2f", p.hourlyRate)) / h")
+                    .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .statCard()
+    }
+
+    /// Supporting figure — stacked, half width, one step down in type.
+    private func supportStat(key: String, value: String, sub: String) -> some View {
+        VStack(alignment: .leading, spacing: DT.s1) {
             Text(key).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-            Spacer()
             Text(value).font(DT.statValue).foregroundStyle(DT.text).monospacedDigit()
             Text(sub).font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
+                .lineLimit(1).truncationMode(.tail)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
-        .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .statCard()
     }
 
     @ViewBuilder
@@ -137,10 +158,7 @@ struct StatsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
-        .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
+        .statCard()
     }
 
     // MARK: - Daily breakdown
@@ -238,5 +256,17 @@ struct StatsView: View {
         guard let last = days.last?.day, let first = days.first?.day else { return "—" }
         let f = Date.FormatStyle().month(.abbreviated).day()
         return "\(last.formatted(f)) – \(first.formatted(f)), \(Calendar.current.component(.year, from: first))"
+    }
+}
+
+/// One card treatment, defined once — the stat cards drifted apart every
+/// time one of them was edited in isolation.
+private extension View {
+    func statCard() -> some View {
+        self
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s3)
+            .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
+            .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
     }
 }

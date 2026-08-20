@@ -7,6 +7,28 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~16:31 — [design] Stats hierarchy pass — KEPT
+Three identically-weighted cards stacked in a column: same size, same
+padding, same type. Nothing led, so the eye had to read all three to find
+the number the user actually came for. Restructured to one lead + two
+supports: the money figure (EARNED at DT.heroSec, or the budget card whose
+bar already carries the weight) leads, PROJECT TOTAL and AVG PER DAY drop
+to a half-width pair below at DT.statValue. Horizontal lead over a stacked
+pair also breaks the uniform-rhythm problem.
+
+Side effect worth naming: budget projects never showed AVG PER DAY at all
+— the pair is mode-independent, so they get it now.
+
+Simplification (autoresearch simplicity criterion): the card chrome was
+duplicated per row and had already drifted; it is now one `statCard()`
+extension defined once. Net +48/-18 lines for a structural change that
+also deletes a duplication.
+
+Gate 101/101 + smoke ALL PASS (3 iterations) + accessibility audit passes.
+No new hardcoded colors/sizes — verified by diffing for literal font sizes
+and paddings in the added lines.
+DESIGN GATE PARTIAL: blind 3-judge panel still not runnable in-session.
+
 ## 2026-08-20 ~16:25 — [design] Last-banked line in the menu-bar panel — KEPT
 Top-most Later goal. The 4s banked flash is a peak-end moment that often
 fires after the editor already walked away, leaving no answer to "did that

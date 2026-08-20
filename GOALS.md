@@ -59,7 +59,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [design] Stats hierarchy pass — VERIFY: design gate "hierarchy".
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 - [polish] Session detail view — VERIFY: UI matches sqlite fixture.
@@ -73,6 +72,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [design] Stats hierarchy pass — one money lead + two support stats — PENDING
 
 - [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — 4adfe94
 
