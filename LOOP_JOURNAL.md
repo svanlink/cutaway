@@ -7,6 +7,47 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~20:16 — [perf] The backup decision got cheap — KEPT
+Deciding whether to back up cost two full reads of the store, on the launch
+path, before the UI existed — fine at the 80 KB it is here, pointless at the
+80 MB this app is designed to grow toward. Each backup now writes a
+`manifest.json` recording every data file's size and nanosecond mtime; the
+next launch compares stat calls instead of bytes.
+
+Checked the assumption before relying on it rather than after: wrote the
+same-sized file three times in a loop and read the timestamps — nanosecond
+resolution, 80µs apart and distinct. That is why the manifest reads mtime
+through `stat` rather than Foundation's `Date`, which loses nanoseconds at
+current timestamps. Size alone would have missed an in-place edit.
+
+Unequal facts may be a false alarm; a spare backup is the safe direction to
+be wrong in. Backups taken before manifests existed fall back to the old
+content comparison, so old backup folders keep working instead of forcing a
+copy on every launch forever.
+
+FIRST EDIT TO AN EXISTING ASSERTION IN THIS RUN — recorded deliberately.
+`testBackupCopiesStoreTrio` asserts the backup directory's exact contents,
+and the directory now legitimately contains `manifest.json`. The expected
+VALUE changed; the STRICTNESS did not — it is still an exact comparison, so
+a stray file would still fail it. The alternative was making it a `contains`
+check, which would have quietly stopped catching stray files, and that is
+the move this loop does not make.
+
+The rule that governed this did not quite cover it: "prove it with
+`git diff | grep XCTAssert` returning empty" cannot apply when the expected
+value itself must change. Tightened the rule in GOALS to name that case and
+the test for it — strictness must not drop, `==` may never become
+`contains`, and the journal must say which assertion changed and why.
+
+VERIFY met: BackupCostTests — a 2 MB unchanged store is skipped with zero
+content reads, a changed one still backs up, same-size-different-content is
+still caught, WAL awareness survives the optimisation and stays cheap, a
+legacy backup without a manifest still decides correctly via the fallback,
+and the manifest records the data files and only those.
+Gate 208/208 + smoke ALL PASS (3 iterations) + UI tests pass.
+
+This closes the long-lived-data audit — all three findings fixed.
+
 ## 2026-08-20 ~20:03 — [data] The log is quarantined and bounded — KEPT
 Two defects in one file. `SessionLogger` ignored `ScenarioMode.dataDir`, so
 every verification run appended to the log a real user accumulates — the

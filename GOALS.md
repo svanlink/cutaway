@@ -46,6 +46,11 @@ is modelled on), because they were the parts we were only half-doing:
   test so a change can pass is the one move this loop never makes. Updating
   a FIXTURE to satisfy a new required field is not that — but prove it:
   `git diff <test files> | grep XCTAssert` must come back empty.
+  When an assertion's EXPECTED VALUE must change because behaviour changed on
+  purpose (a backup that now also contains a manifest), the grep will not be
+  empty and cannot be. The test then: STRICTNESS must not drop. An exact
+  comparison stays exact; a value may be updated, a `==` may never become a
+  `contains`, and the journal must say which assertion changed and why.
 - PARTIAL IS NOT KEEP. A goal that closes only part of its defect does not
   move to Done. It stays in Later, rewritten to describe the REMAINING gap,
   and its ledger row reads `partial`, not `keep`. The next iteration reads
@@ -98,17 +103,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [perf] Deciding whether to back up costs two full reads of the store, on
-  the launch path, before the UI exists. The skip-check does
-  `Data(contentsOf:)` on both the previous backup and the current store and
-  compares the bytes. That is fine at 80 KB and pointless at 80 MB — and it
-  grows with exactly the history the app is designed to accumulate. Compare
-  cheap facts first (size, then modification date), and only fall back to
-  content when those cannot decide.
-  VERIFY: unit test with an instrumented reader — an unchanged store of
-  non-trivial size is skipped without reading its contents; a changed one
-  still backs up; a same-size-different-content store is still caught.
-
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
@@ -120,6 +114,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [perf] Backup decided from size+mtime, contents only as fallback — PENDING
 
 - [data] Log quarantined from verification runs and bounded at ~4 MB — e1961a7
 

@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 /// Launch-time billing-data backup: copies the SwiftData store trio
 /// (.store, -wal, -shm) into a stamped folder under Backups/, skips when
@@ -22,7 +23,7 @@ enum StoreBackup {
         // still in the WAL, and it says so most readily right after a crash,
         // which is the launch where the WAL holds the unflushed work.
         if let newest = existingBackups(in: backupsDir).last,
-           matchesBackup(storeURL: storeURL, backup: newest) {
+           isUnchanged(storeURL: storeURL, since: newest) {
             return nil
         }
 
@@ -37,6 +38,10 @@ enum StoreBackup {
             try fm.copyItem(at: src, to: dest.appendingPathComponent(src.lastPathComponent))
         }
 
+        // Record what the store looked like, so the NEXT launch can decide
+        // with stat calls instead of reading the whole database.
+        writeManifest(facts(for: storeURL), to: dest)
+
         // Rotate: stamped names sort lexically, oldest first.
         let all = existingBackups(in: backupsDir)
         for stale in all.dropLast(keep) {
@@ -49,6 +54,65 @@ enum StoreBackup {
     /// completeness, never consulted when deciding whether anything changed.
     private static let dataSuffixes = ["", "-wal"]
     private static let copiedSuffixes = ["", "-wal", "-shm"]
+
+    /// Facts about one file, cheap enough to take on every launch.
+    /// Nanosecond mtime, read through `stat` rather than Foundation's `Date`,
+    /// which loses that precision at current timestamps.
+    struct FileFacts: Codable, Equatable {
+        var size: Int
+        var mtimeSeconds: Int
+        var mtimeNanoseconds: Int
+    }
+
+    /// Diagnostics: counts the times the decision fell back to reading the
+    /// store's contents, so a test can prove the launch path does not.
+    /// `nonisolated(unsafe)` for the compiler, not as a real hazard — backup
+    /// runs once, from one place, before the container opens.
+    nonisolated(unsafe) private(set) static var contentComparisons = 0
+
+    static func resetDiagnostics() { contentComparisons = 0 }
+
+    private static func facts(for storeURL: URL) -> [String: FileFacts] {
+        var result: [String: FileFacts] = [:]
+        for suffix in dataSuffixes {
+            let path = storeURL.path + suffix
+            var st = stat()
+            guard stat(path, &st) == 0 else { continue }
+            result[URL(fileURLWithPath: path).lastPathComponent] = FileFacts(
+                size: Int(st.st_size),
+                mtimeSeconds: Int(st.st_mtimespec.tv_sec),
+                mtimeNanoseconds: Int(st.st_mtimespec.tv_nsec)
+            )
+        }
+        return result
+    }
+
+    private static func manifestURL(in backup: URL) -> URL {
+        backup.appendingPathComponent("manifest.json")
+    }
+
+    private static func writeManifest(_ facts: [String: FileFacts], to backup: URL) {
+        guard let data = try? JSONEncoder().encode(facts) else { return }
+        try? data.write(to: manifestURL(in: backup))
+    }
+
+    /// Cheap first, content only as a fallback. Deciding used to cost two
+    /// full reads of the store on the launch path, before the UI existed —
+    /// fine at 80 KB, pointless at 80 MB, and it grows with exactly the
+    /// history the app is designed to accumulate.
+    private static func isUnchanged(storeURL: URL, since backup: URL) -> Bool {
+        if let data = try? Data(contentsOf: manifestURL(in: backup)),
+           let recorded = try? JSONDecoder().decode([String: FileFacts].self, from: data) {
+            // A file cannot change without its size or mtime moving, so equal
+            // facts mean equal contents. Unequal facts may be a false alarm,
+            // and a spare backup is the safe direction to be wrong in.
+            return recorded == facts(for: storeURL)
+        }
+        // Backups taken before manifests existed: fall back to the old
+        // comparison rather than forcing a copy on every launch forever.
+        contentComparisons += 1
+        return matchesBackup(storeURL: storeURL, backup: backup)
+    }
 
     /// True only when every DATA file matches the backup's copy. A file
     /// present on one side and absent on the other counts as a difference —

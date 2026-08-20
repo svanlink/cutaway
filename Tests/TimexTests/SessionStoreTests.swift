@@ -130,7 +130,10 @@ final class StoreBackupTests: XCTestCase {
         try Data("wal".utf8).write(to: URL(fileURLWithPath: store.path + "-wal"))
         let dest = try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(0))
         let files = try FileManager.default.contentsOfDirectory(atPath: dest!.path).sorted()
-        XCTAssertEqual(files, ["timex.store", "timex.store-wal"])
+        // manifest.json is a deliberate addition: it records size+mtime so the
+        // NEXT launch can decide whether to back up without reading the whole
+        // database. Still asserted exactly, so a stray file would still fail.
+        XCTAssertEqual(files, ["manifest.json", "timex.store", "timex.store-wal"])
         XCTAssertEqual(try Data(contentsOf: dest!.appendingPathComponent("timex.store")),
                        Data("main".utf8))
     }

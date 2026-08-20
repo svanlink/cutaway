@@ -90,7 +90,7 @@ final class BackupWALTests: XCTestCase {
         try write("shm", suffix: "-shm")
         let dest = try XCTUnwrap(try StoreBackup.backUp(storeURL: store, backupsDir: backups, now: date(0)))
         XCTAssertEqual(try fm.contentsOfDirectory(atPath: dest.path).sorted(),
-                       ["timex.store", "timex.store-shm", "timex.store-wal"],
+                       ["manifest.json", "timex.store", "timex.store-shm", "timex.store-wal"],
                        "deciding on two files must not stop us copying all three")
     }
 }
