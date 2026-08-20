@@ -82,7 +82,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [ux] Accessibility offered once, in context, with a real decline — PENDING
+- [ux] Accessibility offered once, in context, with a real decline — 2234290
 
 - [ux] Zero state — the timer says why it is not counting — 0b947a4
 
