@@ -96,7 +96,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [logic] Stale Tier-1 answers cannot overrule a newer manual choice — PENDING
+- [logic] Stale Tier-1 answers cannot overrule a newer manual choice — 8ecab2f
 
 - [logic] Auto-switch follows transitions in Resolve, not steady state — 7ef3870
 
