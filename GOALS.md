@@ -67,6 +67,36 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [ux] First-run money defaults are wrong twice over. NewProjectSheet
+  hardcodes `rate = "85.00"` and `currency = .chf`, ignoring the
+  `defaultHourlyRate` / `defaultCurrency` prefs that Settings writes and
+  that auto-created projects (AppModel.switchOrCreate) already honour — so
+  the same Mac creates projects two different ways. And the pref itself
+  defaults to CHF for everyone, so a first-run user in Berlin invoices in
+  francs unless they notice a picker on a form they were shown before they
+  understood the app. Seed the sheet from the prefs, and seed the prefs from
+  the Mac's locale on first launch.
+  VERIFY: unit test — sheet defaults equal prefs; locale map covers CHF/EUR/
+  USD/COP with a CHF fallback for anything unsupported; a sheet-created and
+  an auto-created project agree on rate and currency.
+
+- [ux] The zero state says nothing. Cancel the first-run sheet and the timer
+  is a 0:00 ring, a red pill, and no explanation — the meaning of red lives
+  in the README, not the app. Give it a real zero state: name what Cutaway
+  is waiting for (no project / Resolve not running / no Accessibility) and
+  offer one primary action out of it.
+  VERIFY: AppModel exposes a pure `zeroState` reason; unit test covers every
+  branch including the nil "nothing is wrong" case; design gate for the view.
+
+- [ux] Accessibility is never explained at the moment it matters. It is the
+  difference between instant project switching and a 30–120s scripting poll,
+  and a first-run user only ever meets it buried in Settings. Offer it once,
+  in context, after the first project exists — and never again once
+  dismissed.
+  VERIFY: pure `shouldOfferAccessibility(granted:dismissed:hasProject:)`;
+  unit test proves it fires exactly once, never when already granted, never
+  after dismissal, never before a project exists.
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 

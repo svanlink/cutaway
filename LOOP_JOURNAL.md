@@ -7,6 +7,29 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~17:56 — AUDIT iteration (bias: first-run experience) — 3 goals added
+Backlog was empty but for the Resolve-blocked Tier-1 goal, so the run-dry
+rule fired: generate goals rather than stop. Human asked for a first-run
+bias, so the audit walked the cold-install path — launch with no projects,
+no prefs, Resolve absent — instead of reading the app as a returning user.
+
+What that path actually is today: the window opens, and the FIRST thing a
+new user sees is a modal form asking for a project name, a client, a billing
+mode, an hourly rate and a currency. No welcome, no statement of what the
+app does, no mention that it will detect Resolve projects by itself. The
+README promises "first invoice in two minutes"; the app explains nothing.
+
+Real defect found while reading, not theorised: NewProjectSheet hardcodes
+`rate = "85.00"` and `currency = .chf` as @State, ignoring the
+`defaultHourlyRate` / `defaultCurrency` prefs that SettingsView writes and
+that AppModel.switchOrCreate already reads. So a user who sets their
+defaults still gets 85 CHF on the form, and auto-created projects disagree
+with hand-created ones on the same Mac.
+
+Three goals appended, each with a VERIFY that is a unit test rather than a
+judgment call. No code changed this iteration — an audit iteration commits
+goals, nothing else.
+
 ## 2026-08-20 ~17:44 — [hardening] Idle-during-render exemption — KEPT
 An export runs for 20 minutes, the editor watches it, touches nothing, and
 the timer pauses at the idle threshold. That is real work going unbilled —
