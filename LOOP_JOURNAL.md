@@ -7,6 +7,35 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~18:20 — AUDIT iteration (bias: invoicing / CSV) — 3 goals added
+Walked the path a freelancer actually takes: work a month, open Stats,
+Export CSV, send it to a client who checks it. Three findings, all money.
+
+1. RATE HISTORY. WorkSession stores start/end/activeSeconds and no rate;
+   every earnings figure anywhere is `seconds × project.hourlyRate` at
+   TODAY's rate. Raise your rate and history rewrites itself — the October
+   export of September's work disagrees with the invoice you already sent,
+   and the new file is the wrong one. This is the worst of the three: it
+   silently changes numbers a client has already paid against.
+
+2. NO INVOICE PERIOD. `CSVExporter.export` takes whatever days it is handed
+   and CSVExportButton hands it all of them. Billing a month means editing
+   the file by hand, and the cumulative columns are all-time, so the
+   hand-edited file is wrong in a way that looks right.
+
+3. PENNY DRIFT — proven, not theorised. Rows print rounded to cents;
+   total_earned prints the rounded sum of the UNROUNDED values. Searched for
+   a real case rather than asserting one: 12 days at 85/h where the rows sum
+   to 5572.71 while total_earned prints 5572.72. One cent, in a document a
+   client is paying against, is a credibility problem out of all proportion
+   to its size.
+
+Note what this audit did NOT propose: a PDF invoice generator, an invoice
+number scheme, a client database. Those are features; these three are
+defects in what the app already claims to do.
+
+No code changed this iteration.
+
 ## 2026-08-20 ~18:06 — [ux] In-context Accessibility offer — KEPT
 Accessibility is the difference between instant project switching and a
 30–120s scripting poll, and it was discoverable only by wandering into

@@ -70,6 +70,38 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [billing] Rate changes rewrite history. `earned` is always
+  `activeSeconds × project.hourlyRate` — the CURRENT rate — and WorkSession
+  stores no rate of its own. Raise your rate mid-project and every past day
+  is silently recalculated, including days you already invoiced: the CSV you
+  export in October will not match the one you sent in September, and the
+  new one is the wrong one. Record the rate in force when the work happened
+  and bill from that. Legacy rows (rate 0) fall back to the project rate.
+  VERIFY: unit test — record days at 85, raise the project to 120, record
+  more; the old days still price at 85, the new at 120, and total_earned
+  equals the sum of the per-day values. Existing sessions keep pricing at
+  the project rate (migration is non-destructive).
+
+- [billing] There is no way to export an invoice PERIOD. Export dumps the
+  entire project history every time, so billing a month means hand-editing
+  the file in Excel — and the cumulative columns are computed over all time,
+  so a hand-filtered file carries wrong cumulative totals. Give the export a
+  date range, with cumulative columns computed within it.
+  VERIFY: unit test — a ranged export excludes days outside the range, its
+  cumulative columns start from zero inside the range, and its summary block
+  reconciles with its own rows.
+
+- [billing] The invoice does not add up. Per-day `earned` is rounded to
+  cents for display while `total_earned` is the rounded sum of UNROUNDED
+  day values, so the printed rows and the printed total can disagree.
+  Proven, not theorised: 12 days at 85/h where the rows sum to 5572.71 and
+  total_earned prints 5572.72. A client checking the arithmetic finds a
+  one-cent hole in a document they are paying against. Round each day once
+  and sum the rounded values.
+  VERIFY: unit test — that exact 12-day fixture, asserting the summary total
+  equals the sum of the row values character-for-character; plus a random
+  sweep over many day sets asserting the invariant always holds.
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 
