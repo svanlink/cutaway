@@ -15,3 +15,5 @@ xcuserdata/
 
 # autoresearch ledger — local run state, never committed (program.md rule)
 LOOP_RESULTS.tsv
+loop.log
+STOP

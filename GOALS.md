@@ -34,6 +34,14 @@ is modelled on), because they were the parts we were only half-doing:
   interrupt them. (Outward-facing acts — pushing, releasing — stay off the
   autonomous path and wait for a human word.)
 - The run lives on `autoresearch/<tag>`, never directly on main.
+- NEVER RUN DRY. autoresearch never runs out of ideas because its metric is
+  continuous; this loop's gate is binary, so the backlog is the fuel. When
+  "Later" is empty the next iteration is an AUDIT iteration: read the app
+  with fresh eyes and append 3 new goals, each with a concrete VERIFY line.
+  An empty backlog is a goal-generation task, never a reason to stop.
+- Unattended runs: `./scripts/loop.sh` drives one `claude -p` iteration at a
+  time against `scripts/loop-prompt.md`. `touch STOP` ends it after the
+  current iteration.
 
 ## Production push — deadline 06:00 today
 
