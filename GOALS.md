@@ -96,7 +96,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [ux] First-run money defaults — one source, locale-seeded — PENDING
+- [ux] First-run money defaults — one source, locale-seeded — b257e77
 
 - [hardening] Idle-during-render exemption — opt-in, cpu-evidenced, 30 min cap — 9205c5f
 
