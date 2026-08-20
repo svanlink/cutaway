@@ -8,7 +8,7 @@ final class AccessibilityOfferTests: XCTestCase {
 
     private func offer(granted: Bool = false, dismissed: Bool = false,
                        hasProject: Bool = true, zeroState: Bool = false) -> Bool {
-        AppModel.shouldOfferAccessibility(granted: granted, dismissed: dismissed,
+        AccessibilityOfferPolicy.shouldOfferAccessibility(granted: granted, dismissed: dismissed,
                                           hasProject: hasProject, zeroStateShowing: zeroState)
     }
 

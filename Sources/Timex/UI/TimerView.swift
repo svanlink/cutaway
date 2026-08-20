@@ -58,12 +58,12 @@ struct TimerView: View {
     }
 
     @ViewBuilder
-    private func zeroStateCard(_ state: AppModel.ZeroState) -> some View {
+    private func zeroStateCard(_ state: ZeroStatePolicy.ZeroState) -> some View {
         VStack(spacing: DT.s2) {
-            Text(AppModel.zeroStateTitle(state))
+            Text(ZeroStatePolicy.zeroStateTitle(state))
                 .font(DT.bodyBold)
                 .foregroundStyle(DT.text)
-            Text(AppModel.zeroStateHint(state))
+            Text(ZeroStatePolicy.zeroStateHint(state))
                 .font(DT.captionMedium)
                 .foregroundStyle(DT.text3)
                 .multilineTextAlignment(.center)
