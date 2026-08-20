@@ -12,6 +12,15 @@ final class StatusItemController: NSObject {
     private var hostView: NSHostingView<PillView>?
     private var resizeTimer: Timer?
 
+    private func syncAccessibilityLabel() {
+        statusItem.button?.setAccessibilityLabel(PillView.accessibilityLabel(
+            project: model.selectedProject?.name,
+            isRecording: model.engine.state == .recording,
+            seconds: model.pillSeconds,
+            banked: model.bankedFlash,
+            pausedHint: model.engine.pausedLong ? "still paused" : nil))
+    }
+
     private func syncWidth() {
         guard let host = hostView, let button = statusItem.button else { return }
         let w = host.fittingSize.width
@@ -38,7 +47,10 @@ final class StatusItemController: NSObject {
             button.addSubview(host)
             button.target = self
             button.action = #selector(togglePopover)
+            // The button's own label is what VoiceOver reads when focus lands
+            // on the status item; the hosting view's label is not consulted.
             button.setAccessibilityLabel("Cutaway")
+            syncAccessibilityLabel()
             // No system highlight flash behind the custom pill — that gray
             // rounded "extension" on click was the button cell highlighting.
             (button.cell as? NSButtonCell)?.highlightsBy = []
@@ -46,7 +58,12 @@ final class StatusItemController: NSObject {
             // Re-sync width once per second (session time appearing/growing
             // changes the pill's natural width).
             resizeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-                Task { @MainActor in self?.syncWidth() }
+                Task { @MainActor in
+                    self?.syncWidth()
+                    // Rides the existing tick rather than adding a second
+                    // timer — the pill already has one too many.
+                    self?.syncAccessibilityLabel()
+                }
             }
             // Width only changes when digit count changes — coalesce freely.
             resizeTimer?.tolerance = 0.5
@@ -83,6 +100,40 @@ struct PillView: View {
         return isRecording ? DT.green : DT.amber
     }
 
+    /// What the pill says to VoiceOver. It used to say only the state —
+    /// "Recording" — while the number the whole app exists to show, and the
+    /// project it belongs to, were visible to everyone else and to nobody
+    /// using a screen reader.
+    static func accessibilityLabel(project: String?, isRecording: Bool,
+                                   seconds: TimeInterval, banked: String?,
+                                   pausedHint: String?) -> String {
+        guard let project, !project.isEmpty else { return "Cutaway — no project selected" }
+        // The flash and the hint REPLACE the readout on screen, so they
+        // replace it here too: announcing a time that is not being shown
+        // would describe a pill that does not exist.
+        if let banked {
+            return "Cutaway — \(banked.replacingOccurrences(of: "✓ ", with: "")), \(project)"
+        }
+        if pausedHint != nil {
+            return "Cutaway — still paused, \(project)"
+        }
+        return "Cutaway — \(isRecording ? "recording" : "paused"), "
+            + "\(spokenDuration(seconds)), \(project)"
+    }
+
+    /// "2 hours 14 minutes", not "2:14:07" — a screen reader spelling out a
+    /// clock string is a worse experience than no clock string.
+    static func spokenDuration(_ seconds: TimeInterval) -> String {
+        let total = max(0, Int(seconds))
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        if hours == 0 && minutes == 0 { return "under a minute" }
+        var parts: [String] = []
+        if hours > 0 { parts.append("\(hours) hour\(hours == 1 ? "" : "s")") }
+        if minutes > 0 { parts.append("\(minutes) minute\(minutes == 1 ? "" : "s")") }
+        return parts.joined(separator: " ")
+    }
+
     var body: some View {
         PillBody(stateColor: stateColor,
                  isRecording: isRecording,
@@ -92,8 +143,12 @@ struct PillView: View {
                  seconds: model.pillSeconds,
                  bankedText: model.bankedFlash,
                  pausedHint: model.engine.pausedLong ? "‖ still paused" : nil)
-            .accessibilityLabel(model.selectedProject == nil ? "No project selected"
-                                : isRecording ? "Recording" : "Paused")
+            .accessibilityLabel(Self.accessibilityLabel(
+                project: model.selectedProject?.name,
+                isRecording: isRecording,
+                seconds: model.pillSeconds,
+                banked: model.bankedFlash,
+                pausedHint: model.engine.pausedLong ? "still paused" : nil))
     }
 }
 

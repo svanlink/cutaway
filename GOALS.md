@@ -35,18 +35,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [a11y] The pill tells VoiceOver the state and hides the number. Its
-  accessibility label is "Recording" / "Paused" / "No project selected" — it
-  never says the time, never says WHICH project, and never announces the
-  banked-session confirmation or the forgotten-pause hint, both of which
-  replace the visible readout. This is the app's primary always-visible
-  surface, and the accessibility audit test only covers the main window, so
-  nothing has ever checked it.
-  VERIFY: a pure label function covering every state (no project, recording,
-  paused, banked flash, long-pause hint) asserted by unit test — each label
-  names the project and the figure a sighted user can see; and the audit UI
-  test is extended to the status item.
-
 - [design] The design gate cannot be enforced where it matters most. The
   rule is "no hardcoded colors/sizes outside DesignTokens", but there are 18
   font-size literals across the UI — 10 in the menu-bar panel, 3 in the pill
@@ -71,6 +59,8 @@ Readiness checklist (each item needs proof, not belief):
   harness scenario R-tier1 passes when Resolve is up.
 
 ## Done
+
+- [a11y] The pill says the time and the project to VoiceOver — PENDING
 
 - [perf] Backup decided from size+mtime, contents only as fallback — cf0311c
 

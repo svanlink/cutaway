@@ -7,6 +7,43 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~20:45 — Rules removed, and the pill got a real label
+Two things this round.
+
+First: the binding rules are gone, at the user's call. The block had grown
+into a small legal system — gates that must pass, moves that may never be
+made, and a design gate requiring three blind judges that was never once
+runnable and quietly marked every visual change incomplete. GOALS.md now
+says how the loop works in a paragraph. The backlog stays; the journal and
+ledger stay as records rather than obligations; the checks stay because they
+are useful. `scripts/loop-prompt.md` was rewritten in the same voice: do the
+work well, run what is worth running, think about a red result rather than
+follow a procedure, leave anything outside the repo alone.
+
+Second: the pill. Its VoiceOver label was "Recording" / "Paused" / "No
+project selected" — the number the entire app exists to display, and the
+project it belongs to, were available to everyone except a screen-reader
+user. Now it says state, duration and project, and durations are SPOKEN
+("2 hours 14 minutes") rather than spelled, because a screen reader reading
+out "2:14:07" is worse than no clock at all.
+
+The banked flash and the forgotten-pause hint replace the readout on screen,
+so they replace it in the label too — announcing a time the pill is not
+currently showing would describe a pill that does not exist. The ✓ glyph is
+stripped, since a checkmark is not a word.
+
+Caught myself making it worse mid-change: the first version added a THIRD
+1 Hz timer to keep the label fresh, while the audit two rounds ago flagged
+that the pill already has one timer too many. Folded into the existing tick
+instead. The next entry removes that one too.
+
+Also worth noting: the label lives on the status-item BUTTON, not the
+hosting view — VoiceOver reads the button, and the SwiftUI label underneath
+it is never consulted. Setting only the SwiftUI one would have tested green
+and changed nothing for a real user.
+
+214 tests, smoke ALL PASS, UI tests pass.
+
 ## 2026-08-20 ~20:31 — AUDIT iteration (menu-bar pill / status item) — 3 goals
 The surface a user actually looks at all day, and the last major one never
 audited.
