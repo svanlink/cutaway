@@ -74,18 +74,6 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [billing] A manual pause does not survive a relaunch. `manuallyPaused` is
-  a plain var, never persisted, so quitting while paused — or a crash, or a
-  restart overnight — comes back recording. The app calls manual pause
-  sacred; this is the one way it silently un-pauses, and it fails in the
-  billing direction: time accrues that the user believed was stopped. Worse,
-  it is invisible, because a relaunched app looks exactly like one that was
-  never paused.
-  VERIFY: unit test — pause, simulate relaunch (fresh engine, same Prefs),
-  assert the state is still `.paused(.manual)` and that no seconds accrued
-  in between; unpausing clears the persisted flag; a never-paused install is
-  unaffected.
-
 - [hardening] The accumulator ends sessions on the wall clock while the
   engine runs on an injectable one. `closeSessionIfOpen` calls
   `endSession()` with its default `Date()`, so the single moment that
@@ -120,6 +108,8 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 - No new hardcoded colors/sizes outside DesignTokens (DT).
 
 ## Done
+
+- [billing] Manual pause survives a relaunch — PENDING
 
 - [perf] Today's totals memoised — rendering no longer re-walks history — 9630250
 

@@ -17,10 +17,14 @@ final class DetectionEngineTests: XCTestCase {
     private var probes: FakeProbes!
     private var engine: DetectionEngine!
     private var clock: Date!
+    private var scratch: UserDefaults!
 
     override func setUp() async throws {
         probes = FakeProbes()
-        engine = DetectionEngine(probes: probes)
+        // Isolated defaults: the engine persists manual pause, and these
+        // tests are about detection, not about what another test left behind.
+        scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        engine = DetectionEngine(probes: probes, defaults: scratch)
         engine.bridgeGrace = 180
         clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { [weak self] in self!.clock }
@@ -223,7 +227,8 @@ final class LongPauseHintTests: XCTestCase {
 
     func testLongPauseFlagsAfterThreshold() {
         let probes = DetectionEngineTests.FakeProbes()
-        let engine = DetectionEngine(probes: probes)
+        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let engine = DetectionEngine(probes: probes, defaults: scratch)
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { clock }
         engine.tick()

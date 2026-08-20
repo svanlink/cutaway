@@ -7,6 +7,40 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-20 ~19:12 — [billing] Manual pause survives a relaunch — KEPT
+`manuallyPaused` was a plain var. Quit while paused — or crash, or restart
+overnight — and the app came back recording, accruing time the user believed
+was stopped, with nothing on screen to say the pause had been lifted. The
+one boundary the app calls sacred, un-setting itself in the billing
+direction. Now persisted, with `manualPauseStart` alongside it so a restored
+pause reports its REAL age: pause on Friday, launch on Monday, and the
+forgotten-pause hint fires immediately instead of restarting its 15-minute
+clock as though the pause were new.
+
+GATE FAILURE ON THE WAY — 5 red in DetectionEngineTests, and the cause was
+the change itself, not the tests. Persisting pause made the engine read
+global mutable state AT CONSTRUCTION, so every engine any test built now
+inherited whatever another test had last written. Ordering-dependent,
+therefore intermittent, therefore exactly the class of flake that wastes an
+unattended night.
+
+The fix was the design, not the symptom: `defaults` is injected
+(`init(probes:logger:defaults:)`, defaulting to Prefs), and the engine tests
+each get their own scratch suite. A store shared by every engine ever built
+is as testable as a global variable. `git diff | grep XCTAssert` across the
+touched test files returns nothing — the isolation changed how those tests
+get a store, never what they assert.
+
+Worth naming: had I persisted via a bare `Prefs` read and the suite happened
+to be clean, this would have gone green and shipped a test suite whose
+results depended on execution order. The failure was the useful outcome.
+
+VERIFY met: PausePersistenceTests — a pause survives relaunch, not one
+second accrues across it, resuming clears the persisted state, a
+never-paused install is unaffected, a restored pause reports its real age
+and trips the long-pause hint, and a start without a pause is not restored.
+Gate 177/177 + smoke ALL PASS (3 iterations) + UI tests pass.
+
 ## 2026-08-20 ~18:58 — AUDIT iteration (detection engine — the billing logic)
 No bias was sent this tick, so took the area flagged as least-audited and
 highest-stakes: the engine's own rules, where the money is actually decided.

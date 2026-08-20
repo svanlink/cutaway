@@ -13,8 +13,21 @@ final class DetectionEngine {
     /// Closed sessions this run — milestone (b) moves these into SwiftData.
     private(set) var closedSessions: [SessionRecord] = []
 
-    var manuallyPaused = false
-    /// When the current manual pause began — nil while not paused.
+    /// PERSISTED. A pause the user set must not be lifted by quitting,
+    /// crashing, or restarting overnight — that is the one way this boundary
+    /// used to un-set itself, silently, in the billing direction, and
+    /// invisibly, because a relaunched app looks exactly like one that was
+    /// never paused.
+    var manuallyPaused: Bool {
+        didSet {
+            guard manuallyPaused != oldValue else { return }
+            defaults.set(manuallyPaused, forKey: PauseState.pausedKey)
+        }
+    }
+    /// When the current manual pause began — nil while not paused. Persisted
+    /// alongside the flag so a pause restored at launch reports its real age
+    /// and the forgotten-pause hint fires immediately instead of restarting
+    /// its 15-minute clock.
     private(set) var manualPauseStart: Date?
     /// Flips true once a manual pause exceeds 15 minutes — the pill shows
     /// a hint so a forgotten pause doesn't silently eat a billable day.
@@ -54,13 +67,23 @@ final class DetectionEngine {
 
     private let probes: any SystemProbing
     private let logger: SessionLogger
+    /// Injected so the engine never reads global mutable state at
+    /// construction — a store that is shared with every other engine ever
+    /// built is exactly as testable as a global variable, which is to say
+    /// not at all.
+    private let defaults: UserDefaults
     private var isAsleep = false
     private var timer: Timer?
     private var lastCheckpoint = Date()
 
-    init(probes: any SystemProbing = SystemProbes(), logger: SessionLogger = SessionLogger()) {
+    init(probes: any SystemProbing = SystemProbes(), logger: SessionLogger = SessionLogger(),
+         defaults: UserDefaults = Prefs) {
         self.probes = probes
         self.logger = logger
+        self.defaults = defaults
+        // A pause the user set outlives the process that set it.
+        self.manuallyPaused = defaults.bool(forKey: PauseState.pausedKey)
+        self.manualPauseStart = PauseState.restoredStart(from: defaults)
         observeSleepWake()
         // Flush the open session before the process dies — Quit must not
         // lose recorded time (spec: ≤15s loss, and clean quit loses zero).
@@ -95,6 +118,7 @@ final class DetectionEngine {
     func togglePause() {
         manuallyPaused.toggle()
         manualPauseStart = manuallyPaused ? now() : nil
+        PauseState.persist(start: manualPauseStart, to: defaults)
         pausedLong = false
         // Re-evaluate immediately but do NOT accumulate — only the 1 Hz
         // timer adds seconds, otherwise every toggle injects phantom time.

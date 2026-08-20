@@ -66,3 +66,28 @@ struct ManualIntent {
         started != token
     }
 }
+
+/// Where a manual pause is remembered across runs.
+///
+/// Kept beside the engine rather than inside it so the keys, the restore
+/// rule and the "a start without a pause is not a pause" guard all live in
+/// one readable place — a half-restored pause is worse than none.
+enum PauseState {
+    static let pausedKey = "manuallyPaused"
+    static let startKey = "manualPauseStart"
+
+    /// Only a start that belongs to an actual pause is restored.
+    static func restoredStart(from defaults: UserDefaults = Prefs) -> Date? {
+        guard defaults.bool(forKey: pausedKey) else { return nil }
+        let stamp = defaults.double(forKey: startKey)
+        return stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
+    }
+
+    static func persist(start: Date?, to defaults: UserDefaults = Prefs) {
+        if let start {
+            defaults.set(start.timeIntervalSince1970, forKey: startKey)
+        } else {
+            defaults.removeObject(forKey: startKey)
+        }
+    }
+}
