@@ -55,7 +55,8 @@ struct ProjectPill: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .accessibilityLabel("Current project: \(project?.name ?? "none"). Click to switch.")
+        .accessibilityLabel("Current project: \(project?.name ?? "none")")
+        .accessibilityHint("Switches the active project")
     }
 }
 
@@ -171,6 +172,11 @@ struct SegmentedTabs: View {
                 .shadow(color: on ? .black.opacity(0.4) : .clear, radius: 2, y: 1)
         }
         .buttonStyle(.plain)
+        // Without .isSelected a VoiceOver user has to activate a tab to find
+        // out which one they are on — which changes the thing they were asking
+        // about. macOS has no `.trait` accessibility audit, so nothing
+        // automated will ever catch this; it is asserted by unit test instead.
+        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
     }
 }
 

@@ -18,10 +18,10 @@ struct NewProjectSheet: View {
             Text("New Project").font(DT.title).foregroundStyle(DT.text)
 
             field("PROJECT NAME") {
-                TextField("e.g. Nyx Fashion Film", text: $name).textFieldStyle(.plain)
+                TextField("e.g. Nyx Fashion Film", text: $name).accessibilityLabel("Project name").textFieldStyle(.plain)
             }
             field("CLIENT") {
-                TextField("optional", text: $client).textFieldStyle(.plain)
+                TextField("optional", text: $client).accessibilityLabel("Client").textFieldStyle(.plain)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -36,11 +36,12 @@ struct NewProjectSheet: View {
 
             HStack(spacing: DT.s3) {
                 field("HOURLY RATE") {
-                    TextField(String(format: "%.2f", AppModel.defaultHourlyRate), text: $rate).textFieldStyle(.plain)
+                    TextField(String(format: "%.2f", AppModel.defaultHourlyRate), text: $rate)
+                        .accessibilityLabel("Hourly rate").textFieldStyle(.plain)
                 }
                 if mode == .budget {
                     field("BUDGET") {
-                        TextField("4500", text: $budget).textFieldStyle(.plain)
+                        TextField("4500", text: $budget).accessibilityLabel("Fixed budget").textFieldStyle(.plain)
                     }
                 }
                 VStack(alignment: .leading, spacing: 6) {

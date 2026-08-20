@@ -54,7 +54,13 @@ struct RingView: View {
         }
         .frame(width: 240, height: 240)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Today \(timeString(elapsed)) recorded, \(money) earned")
+        // Was: "Today 0 hours 1 minutes recorded" — a second, worse
+        // implementation of a duration formatter that already existed and was
+        // already tested. It also dropped the goal line and never said whether
+        // the timer was paused, which for a VoiceOver user made paused-vs-
+        // recording a colour-only distinction.
+        .accessibilityLabel(Self.ringLabel(elapsed: elapsed, money: money,
+                                           goalLine: goalLine, isPaused: isPaused))
     }
 
     private var elapsedText: some View {
@@ -66,6 +72,13 @@ struct RingView: View {
             Text(sec).font(DT.heroSec).foregroundStyle(DT.text2)
         }
         .monospacedDigit()
+    }
+
+    static func ringLabel(elapsed: TimeInterval, money: String,
+                          goalLine: String, isPaused: Bool) -> String {
+        let state = isPaused ? "Paused" : "Recording"
+        let spoken = goalLine.replacingOccurrences(of: "Goal ✓", with: "Goal reached")
+        return "\(state). Today \(PillView.spokenDuration(elapsed)), \(money) earned. \(spoken)"
     }
 
     private var goalLine: String {

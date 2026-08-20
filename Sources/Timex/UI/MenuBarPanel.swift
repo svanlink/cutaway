@@ -63,8 +63,18 @@ struct MenuBarPanel: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Open Cutaway")
+        // Was "Open Cutaway", which discarded the elapsed time, the client and
+        // the project — the largest number on screen did not exist.
+        .accessibilityLabel(heroLabel)
+        .accessibilityHint("Open Cutaway")
         .help("Open Cutaway")
+    }
+
+    private var heroLabel: String {
+        let worked = PillView.spokenDuration(model.todaySeconds)
+        guard let project = model.selectedProject else { return "Today \(worked), no project" }
+        let client = project.client.isEmpty ? "" : ", \(project.client)"
+        return "Today \(worked), \(project.name)\(client)"
     }
 
     private var heroRing: some View {
@@ -278,7 +288,11 @@ private struct PanelRow: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .accessibilityLabel("Switch to \(project.name)")
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(project.name), \(PillView.spokenDuration(todaySeconds)) today"
+                            + (isRunning ? ", running" : ""))
+        .accessibilityHint("Switches the active project")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private func hoursMinutes(_ t: TimeInterval) -> String {

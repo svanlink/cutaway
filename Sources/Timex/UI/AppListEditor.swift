@@ -42,7 +42,7 @@ struct AppListEditor: View {
             .frame(maxHeight: 220)
 
             HStack(spacing: DT.s2) {
-                TextField("com.example.app", text: $newPrefix)
+                TextField("com.example.app", text: $newPrefix).accessibilityLabel("Bundle id prefix")
                     .textFieldStyle(.roundedBorder)
                     .font(DT.small)
                     .onSubmit(add)

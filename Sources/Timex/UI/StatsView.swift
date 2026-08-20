@@ -261,7 +261,14 @@ struct StatsView: View {
         .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(expandedDay == d.day ? "Hide sessions" : "Show sessions")
+        // A label on a container REPLACES everything inside it. This one said
+        // "Show sessions" over a row containing a date, hours and an amount —
+        // so the whole daily ledger, the thing a client's money depends on,
+        // announced the same four words thirty times.
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Self.dayRowLabel(d, project: p, isToday: isToday))
+        .accessibilityHint(expandedDay == d.day ? "Hide sessions" : "Show sessions")
+        .accessibilityAddTraits(.isButton)
     }
 
     /// The sessions behind one day. The breakdown row is a claim; this is the
@@ -313,6 +320,14 @@ struct StatsView: View {
                 .frame(width: 96, alignment: .trailing)
         }
         .padding(.vertical, DT.s1)
+    }
+
+    /// What VoiceOver hears for one day of the ledger. Pure, so the claim
+    /// "every row states its own figures" is testable without a screen reader.
+    static func dayRowLabel(_ d: DayTotal, project p: Project, isToday: Bool) -> String {
+        let day = isToday ? "Today" : d.day.formatted(.dateTime.weekday(.wide).month(.wide).day())
+        let worked = PillView.spokenDuration(d.activeSeconds)
+        return "\(day), \(worked), \(p.currency.format(d.earned))"
     }
 
     private func hours(_ t: TimeInterval) -> String {

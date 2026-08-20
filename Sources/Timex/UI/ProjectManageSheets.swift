@@ -11,7 +11,7 @@ struct RenameProjectSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DT.s3) {
             Text("Rename Project").font(DT.title).foregroundStyle(DT.text)
-            TextField("Project name", text: $name)
+            TextField("Project name", text: $name).accessibilityLabel("Project name")
                 .textFieldStyle(.plain)
                 .font(DT.body)
                 .foregroundStyle(DT.text)

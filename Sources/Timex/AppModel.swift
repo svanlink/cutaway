@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AppKit
 import SwiftData
 
 /// Glue between detection, persistence, and UI. One instance per app.
@@ -177,7 +178,13 @@ final class AppModel {
     /// is what let a five-second timer overrule the user.
     private func autoDetected(_ name: String, canCreate: Bool) {
         guard let changed = follower.observe(name) else { return }
+        let before = selectedProjectID
         switchOrCreate(changed, canCreate: canCreate)
+        // Only when the app moved attribution by itself. A manual switch needs
+        // no announcement — the user is the one who just did it.
+        if selectedProjectID != before, let now = selectedProject?.name {
+            announce(Self.switchAnnouncement(to: now))
+        }
     }
 
     func rename(_ project: Project, to newName: String) {
@@ -330,6 +337,7 @@ final class AppModel {
         guard activeSeconds >= 60 else { return }  // micro-sessions stay quiet
         let text = Self.bankedText(activeSeconds)
         bankedFlash = text
+        announce(Self.bankedAnnouncement(activeSeconds))
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(4))
             if self?.bankedFlash == text { self?.bankedFlash = nil }
@@ -408,6 +416,30 @@ final class AppModel {
                                  lastEnd: Date(), earned: liveEarned), at: 0)
         }
         return days
+    }
+
+    // MARK: - Spoken announcements
+
+    /// The app reassigns which project is being billed on its own, from a
+    /// window title it read five seconds ago. A sighted user sees the pill
+    /// change; a VoiceOver user got nothing at all, and could bill hours to
+    /// the wrong client without a single cue that anything had happened.
+    ///
+    /// Pure text, so what gets said is testable; posting is one line below.
+    static func switchAnnouncement(to project: String) -> String {
+        "Now tracking \(project)"
+    }
+
+    static func bankedAnnouncement(_ activeSeconds: TimeInterval) -> String {
+        "Session saved, \(PillView.spokenDuration(activeSeconds))"
+    }
+
+    func announce(_ message: String) {
+        guard !ScenarioMode.isActive else { return }
+        NSAccessibility.post(element: NSApp as Any,
+                             notification: .announcementRequested,
+                             userInfo: [.announcement: message,
+                                        .priority: NSAccessibilityPriorityLevel.medium.rawValue])
     }
 
     // MARK: - Accessibility offer
