@@ -133,7 +133,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [data] Backup skip-check reads the whole store, WAL included — PENDING
+- [data] Backup skip-check reads the whole store, WAL included — 43e981c
 
 - [ux] Recording says why — the research window is visible and counts down — d92f92a
 
