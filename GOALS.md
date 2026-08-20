@@ -121,7 +121,7 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
-- [data] Log quarantined from verification runs and bounded at ~4 MB — PENDING
+- [data] Log quarantined from verification runs and bounded at ~4 MB — e1961a7
 
 - [data] Backup skip-check reads the whole store, WAL included — 43e981c
 
