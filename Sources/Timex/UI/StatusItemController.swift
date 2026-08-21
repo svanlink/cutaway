@@ -121,15 +121,32 @@ final class StatusItemController: NSObject {
                    at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)
     }
 
-    /// WCAG 2.1.2: a panel you can open with the keyboard and not close with
-    /// it is a trap. A local key monitor fires regardless of where first
-    /// responder ended up inside the hosted SwiftUI view.
+    /// Keys the panel answers while it is open.
+    ///
+    /// Escape, because a panel you can open with the keyboard and not close
+    /// with it is a trap (WCAG 2.1.2). A local monitor rather than
+    /// .onExitCommand: that depends on the SwiftUI responder chain reaching a
+    /// view hosted inside an NSPopover, and it only manages it about two
+    /// times in three.
+    ///
+    /// Cmd-Q, because the right-click menu that offers Quit cannot be reached
+    /// from a keyboard — right-click never can. The keyboard route into this
+    /// app is Ctrl-F8 then Return, which lands here, so this is where the
+    /// universal quit shortcut has to work. It costs no visible chrome, which
+    /// is why it beats a button in the footer.
     private func installEscapeMonitor() {
         guard escapeMonitor == nil else { return }
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard event.keyCode == 53 else { return event }   // Escape
-            self?.closePopover()
-            return nil
+            if event.keyCode == 53 {                                   // Escape
+                self?.closePopover()
+                return nil
+            }
+            if event.charactersIgnoringModifiers?.lowercased() == "q",
+               event.modifierFlags.contains(.command) {
+                NSApp.terminate(nil)
+                return nil
+            }
+            return event
         }
     }
 

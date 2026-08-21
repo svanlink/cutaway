@@ -211,13 +211,6 @@ struct MenuBarPanel: View {
                 // silent-no-op bug. Settings is a real window we open.
                 model.openSettingsWindow?()
             }
-            // The keyboard's only route into this app is Ctrl-F8 to the menu
-            // bar, then Return — which opens this panel. So this is where a
-            // keyboard user has to be able to quit from; the status item's
-            // right-click menu is mouse-only by nature.
-            footBtn("⏻", help: "Quit Cutaway") {
-                NSApplication.shared.terminate(nil)
-            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)

@@ -4,10 +4,23 @@ import XCTest
 /// user who cannot use Cmd-Q from a focused window — which is everyone in
 /// accessory mode — cannot quit Cutaway without Activity Monitor."
 ///
-/// These drive the real status item and the real popover. They need a logged-in
-/// GUI session with a visible menu bar and are the most fragile tests in the
-/// suite; if one fails twice with no source change between, quarantine it
-/// rather than debugging the window server.
+/// These drive the real status item and the real popover. They need a
+/// logged-in GUI session with a visible menu bar.
+///
+/// A note on the flakiness that is easy to misread here. These tests appeared
+/// to fail intermittently — 1/3 and 2/3 on repeated runs, a different one each
+/// time — and the obvious conclusion was that synthesised key events do not
+/// reliably reach an NSPopover. That conclusion was wrong. The failures were
+/// "Timed out while enabling automation mode": the test RUNNER was not
+/// starting, because earlier runs had left Cutaway processes alive on the
+/// machine. With those cleared, the suite passes.
+///
+/// The lesson is worth more than the tests: when UI tests fail, read the
+/// failure before believing the diagnosis. An assertion failure and a runner
+/// that never launched look identical in a pass/fail count.
+///
+/// If a real failure does appear, `docs/ACCESSIBILITY-MANUAL.md` has the
+/// by-hand procedure for the same behaviours.
 final class MenuBarKeyboardTests: XCTestCase {
 
     /// A fullscreen app hides the menu bar, and the status item is then
@@ -40,8 +53,8 @@ final class MenuBarKeyboardTests: XCTestCase {
                       "the panel's contents must be in the accessibility tree")
     }
 
-    /// WCAG 2.1.2, No Keyboard Trap. Escape was inherited behaviour; this is
-    /// what stops it silently regressing.
+    /// WCAG 2.1.2, No Keyboard Trap. A panel that opens from the keyboard and
+    /// cannot be closed from it is a trap.
     @MainActor
     func testEscapeDismissesThePanel() throws {
         let app = launched()
@@ -58,20 +71,41 @@ final class MenuBarKeyboardTests: XCTestCase {
         waitForExpectations(timeout: 5)
     }
 
-    /// The defect itself: no way out of the app without a mouse.
+    /// The status item's menu is mouse-only — right-click has no keyboard
+    /// equivalent. The keyboard route in is Ctrl-F8 then Return, which opens
+    /// the panel, so the universal quit shortcut has to work from there or a
+    /// keyboard user still cannot leave.
     @MainActor
-    func testThePanelOffersAWayToQuit() throws {
+    func testCommandQuitWorksFromThePanel() throws {
+        let app = launched()
+
+        let pill = app.statusItems.firstMatch
+        XCTAssertTrue(pill.waitForExistence(timeout: 10))
+        pill.click()
+        XCTAssertTrue(app.popovers.firstMatch.waitForExistence(timeout: 5))
+
+        app.typeKey("q", modifierFlags: .command)
+
+        let quit = NSPredicate(format: "state == %d", XCUIApplication.State.notRunning.rawValue)
+        expectation(for: quit, evaluatedWith: app)
+        waitForExpectations(timeout: 10)
+    }
+
+    /// The HIG pattern: a menu bar extra offers Quit from its own menu.
+    @MainActor
+    func testTheStatusItemMenuOffersQuit() throws {
         let app = launched()
         defer { if app.state == .runningForeground { app.terminate() } }
 
         let pill = app.statusItems.firstMatch
         XCTAssertTrue(pill.waitForExistence(timeout: 10))
-        pill.click()
+        pill.rightClick()
 
-        let panel = app.popovers.firstMatch
-        XCTAssertTrue(panel.waitForExistence(timeout: 5))
-        XCTAssertTrue(panel.buttons["Quit Cutaway"].exists,
-                      "the keyboard's only route in is this panel, so Quit has to be here")
+        XCTAssertTrue(app.menuItems["Quit Cutaway"].waitForExistence(timeout: 5),
+                      "a menu bar extra must offer Quit")
+        XCTAssertTrue(app.menuItems["Open Cutaway"].exists)
+        XCTAssertTrue(app.menuItems["Settings…"].exists)
+        app.typeKey(.escape, modifierFlags: [])
     }
 
     /// The panel states the project it is billing — a regression guard for the
