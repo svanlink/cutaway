@@ -18,6 +18,11 @@ struct MenuBarPanel: View {
             footer
         }
         .frame(width: 340)
+        // Escape is handled by the controller with a key monitor, not here:
+        // .onExitCommand depends on the SwiftUI responder chain reaching a
+        // view hosted inside an NSPopover, which it does only sometimes — a
+        // dismissal that works two runs in three is a keyboard trap.
+        .accessibilityAddTraits(.isModal)
         .background(.ultraThinMaterial)
         .background(DT.window.opacity(0.55))
         .preferredColorScheme(.dark)
@@ -205,6 +210,13 @@ struct MenuBarPanel: View {
                 // showSettingsWindow: was removed in macOS 14 — the old
                 // silent-no-op bug. Settings is a real window we open.
                 model.openSettingsWindow?()
+            }
+            // The keyboard's only route into this app is Ctrl-F8 to the menu
+            // bar, then Return — which opens this panel. So this is where a
+            // keyboard user has to be able to quit from; the status item's
+            // right-click menu is mouse-only by nature.
+            footBtn("⏻", help: "Quit Cutaway") {
+                NSApplication.shared.terminate(nil)
             }
         }
         .padding(.horizontal, 12)

@@ -12,6 +12,8 @@ final class StatusItemController: NSObject {
     private var hostView: NSHostingView<PillView>?
     /// Last value handed to VoiceOver, so an unchanged one is not re-announced.
     private var lastSpokenValue = ""
+    /// Live only while the panel is open.
+    private var escapeMonitor: Any?
 
     /// VoiceOver re-speaks a focused element when its label changes. Writing
     /// this every second meant the pill recited itself once a second, forever,
@@ -60,7 +62,13 @@ final class StatusItemController: NSObject {
             host.setAccessibilityElement(false)
             button.addSubview(host)
             button.target = self
-            button.action = #selector(togglePopover)
+            button.action = #selector(statusItemClicked)
+            // Right-click and Ctrl-click open a real menu. Apple's HIG says a
+            // menu bar extra must offer Quit; this app had none anywhere, and
+            // in accessory mode there is no app menu bar either — so a user
+            // who closed the window could not quit Cutaway without Activity
+            // Monitor.
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             // The name is set once and never changes; the figure travels as
             // the accessibility VALUE instead.
             button.setAccessibilityLabel("Cutaway")
@@ -87,13 +95,75 @@ final class StatusItemController: NSObject {
         popover.contentViewController = panel
     }
 
+    @objc private func statusItemClicked() {
+        let event = NSApp.currentEvent
+        let wantsMenu = event?.type == .rightMouseUp
+            || event?.modifierFlags.contains(.control) == true
+        wantsMenu ? showMenu() : togglePopover()
+    }
+
+    /// Built fresh each time so the first item reflects the current state.
+    private func showMenu() {
+        guard let button = statusItem.button else { return }
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Open Cutaway", action: #selector(openMain), keyEquivalent: "")
+            .target = self
+        menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+            .target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: model.engine.manuallyPaused ? "Resume" : "Pause",
+                     action: #selector(togglePause), keyEquivalent: "")
+            .target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Quit Cutaway", action: #selector(quit), keyEquivalent: "q")
+            .target = self
+        menu.popUp(positioning: nil,
+                   at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)
+    }
+
+    /// WCAG 2.1.2: a panel you can open with the keyboard and not close with
+    /// it is a trap. A local key monitor fires regardless of where first
+    /// responder ended up inside the hosted SwiftUI view.
+    private func installEscapeMonitor() {
+        guard escapeMonitor == nil else { return }
+        escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53 else { return event }   // Escape
+            self?.closePopover()
+            return nil
+        }
+    }
+
+    private func closePopover() {
+        popover.performClose(nil)
+        NSApp.setAccessibilityChildren(nil)
+        if let escapeMonitor {
+            NSEvent.removeMonitor(escapeMonitor)
+            self.escapeMonitor = nil
+        }
+        // Focus goes back where it came from, so Escape does not strand the
+        // keyboard user somewhere they did not navigate to.
+        statusItem.button?.window?.makeKey()
+    }
+
+    @objc private func openMain() { model.openMainWindow?() }
+    @objc private func openSettings() { model.openSettingsWindow?() }
+    @objc private func togglePause() { model.engine.togglePause() }
+    @objc private func quit() { NSApp.terminate(nil) }
+
     @objc private func togglePopover() {
         guard let button = statusItem.button else { return }
         if popover.isShown {
-            popover.performClose(nil)
+            closePopover()
         } else {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
+            // Without this the panel's contents are absent from the
+            // accessibility tree entirely — VoiceOver and XCUITest both see an
+            // empty popover.
+            if let content = popover.contentViewController?.view {
+                NSApp.setAccessibilityChildren([content])
+            }
+            installEscapeMonitor()
         }
     }
 }
