@@ -136,6 +136,7 @@ struct TimerView: View {
 /// target (Fitts), a lift-and-glow hover, and a compress on press —
 /// not just a brightness tweak.
 private struct PauseButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let paused: Bool
     let hovering: Bool
 
@@ -155,8 +156,8 @@ private struct PauseButtonStyle: ButtonStyle {
             )
 
             .brightness(configuration.isPressed ? -0.06 : (hovering ? 0.05 : 0))
-            .scaleEffect(configuration.isPressed ? 0.97 : (hovering ? 1.02 : 1))
-            .animation(.easeOut(duration: 0.12), value: hovering)
-            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.97 : (hovering ? 1.02 : 1)))
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: hovering)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: configuration.isPressed)
     }
 }

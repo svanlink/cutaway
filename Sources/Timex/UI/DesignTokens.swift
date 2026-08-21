@@ -67,6 +67,64 @@ enum DT {
         })
     }
 
+    // ── System accessibility settings ─────────────────────────────────
+    // The app read none of these. Increase Contrast strengthens borders and
+    // reduces transparency system-wide; every control here is
+    // .buttonStyle(.plain) with hand-drawn chrome, so the app opted out of
+    // all of it — a hairline at 1.2:1 stayed a hairline at 1.2:1 no matter
+    // what the user asked the OS for.
+    //
+    // High contrast is a real NSAppearance, so a dynamic colour can answer it
+    // the same way it answers light-vs-dark.
+    static func contrastAware(normal: Double, increased: Double) -> Color {
+        Color(nsColor: contrastAwareNS(normal: normal, increased: increased))
+    }
+
+    /// The dynamic colour itself. Exposed because converting a SwiftUI `Color`
+    /// back to `NSColor` resolves it against whatever appearance is current at
+    /// that moment — the dynamism is lost in the round trip, so a test that
+    /// goes through `Color` cannot see it. SwiftUI renders the NSColor, so
+    /// this is the thing worth asserting on.
+    static func contrastAwareNS(normal: Double, increased: Double) -> NSColor {
+        NSColor(name: nil) { appearance in
+            NSColor(white: 1, alpha: CGFloat(contrastAlpha(normal: normal,
+                                                           increased: increased,
+                                                           highContrast: isHighContrast(appearance))))
+        }
+    }
+
+    /// The decision itself, as a pure function.
+    ///
+    /// Which alpha to use is testable; whether AppKit hands the provider a
+    /// high-contrast appearance is not — `NSAppearance(named:)` will not
+    /// report a high-contrast name back unless the system setting is actually
+    /// on, so a unit test cannot construct the case. That binding is verified
+    /// by hand; see docs/ACCESSIBILITY-MANUAL.md.
+    static func contrastAlpha(normal: Double, increased: Double, highContrast: Bool) -> Double {
+        highContrast ? increased : normal
+    }
+
+    // The alphas the tokens are built from, so a test can name what it checks.
+    static let strokeSubtleAlphas = (normal: 0.08, increased: 0.30)
+    static let strokeWindowAlphas = (normal: 0.12, increased: 0.38)
+    static let ringTrackAlphas = (normal: 0.10, increased: 0.26)
+    static let ringPausedAlphas = (normal: 0.30, increased: 0.55)
+
+    /// Matched by name rather than `bestMatch(from:)`: that call normalises a
+    /// high-contrast appearance back to plain aqua, so it reported false for
+    /// the very appearance it was asked about.
+    static func isHighContrast(_ appearance: NSAppearance) -> Bool {
+        switch appearance.name {
+        case .accessibilityHighContrastAqua,
+             .accessibilityHighContrastDarkAqua,
+             .accessibilityHighContrastVibrantLight,
+             .accessibilityHighContrastVibrantDark:
+            return true
+        default:
+            return false
+        }
+    }
+
     static func hex(_ value: Int) -> Color {
         let r: Double = Double((value >> 16) & 0xFF)
         let g: Double = Double((value >> 8) & 0xFF)
@@ -89,10 +147,16 @@ enum DT {
     static let green: Color = recording
     static let amber: Color = held
     static let red: Color = alarm
-    static let strokeSubtle: Color = Color.white.opacity(0.08)
-    static let strokeWindow: Color = Color.white.opacity(0.12)
-    static let ringTrack: Color = Color.white.opacity(0.10)
-    static let ringPaused: Color = Color.white.opacity(0.30)
+    static let strokeSubtle: Color = contrastAware(normal: strokeSubtleAlphas.normal,
+                                                   increased: strokeSubtleAlphas.increased)
+    static let strokeWindow: Color = contrastAware(normal: strokeWindowAlphas.normal,
+                                                   increased: strokeWindowAlphas.increased)
+    static let ringTrack: Color = contrastAware(normal: ringTrackAlphas.normal,
+                                                increased: ringTrackAlphas.increased)
+    /// The paused ring is a status indicator, so it wants 3:1 even normally —
+    /// 0.30 gets it there, and Increase Contrast takes it further.
+    static let ringPaused: Color = contrastAware(normal: ringPausedAlphas.normal,
+                                                 increased: ringPausedAlphas.increased)
 
     // spacing (4pt grid)
     static let s1: CGFloat = 4, s2: CGFloat = 8, s3: CGFloat = 12

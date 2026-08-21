@@ -67,7 +67,12 @@ struct TimexApp: App {
     var body: some Scene {
         Window("Cutaway", id: "main") {
             MainWindowView(model: model)
-                .frame(width: DT.windowSize.width, height: DT.windowSize.height)
+                // A minimum, not a fixed size. macOS has no Dynamic Type, so
+                // dragging the window bigger IS the low-vision adaptation —
+                // and it was unavailable: the window could not be resized at
+                // all, leaving Zoom as the only option, which means panning a
+                // magnified viewport around a 480pt window.
+                .frame(minWidth: DT.windowSize.width, minHeight: DT.windowSize.height)
                 .background(DT.window)
                 .preferredColorScheme(.dark)
                 .sheet(isPresented: Bindable(model).showNewProjectSheet) {
@@ -84,7 +89,7 @@ struct TimexApp: App {
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .defaultSize(width: DT.windowSize.width, height: DT.windowSize.height)
 
         // A real Window, not a Settings scene: the Settings scene can only
@@ -95,7 +100,7 @@ struct TimexApp: App {
             SettingsView(model: model)
                 .preferredColorScheme(.dark)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { model.openSettingsWindow?() }

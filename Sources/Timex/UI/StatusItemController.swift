@@ -89,7 +89,10 @@ final class StatusItemController: NSObject {
         }
 
         popover.behavior = .transient
-        popover.animates = true
+        // The popover's scale-in is the largest movement this app makes, it
+        // fires dozens of times a day, and it happens in peripheral vision
+        // next to the menu bar.
+        popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let panel = NSHostingController(rootView: MenuBarPanel(model: model))
         panel.view.frame.size = CGSize(width: 340, height: 380)
         popover.contentViewController = panel

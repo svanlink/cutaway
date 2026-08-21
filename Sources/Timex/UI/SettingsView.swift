@@ -155,7 +155,7 @@ struct SettingsView: View {
             }
         }
         .padding(DT.s5)
-        .frame(width: 480)
+        .frame(minWidth: 480)
         .background(DT.window)
         .onChange(of: idleThreshold) { _, new in model.engine.idleThreshold = new }
     }

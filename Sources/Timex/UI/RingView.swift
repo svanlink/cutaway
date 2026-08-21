@@ -5,6 +5,7 @@ import SwiftUI
 /// coloured blur behind a stroke is the clearest marker of consumer visual
 /// language, and this sits beside a grading suite.
 struct RingView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let elapsed: TimeInterval
     let money: String
     let goal: BillingEngine.GoalProgress
@@ -32,8 +33,8 @@ struct RingView: View {
                 // second, forever, on a machine rendering video, is a design
                 // bug and a performance bug in the same line. State changes
                 // animate; the number does not.
-                .animation(.easeOut(duration: 0.25), value: goal.reached)
-                .animation(.easeOut(duration: 0.25), value: isPaused)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: goal.reached)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: isPaused)
 
             VStack(spacing: 3) {
                 Text("TODAY")

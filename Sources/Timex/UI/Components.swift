@@ -39,6 +39,7 @@ struct ProjectPill: View {
                     .font(DT.body)
                     .foregroundStyle(DT.text)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     .truncationMode(.tail)
                 if let p = project {
                     ModeTag(mode: p.mode, prominent: true)
@@ -128,6 +129,7 @@ private struct SwitcherRow: View {
                     .font(DT.body)
                     .foregroundStyle(isCurrent ? DT.text : (hovering ? DT.text : DT.text2))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 Spacer(minLength: 8)
                 ModeTag(mode: project.mode)
             }

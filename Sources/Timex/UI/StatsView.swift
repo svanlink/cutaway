@@ -38,11 +38,13 @@ struct StatsView: View {
                         .font(DT.title)
                         .foregroundStyle(DT.text)
                         .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     if let c = project?.client, !c.isEmpty {
                         Text("· \(c)")
                             .font(DT.captionMedium)
                             .foregroundStyle(DT.text3)
                             .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     }
                     Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
                 }
@@ -231,7 +233,9 @@ struct StatsView: View {
                 Text(d.day.formatted(.dateTime.weekday(.abbreviated)))
                     .font(DT.captionMedium).foregroundStyle(DT.text3)
             }
-            .frame(width: 82, alignment: .leading)
+            // Was a fixed 82pt: a wider window should give the date more
+            // room, not leave it truncated beside empty space.
+            .frame(minWidth: 82, alignment: .leading)
             Text(String(format: "%.1fh", d.activeSeconds / 3600))
                 .font(DT.small).foregroundStyle(DT.text2).monospacedDigit()
             GeometryReader { geo in
@@ -246,7 +250,7 @@ struct StatsView: View {
                 .font(DT.smallBold)
                 .foregroundStyle(DT.text)
                 .monospacedDigit()
-                .frame(width: 96, alignment: .trailing)
+                .frame(minWidth: 96, alignment: .trailing)
         }
         .padding(.vertical, 8)
         .padding(.leading, isToday ? 12 : 14)
@@ -317,7 +321,7 @@ struct StatsView: View {
                 .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
             Text(p.currency.format(earned))
                 .font(DT.captionMedium).foregroundStyle(DT.text2).monospacedDigit()
-                .frame(width: 96, alignment: .trailing)
+                .frame(minWidth: 96, alignment: .trailing)
         }
         .padding(.vertical, DT.s1)
     }

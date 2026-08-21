@@ -63,7 +63,26 @@ With **Deuteranopia** on, confirm each is still distinguishable:
 macOS has **no `.trait` accessibility audit** (it is iOS-only), so nothing
 automated will ever catch a missing selected-state or a colour-only cue.
 
-## 4. VoiceOver spot check
+## 4. Increase Contrast and Reduce Transparency
+
+System Settings → Accessibility → Display.
+
+The app answers both through a dynamic colour that asks the current
+`NSAppearance` whether it is a high-contrast one. Whether AppKit actually
+hands it a high-contrast appearance cannot be asserted in a unit test —
+`NSAppearance(named: .accessibilityHighContrastDarkAqua)` does not report
+that name back unless the setting is genuinely on — so this is the check
+that closes that gap.
+
+1. Turn **Increase Contrast** on. Card outlines, the ring track and the
+   dividers in Settings should all visibly strengthen. The alphas roughly
+   triple: 0.08 → 0.30 for card edges.
+2. Turn **Reduce Transparency** on and open the menu-bar panel. It should
+   become opaque instead of showing the desktop through it.
+3. Turn **Reduce Motion** on. The panel should appear without its scale-in
+   animation, and the pause button should not scale on hover or press.
+
+## 5. VoiceOver spot check
 
 `Cmd-F5`. Then:
 

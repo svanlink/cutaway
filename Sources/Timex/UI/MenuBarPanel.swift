@@ -4,6 +4,11 @@ import AppKit
 /// The Klokki-inspired drop-down: hero header, project list, footer bar.
 struct MenuBarPanel: View {
     @Bindable var model: AppModel
+    /// With Reduce Transparency on, a material over the desktop is exactly
+    /// what the user asked the system not to do — and it is the only reason
+    /// this panel's contrast cannot be computed, since it depends on whatever
+    /// wallpaper happens to be behind it.
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var isRecording: Bool { model.engine.state == .recording }
     private var goalReached: Bool { model.goalProgress.reached }
@@ -23,8 +28,8 @@ struct MenuBarPanel: View {
         // view hosted inside an NSPopover, which it does only sometimes — a
         // dismissal that works two runs in three is a keyboard trap.
         .accessibilityAddTraits(.isModal)
-        .background(.ultraThinMaterial)
-        .background(DT.window.opacity(0.55))
+        .background(reduceTransparency ? AnyShapeStyle(DT.overlay) : AnyShapeStyle(.ultraThinMaterial))
+        .background(reduceTransparency ? DT.overlay : DT.window.opacity(0.55))
         .preferredColorScheme(.dark)
     }
 
@@ -57,6 +62,7 @@ struct MenuBarPanel: View {
                         .font(DT.panelProject)
                         .foregroundStyle(DT.text)
                         .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                         .truncationMode(.tail)
                 }
                 .padding(.horizontal, 16)
@@ -142,6 +148,7 @@ struct MenuBarPanel: View {
                     .font(DT.captionMedium)
                     .monospacedDigit()
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 Spacer(minLength: 0)
             }
             .foregroundStyle(model.researchWindowIsClosing ? DT.held : DT.textTertiary)
@@ -171,6 +178,7 @@ struct MenuBarPanel: View {
                     .font(DT.captionMedium)
                     .monospacedDigit()
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     .truncationMode(.tail)
                 Spacer(minLength: 0)
             }
@@ -263,6 +271,7 @@ private struct PanelRow: View {
                     .font(isRunning ? DT.panelRowActive : DT.body)
                     .foregroundStyle(isRunning ? DT.text : DT.text2)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
