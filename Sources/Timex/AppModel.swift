@@ -12,6 +12,11 @@ final class AppModel {
     let detector = ProjectDetector()
 
     var selectedProjectID: PersistentIdentifier?
+    /// Bumped when the user changes an accessibility display setting, purely
+    /// to make SwiftUI re-render: the tokens are dynamic colours, and a
+    /// dynamic colour only re-resolves when something redraws.
+    private(set) var accessibilityDisplayGeneration = 0
+
     /// Anything else that wants to hear the engine's 1 Hz tick. The status
     /// item used to run a timer of its own for this; one clock is enough.
     var onEngineTick: (() -> Void)?
@@ -159,6 +164,12 @@ final class AppModel {
                     }
                 }
             }
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.accessibilityDisplayGeneration += 1 }
         }
         if ScenarioMode.isActive {
             // The driver owns the tick loop and the virtual clock.

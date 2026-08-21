@@ -67,12 +67,17 @@ automated will ever catch a missing selected-state or a colour-only cue.
 
 System Settings → Accessibility → Display.
 
-The app answers both through a dynamic colour that asks the current
-`NSAppearance` whether it is a high-contrast one. Whether AppKit actually
-hands it a high-contrast appearance cannot be asserted in a unit test —
-`NSAppearance(named: .accessibilityHighContrastDarkAqua)` does not report
-that name back unless the setting is genuinely on — so this is the check
-that closes that gap.
+The app reads `NSWorkspace.accessibilityDisplayShouldIncreaseContrast`, not
+the appearance. That distinction matters and cost a broken release once:
+macOS collapses the accessibility appearance names, so
+
+    NSAppearance(named: .accessibilityHighContrastDarkAqua)?.name
+      == NSAppearanceNameDarkAqua
+
+and any implementation that matches on the appearance name silently never
+fires. `SystemSettingsTests` pins that platform fact.
+
+To check the whole path by hand:
 
 1. Turn **Increase Contrast** on. Card outlines, the ring track and the
    dividers in Settings should all visibly strengthen. The alphas roughly

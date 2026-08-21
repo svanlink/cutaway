@@ -110,10 +110,27 @@ enum DT {
     static let ringTrackAlphas = (normal: 0.10, increased: 0.26)
     static let ringPausedAlphas = (normal: 0.30, increased: 0.55)
 
-    /// Matched by name rather than `bestMatch(from:)`: that call normalises a
-    /// high-contrast appearance back to plain aqua, so it reported false for
-    /// the very appearance it was asked about.
+    /// Increase Contrast is NOT an NSAppearance on macOS.
+    ///
+    /// This was implemented twice before it worked. `bestMatch(from:)`
+    /// normalises a high-contrast appearance back to plain aqua, so the first
+    /// version reported false for the very appearance it was handed. Matching
+    /// `appearance.name` directly failed too — and the reason is the point:
+    ///
+    ///     NSAppearance(named: .accessibilityHighContrastDarkAqua)?.name
+    ///       -> NSAppearanceNameDarkAqua
+    ///
+    /// The system collapses those names. Apps are told about this setting
+    /// through NSWorkspace, not through their appearance, so that is what the
+    /// tokens ask. The appearance check stays as a second source in case a
+    /// future macOS does propagate it, but the workspace flag is the one that
+    /// answers today.
+    static var systemPrefersIncreasedContrast: Bool {
+        NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+    }
+
     static func isHighContrast(_ appearance: NSAppearance) -> Bool {
+        if systemPrefersIncreasedContrast { return true }
         switch appearance.name {
         case .accessibilityHighContrastAqua,
              .accessibilityHighContrastDarkAqua,
