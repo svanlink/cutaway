@@ -55,7 +55,7 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
-- [data] Rotation is time-tiered — a wipe cannot evict history — PENDING
+- [data] Rotation is time-tiered — a wipe cannot evict history — e21d5e4
 
 - [robustness] Live Tier-1 proof — real Resolve, real project, end to end — f3fb6bd
 
