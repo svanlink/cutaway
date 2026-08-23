@@ -36,14 +36,6 @@ Readiness checklist (each item needs proof, not belief):
 ## Later (post-deadline polish)
 
 
-- [ux] Suppress the idle warning over full-screen video. Watching playback
-  or a colour pass generates no input, so the "still working?" panel can
-  appear over full-screen Resolve during a client viewing session — the one
-  moment a floating card is genuinely harmful. When the frontmost anchor app
-  is full-screen, skip the panel (the pause still lands; it just lands
-  silently, as it did before the panel existed).
-  VERIFY: pure evaluate() gains a suppression input, unit-tested; panel
-  controller reads full-screen state from the frontmost window.
 
 ## Done
 
