@@ -43,7 +43,7 @@ Readiness checklist (each item needs proof, not belief):
 
 - [robustness] Live Tier-1 proof — real Resolve, real project, end to end — f3fb6bd
 
-- [ux] Idle warning suppressed over full-screen anchors — PENDING
+- [ux] Idle warning suppressed over full-screen anchors — 47d002b
 
 - [ux] Reclaim prompt — away time offered back once, default No — PENDING
 
