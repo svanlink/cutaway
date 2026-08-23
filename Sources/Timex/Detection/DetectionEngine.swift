@@ -283,10 +283,21 @@ final class DetectionEngine {
                                               lastAnchorActive: lastAnchorActive,
                                               window: satelliteWindow, now: now())
         if source != recordingSource { recordingSource = source }
-        let warning = IdleWarning.evaluate(state: newState,
+        var warning = IdleWarning.evaluate(state: newState,
                                            secondsSinceInput: input.secondsSinceInput,
                                            idleThreshold: idleThreshold,
                                            renderExemptionActive: input.renderExemptionActive)
+        // A full-screen ANCHOR is the one place the card is harmful: playback
+        // in front of a client generates no input, and a floating "still
+        // working?" over the picture is worse than the silent pause the app
+        // always had. Suppressed, the pause lands at the threshold exactly as
+        // it did before the panel existed. A full-screen BROWSER does not
+        // suppress — an evening of full-screen video is precisely what the
+        // idle pause exists for. The probe is only consulted inside the
+        // warning window, so the window-list walk is not a per-second cost.
+        if warning != nil, input.frontmostIsAnchor, probes.frontmostWindowIsFullScreen() {
+            warning = nil
+        }
         if warning != idleWarning { idleWarning = warning }
         // The offer lives only while the session it would credit is running,
         // and answers itself with No when ignored.

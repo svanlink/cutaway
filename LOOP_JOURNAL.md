@@ -7,6 +7,32 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-23 ~12:45 — [ux] Full-screen suppression — KEPT
+The one place the "still working?" card is harmful: full-screen playback in
+front of a client generates no input, and a floating card over the picture
+is worse than the silent pause the app always had. When the frontmost ANCHOR
+owns a full-screen window, the card is suppressed and the pause lands at the
+threshold exactly as it did before the panel existed — silent, unchanged.
+
+The boundary is deliberate: a full-screen BROWSER does not suppress. An
+evening of full-screen video is precisely what the idle pause exists for;
+only the tools that prove a work block earn the pass. Tested both ways.
+
+Detection: CGWindowList bounds for the frontmost pid, matched against screen
+SIZES — window bounds need no screen-recording permission (titles would),
+and CGWindow's top-left coordinates versus NSScreen's bottom-left make a
+size match the honest comparison anyway. Consulted LAZILY: the probe is
+asked only when a warning is otherwise about to show, so the window-list
+walk costs nothing per-second — proven by a query-counting fake, 0 queries
+across 20 working ticks, exactly 1 inside the window.
+
+One placement slip on the way: the CGWindowList implementation first landed
+in the protocol EXTENSION (the first `workAppCPUNanos {` match was the
+extension's default, not the struct's), redeclaring the default. Caught by
+the compiler, moved to the struct where the live probes belong.
+
+281 tests (6 new), smoke ALL PASS.
+
 ## 2026-08-23 ~12:20 — Reclaim prompt KEPT; and a real data-loss incident
 TWO stories this round, and the second one matters more.
 
