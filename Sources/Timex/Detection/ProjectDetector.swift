@@ -101,7 +101,13 @@ final class ProjectDetector {
             proc.standardOutput = pipe
             proc.standardError = Pipe()
             do { try proc.run() } catch { return nil }
-            let deadline = Date().addingTimeInterval(3)
+            // 8s, not 3: fuscript answers in 0.04s WARM, but the first live
+            // end-to-end run (2026-08-23) produced no project inside a 14s
+            // window, and a cold spawn blowing a 3s deadline — with the retry
+            // landing 30s later — is the only theory that fits. This call is
+            // already async, off the main thread, and fires every 30–120s;
+            // patience here costs nothing and a kill costs a detection.
+            let deadline = Date().addingTimeInterval(8)
             while proc.isRunning && Date() < deadline { usleep(100_000) }
             if proc.isRunning { proc.terminate(); return nil }
             // fuscript prints a banner ("DaVinci Resolve Script Interpreter",

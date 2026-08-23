@@ -7,6 +7,45 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-23 ~13:30 — [robustness] Live Tier-1 proof — KEPT (and it caught two
+regressions the suite could not see)
+The oldest blocked goal in the backlog: the README's headline claim tested
+against a real running DaVinci Resolve for the first time. It passed — and
+the way there was worth more than the pass.
+
+THE PROOF. Shell-level: fuscript answers "2026-08-22_Decathlon_SportsFest"
+through the exact invocation the app uses, 0.04s warm. Test-level:
+Tier1LiveTests calls the REAL ProjectDetector and skips unless Resolve
+Studio is running — the "optional harness scenario" the goal asked for.
+End-to-end: a zero-state app boot in a quarantined store, Resolve activated,
+and the log reads like the README: paused(noProject) at +1s, transition to
+recording with frontmost=DaVinciResolve at +4s, checkpoints accruing
+against the auto-created project. Detection → creation → attribution, live.
+
+WHAT IT CAUGHT. The first end-to-end run produced NOTHING inside 14 seconds
+and the log could not say why — it records state transitions only, and a
+detection attempt that returns nothing causes no transition. Best theory: a
+cold fuscript spawn blew the 3s kill deadline once, and the tick-30 retry
+fell outside the window. Two fixes earned directly: the deadline is 8s
+(async, off-main, every 30–120s — patience is free, a kill costs a
+detection), and every Tier-1 attempt now logs name and duration.
+
+THE REGRESSION. Wiring the log line in, the edit did not match — because
+the Tier-1 block no longer contained the stale-race guard AT ALL. The
+ManualIntent token stamp and hasMovedSince check, added on Aug 20, had been
+silently overwritten by a later edit collision. Not one test went red:
+ManualIntentTests exercise the struct, and nothing checked the struct was
+still INSTALLED. A part that is tested but not wired passes every test it
+has. Guard restored, and DetectionWiringTests now reads the source to pin
+the wiring itself — the same technique DesignTokenGuardTests uses, for the
+same reason: no unit test can reach a closure inside AppModel.init.
+
+Final instrumented run: project created, forensic line
+"name=2026-08-22_Decathlon_SportsFest took=0.11s" in the log.
+
+286 tests, smoke ALL PASS. Every goal the backlog has ever held is now
+closed except the two born this week (backup rotation; nothing else).
+
 ## 2026-08-23 ~12:45 — [ux] Full-screen suppression — KEPT
 The one place the "still working?" card is harmful: full-screen playback in
 front of a client generates no input, and a floating card over the picture

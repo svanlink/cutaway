@@ -169,12 +169,25 @@ final class AppModel {
             let tier1Interval = self.detector.accessibilityGranted ? 120 : 30
             if (tickCount == 3 || tickCount % tier1Interval == 0), !tier1InFlight {
                 tier1InFlight = true
+                // Stamped BEFORE the request: fuscript takes seconds, and an
+                // answer about the world as it was must not overrule a choice
+                // the user made since. (This guard was silently lost once in
+                // an edit collision — the ManualIntent unit tests kept
+                // passing because they test the struct, not the wiring. The
+                // wiring is now pinned by DetectionWiringTests.)
+                let startedAt = self.intent.token
+                let requestStarted = Date()
                 Task { [weak self] in
                     let name = await self?.detector.detectViaScriptingAPI()
                     await MainActor.run {
                         tier1InFlight = false
+                        guard let self else { return }
+                        self.engine.logDetection("tier1",
+                            detail: "name=\(name ?? "nil") took="
+                                  + String(format: "%.2f", Date().timeIntervalSince(requestStarted)) + "s")
+                        guard !self.intent.hasMovedSince(startedAt) else { return }
                         // Tier 1 is the exact API name — it may create.
-                        if let name { self?.autoDetected(name, canCreate: true) }
+                        if let name { self.autoDetected(name, canCreate: true) }
                     }
                 }
             }

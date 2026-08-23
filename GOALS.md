@@ -62,10 +62,9 @@ Readiness checklist (each item needs proof, not belief):
   VERIFY: pure evaluate() gains a suppression input, unit-tested; panel
   controller reads full-screen state from the frontmost window.
 
-- [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
-  harness scenario R-tier1 passes when Resolve is up.
-
 ## Done
+
+- [robustness] Live Tier-1 proof — real Resolve, real project, end to end — PENDING
 
 - [ux] Idle warning suppressed over full-screen anchors — PENDING
 

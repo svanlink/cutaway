@@ -394,6 +394,14 @@ final class DetectionEngine {
         d.removeObject(forKey: "openSession.updatedAt")
     }
 
+    /// Forensics for the detection pipeline. The first live Tier-1 run
+    /// failed unexplainedly and the log could not say why, because it only
+    /// records STATE transitions — a detection attempt that returns nothing
+    /// causes no transition and left no trace. Now every attempt leaves one.
+    func logDetection(_ event: String, detail: String = "") {
+        logger.log(event: event, detail: detail)
+    }
+
     /// Public so AppModel can force-close on project switch — the closed span
     /// belongs to the project that was active while it ran.
     func closeSessionNow(reason: String) {
