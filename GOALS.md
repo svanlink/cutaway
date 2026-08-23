@@ -64,7 +64,7 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
-- [robustness] Live Tier-1 proof — real Resolve, real project, end to end — PENDING
+- [robustness] Live Tier-1 proof — real Resolve, real project, end to end — f3fb6bd
 
 - [ux] Idle warning suppressed over full-screen anchors — PENDING
 
