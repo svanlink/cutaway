@@ -35,16 +35,14 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
-- [ux] Reclaim prompt for long gaps. The bridge auto-credits gaps under 3
-  minutes; beyond that, away time is gone even when it was billable — a
-  client call about the cut, grabbing reference footage on another machine.
-  Timemator recovers this with a full activity timeline; the cheap version
-  is a one-time prompt on resume: "Away 14 min — add to this session?",
-  default No, timing out to No, so the under-billing bias holds.
-  VERIFY: engine test — a gap past bridgeGrace surfaces a reclaim offer once
-  on resume; accepting credits exactly the gap; declining or ignoring
-  credits nothing; a gap under bridgeGrace never offers (the bridge already
-  took it).
+- [data] Backup rotation nearly ate the only real-data generations. While a
+  harness bug spammed changed-store launches, keep-newest-7 came within a
+  few launches of rotating out every backup that still held the user's real
+  project. Consider: never rotate out the newest generation whose project
+  set differs from the live store's, or keep one generation per day for 30
+  days alongside the last 7.
+  VERIFY: unit test — a store wiped and reseeded N times still retains a
+  backup of the pre-wipe state after N rotations.
 
 - [ux] Suppress the idle warning over full-screen video. Watching playback
   or a colour pass generates no input, so the "still working?" panel can
@@ -59,6 +57,8 @@ Readiness checklist (each item needs proof, not belief):
   harness scenario R-tier1 passes when Resolve is up.
 
 ## Done
+
+- [ux] Reclaim prompt — away time offered back once, default No — PENDING
 
 - [design] Font sizes tokenised, and the rule checked by a test — 9401126
 - [perf] The status item runs on the engine's tick, not its own timer — 10b5041

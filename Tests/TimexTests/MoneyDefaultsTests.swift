@@ -64,3 +64,15 @@ final class MoneyDefaultsTests: XCTestCase {
                        "the sheet seeds its rate field from this exact string")
     }
 }
+
+/// The guard that keeps demo fixtures out of the production store.
+final class DemoSeedGuardTests: XCTestCase {
+    func testDemoSeedRequiresAQuarantinedStore() {
+        XCTAssertTrue(AppModel.demoSeedAllowed(demoRequested: true, dataDir: "/tmp/x"),
+                      "demo mode with a quarantined store is the supported case")
+        XCTAssertFalse(AppModel.demoSeedAllowed(demoRequested: true, dataDir: nil),
+                       "demo mode against the real store is the accident of 2026-08-23")
+        XCTAssertFalse(AppModel.demoSeedAllowed(demoRequested: false, dataDir: "/tmp/x"))
+        XCTAssertFalse(AppModel.demoSeedAllowed(demoRequested: false, dataDir: nil))
+    }
+}

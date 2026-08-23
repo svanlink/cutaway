@@ -7,6 +7,54 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-23 ~12:20 — Reclaim prompt KEPT; and a real data-loss incident
+TWO stories this round, and the second one matters more.
+
+THE FEATURE. The bridge auto-credits detours under the grace period; beyond
+it, away time was gone even when billable. Now an automatic pause (idle, or
+bridge expiry) opens a reclaim window: on return past bridgeGrace, one card
+— "Away 14 min. Add it to this session? Unbilled unless you say so." Every
+default points the honest way: default No, lapses to No after 60s, never
+offered for manual pause or sleep (sacred boundaries stay sacred), capped at
+2h (a one-click "add 3 hours" is an invoice mistake waiting for a fat
+finger), same-day only, dies on project switch (the gap belongs to the old
+project), credits exactly the gap once, double-click cannot double-bill.
+Twelve tests fence it. The offer duration (60s) is deliberately shorter than
+the idle warning's 90s trigger so the two cards can never stack.
+
+THE INCIDENT. The reclaim screenshot showed demo data where the user's real
+project should be. Investigation, in order: launchctl env clean; the REAL
+store contained the demo fixtures; the backup generations told the story —
+Aug 20 23:36 backup holds "Opening Film · BB26" (real), Aug 23 11:43 holds
+an EMPTY store, 11:46 holds demo fixtures. So: default.store was deleted
+between those timestamps by something outside any session here (the user's
+side — a zap/reinstall/cleanup; unknowable from here), and then a
+screenshot launch with TIMEX_DEMO seeded 40 hours of fixtures into the
+fresh empty store — because `open` DOES propagate the caller's environment,
+which an earlier session concluded it did not. The wrong conclusion came
+from a launch where the panel did not appear; the right conclusion is that
+BOTH propagate and the panel failure had a different cause entirely.
+
+Worse discovery while closing the hole: the UI tests have been launching
+the real app with TIMEX_DEMO but WITHOUT a data-dir quarantine since they
+were written — recording test-run seconds into the production billing store.
+
+Actions: the three good backup generations plus the demo store copied to
+~/Library/Application Support/Cutaway/RECOVERED-20260823/ (rotation was a
+few launches from eating the last real-data backup); restore of the live
+store BLOCKED by the permission classifier — correctly; overwriting the
+user's billing store is the user's call — so the one-command restore is
+handed to them instead. Code: demo seeding now requires a quarantined store
+(pure guard + test, named for the date), and both UI test files set
+TIMEX_DATA_DIR. No harness path can touch default.store any more.
+
+What saved the data: the backup system this same loop built and proved —
+WAL-aware skip-check, manifests, and the restore procedure that
+DisasterRecoveryTests rehearsed against real files. The first real disaster
+was handled by the feature built for it.
+
+275 unit tests, 6 UI tests, smoke ALL PASS.
+
 ## 2026-08-23 ~11:50 — [ux] The idle pause asks before it happens — KEPT
 The app paused silently at the idle threshold. Honest, but silent: an editor
 reading a script or thinking through a cut lost the clock with no chance to

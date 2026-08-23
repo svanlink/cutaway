@@ -56,6 +56,12 @@ final class AppModel {
         }
     }
 
+    /// Demo fixtures may only ever land in a quarantined store. Requesting
+    /// demo mode without TIMEX_DATA_DIR is treated as the mistake it is.
+    nonisolated static func demoSeedAllowed(demoRequested: Bool, dataDir: String?) -> Bool {
+        demoRequested && dataDir != nil
+    }
+
     /// Rates are money: never negative, and six figures an hour is a typo.
     nonisolated static func clampedRate(_ rate: Double) -> Double {
         min(max(0, rate), 99_999)
@@ -101,8 +107,16 @@ final class AppModel {
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
         }
-        // ponytail: TIMEX_DEMO seeds sample data for screenshots/dev runs
-        if ProcessInfo.processInfo.environment["TIMEX_DEMO"] != nil,
+        // TIMEX_DEMO seeds sample data for screenshots and dev runs — but
+        // ONLY into a quarantined store. On 2026-08-23 this guard did not
+        // exist, `open` turned out to propagate the caller's environment
+        // after all, and a screenshot launch seeded forty hours of fixtures
+        // into the production billing store (which happened to be freshly
+        // empty after an unrelated deletion). Real data came back from the
+        // backups; the class of accident ends here: no harness convenience
+        // may ever touch the store a user invoices from.
+        if Self.demoSeedAllowed(demoRequested: ProcessInfo.processInfo.environment["TIMEX_DEMO"] != nil,
+                                dataDir: ScenarioMode.dataDir),
            (try? store.projects())?.isEmpty == true {
             seedDemoData()
         }
@@ -296,6 +310,9 @@ final class AppModel {
 
     func select(_ project: Project) {
         guard project.persistentModelID != selectedProjectID else { return }
+        // A pending reclaim belongs to the OLD project's gap; crediting it
+        // into the new project's session would misattribute billed time.
+        engine.declineReclaim()
         // Close the running span first so its time stays with the old project.
         engine.closeSessionNow(reason: "project-switch")
         selectedProjectID = project.persistentModelID
