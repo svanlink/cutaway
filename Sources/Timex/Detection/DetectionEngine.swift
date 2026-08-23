@@ -13,6 +13,14 @@ final class DetectionEngine {
     /// Why the clock is running, for the UI to say out loud. nil when not
     /// recording.
     private(set) var recordingSource: RecordingSource?
+    /// Non-nil during the last seconds before an idle pause — the UI shows
+    /// the "still working?" panel from this.
+    private(set) var idleWarning: IdleWarning?
+    /// When the user last answered the panel. An attestation counts as
+    /// input: the click that delivers it usually IS system input, but a
+    /// VoiceOver activation may not synthesise a CGEvent, so the engine
+    /// takes the answer directly rather than hoping the probe saw it.
+    private var lastPresenceConfirm: Date?
     /// Closed sessions this run — milestone (b) moves these into SwiftData.
     private(set) var closedSessions: [SessionRecord] = []
 
@@ -121,6 +129,14 @@ final class DetectionEngine {
         closeSessionIfOpen(reason: "engine-stop")
     }
 
+    /// The user answered the "still working?" panel.
+    func confirmPresence() {
+        lastPresenceConfirm = now()
+        // Re-evaluate immediately but do NOT accumulate — same rule as
+        // togglePause: only the 1 Hz timer adds seconds.
+        tick(accumulate: false)
+    }
+
     func togglePause() {
         manuallyPaused.toggle()
         manualPauseStart = manuallyPaused ? now() : nil
@@ -145,9 +161,16 @@ final class DetectionEngine {
            !Calendar.current.isDate(start, inSameDayAs: now()) {
             closeSessionIfOpen(reason: "midnight-rollover")
         }
+        // An attestation is input. Applied before the probes' value is used
+        // anywhere, so the idle pause, the research window and the render
+        // exemption all see it the same way.
+        var sinceInput = probes.secondsSinceLastInput()
+        if let confirmed = lastPresenceConfirm {
+            sinceInput = min(sinceInput, now().timeIntervalSince(confirmed))
+        }
         var input = DetectionInput(
             frontmostBundleID: probes.frontmostBundleID(),
-            secondsSinceInput: probes.secondsSinceLastInput(),
+            secondsSinceInput: sinceInput,
             idleThreshold: idleThreshold,
             manuallyPaused: manuallyPaused,
             isAsleep: isAsleep,
@@ -210,6 +233,11 @@ final class DetectionEngine {
                                               lastAnchorActive: lastAnchorActive,
                                               window: satelliteWindow, now: now())
         if source != recordingSource { recordingSource = source }
+        let warning = IdleWarning.evaluate(state: newState,
+                                           secondsSinceInput: input.secondsSinceInput,
+                                           idleThreshold: idleThreshold,
+                                           renderExemptionActive: input.renderExemptionActive)
+        if warning != idleWarning { idleWarning = warning }
         if accumulate {
             // Real wall-clock delta, not an assumed 1s — RunLoop stalls and
             // App Nap would otherwise silently undercount. Capped so a

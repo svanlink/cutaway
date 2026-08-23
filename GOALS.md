@@ -35,6 +35,26 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Later (post-deadline polish)
 
+- [ux] Reclaim prompt for long gaps. The bridge auto-credits gaps under 3
+  minutes; beyond that, away time is gone even when it was billable — a
+  client call about the cut, grabbing reference footage on another machine.
+  Timemator recovers this with a full activity timeline; the cheap version
+  is a one-time prompt on resume: "Away 14 min — add to this session?",
+  default No, timing out to No, so the under-billing bias holds.
+  VERIFY: engine test — a gap past bridgeGrace surfaces a reclaim offer once
+  on resume; accepting credits exactly the gap; declining or ignoring
+  credits nothing; a gap under bridgeGrace never offers (the bridge already
+  took it).
+
+- [ux] Suppress the idle warning over full-screen video. Watching playback
+  or a colour pass generates no input, so the "still working?" panel can
+  appear over full-screen Resolve during a client viewing session — the one
+  moment a floating card is genuinely harmful. When the frontmost anchor app
+  is full-screen, skip the panel (the pause still lands; it just lands
+  silently, as it did before the panel existed).
+  VERIFY: pure evaluate() gains a suppression input, unit-tested; panel
+  controller reads full-screen state from the frontmost window.
+
 - [robustness] Live Tier-1 proof vs running Resolve — VERIFY: optional
   harness scenario R-tier1 passes when Resolve is up.
 

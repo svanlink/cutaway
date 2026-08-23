@@ -7,6 +7,49 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-23 ~11:50 — [ux] The idle pause asks before it happens — KEPT
+The app paused silently at the idle threshold. Honest, but silent: an editor
+reading a script or thinking through a cut lost the clock with no chance to
+say "I'm here." Now the last 30 seconds of the idle tolerance show a small
+floating card — "Still working? Pauses in N s — any input keeps recording" —
+with a confirm button. The design constraint that matters: the warning
+occupies the FINAL stretch of the EXISTING tolerance, so an unanswered
+prompt pauses at exactly the second the app always paused. Billing is
+unchanged by construction, and a test holds that construction in place.
+
+Details that took thought:
+- The panel is a non-activating NSPanel. Stealing keyboard focus from
+  Resolve to ask whether someone is working would answer its own question.
+- An attestation counts as input INSIDE the engine (confirmPresence sets a
+  floor under the probe's idle time). The button click usually IS system
+  input, but a VoiceOver activation may not synthesise a CGEvent — hoping
+  the probe saw it would make the button work for everyone except the users
+  who need it most. And confirming buys one tolerance, not immunity: the
+  attestation ages like real input, tested.
+- No warning during a proven render (the exemption already carries that
+  case; nagging during an export teaches users to ignore the prompt), none
+  while paused, announced once to VoiceOver (not per second — that bug
+  already happened once in this codebase).
+- Harness hook TIMEX_SHOW=idlewarning pins the panel for screenshots. First
+  version showed it in init and the first engine tick hid it again — the
+  hook now disables sync while pinned.
+- `open` does not propagate shell env vars; launchctl setenv does. The smoke
+  script knew this all along; I relearned it from a blank screenshot.
+
+TIMEMATOR RESEARCH (subagent, full report with URLs in its output):
+Timemator has NO keep-or-discard idle dialog — its praised popup only
+SUGGESTS stopping after activity already ceased, and its most-complained-
+about behaviour is unexplained auto-stops ("the timer abnormally stopped all
+the time"). Our pre-pause warning fires BEFORE the boundary, which neither
+of its mechanisms does, and our pause reasons + RecordingSource already
+answer the complaint its users actually make. Where it beats us: a full
+activity timeline means no pause is ever fatal there. The cheap equivalent —
+a reclaim prompt for gaps beyond the bridge — is now a backlog goal, along
+with suppressing the panel over full-screen playback (a client viewing
+session is the one moment a floating card is harmful).
+
+262 tests (11 new), smoke ALL PASS, UI suite green.
+
 ## 2026-08-20 ~21:05 — Design tokens made mechanical, and the second timer gone
 Two rounds' worth, done together because the second was already half-done by
 the first.

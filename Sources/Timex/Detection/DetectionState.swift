@@ -153,6 +153,36 @@ extension RecordingSource {
     }
 }
 
+/// The last seconds before an idle pause, surfaced so the app can ask
+/// "still working?" instead of stopping silently.
+///
+/// The timing is the whole design: the warning occupies the FINAL stretch of
+/// the existing idle tolerance, so an unanswered prompt pauses at exactly the
+/// same moment the app pauses today. Confirming — or any input at all —
+/// resets the idle clock and recording continues. Billing semantics are
+/// untouched; the feature is a warning, not a new billing path.
+struct IdleWarning: Equatable, Sendable {
+    var secondsLeft: TimeInterval
+
+    /// How long before the idle pause the warning appears (and therefore how
+    /// long the user has to answer).
+    static let lead: TimeInterval = 30
+
+    /// Pure, so every branch is testable with plain values.
+    static func evaluate(state: DetectionState, secondsSinceInput: TimeInterval,
+                         idleThreshold: TimeInterval,
+                         renderExemptionActive: Bool) -> IdleWarning? {
+        // Only a running clock can warn about pausing; and a render that is
+        // provably busy is already evidence of work — nagging during an
+        // export would teach the user to ignore the prompt.
+        guard state == .recording, !renderExemptionActive,
+              idleThreshold > lead else { return nil }
+        let remaining = idleThreshold - secondsSinceInput
+        guard remaining > 0, remaining <= lead else { return nil }
+        return IdleWarning(secondsLeft: remaining)
+    }
+}
+
 /// A closed span of recorded work.
 struct SessionRecord: Equatable, Sendable, Codable {
     var start: Date
