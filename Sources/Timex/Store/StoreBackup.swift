@@ -7,11 +7,21 @@ import Darwin
 /// Runs BEFORE the container opens, so the files are quiescent.
 enum StoreBackup {
     static let defaultKeep = 7
+    /// Alongside the newest `keep`, the newest generation of each calendar
+    /// day survives this long. Born of the 2026-08-23 incident: the store
+    /// was wiped externally, and a burst of same-day launches filled
+    /// keep-newest-7 with generations of the EMPTY store — the only backups
+    /// still holding the user's real project were the oldest three, a few
+    /// launches from eviction. Recency alone must never be able to evict
+    /// history; a wipe today cannot touch yesterday's daily for a month, no
+    /// matter how many launches spam the rotation.
+    static let defaultDailyRetentionDays = 30
 
     /// Returns the created backup directory, or nil when skipped.
     @discardableResult
     static func backUp(storeURL: URL, backupsDir: URL, now: Date = Date(),
-                       keep: Int = defaultKeep) throws -> URL? {
+                       keep: Int = defaultKeep,
+                       dailyDays: Int = defaultDailyRetentionDays) throws -> URL? {
         let fm = FileManager.default
         guard fm.fileExists(atPath: storeURL.path) else { return nil }
         try fm.createDirectory(at: backupsDir, withIntermediateDirectories: true)
@@ -42,10 +52,13 @@ enum StoreBackup {
         // with stat calls instead of reading the whole database.
         writeManifest(facts(for: storeURL), to: dest)
 
-        // Rotate: stamped names sort lexically, oldest first.
+        // Rotate. Two buckets survive: the newest `keep` generations, and
+        // each calendar day's newest generation for `dailyDays` days.
         let all = existingBackups(in: backupsDir)
-        for stale in all.dropLast(keep) {
-            try? fm.removeItem(at: stale)
+        let keepers = survivors(of: all.map(\.lastPathComponent),
+                                keep: keep, dailyDays: dailyDays, now: now)
+        for candidate in all where !keepers.contains(candidate.lastPathComponent) {
+            try? fm.removeItem(at: candidate)
         }
         return dest
     }
@@ -126,6 +139,38 @@ enum StoreBackup {
             }
         }
         return true
+    }
+
+    /// Which generation folders survive rotation. Pure on names, so every
+    /// retention rule is testable without touching a disk.
+    static func survivors(of names: [String], keep: Int, dailyDays: Int,
+                          now: Date) -> Set<String> {
+        let sorted = names.sorted()          // stamps sort chronologically
+        var keepers = Set(sorted.suffix(keep))
+
+        // "billing-YYYYMMDD-HHMMSS" → the day, or nil. A name that does not
+        // parse is NEVER deleted: destroying what cannot be classified is
+        // how a rotation bug eats a backup.
+        func day(of name: String) -> Substring? {
+            let stamp = name.dropFirst("billing-".count)
+            let day = stamp.prefix(8)
+            guard day.count == 8, day.allSatisfy(\.isNumber),
+                  stamp.dropFirst(8).first == "-" else { return nil }
+            return day
+        }
+
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "yyyyMMdd"
+        let cutoff = fmt.string(from: now.addingTimeInterval(-Double(dailyDays) * 86_400))
+
+        var newestPerDay: [Substring: String] = [:]
+        for name in sorted {
+            guard let d = day(of: name) else { keepers.insert(name); continue }
+            if d >= cutoff { newestPerDay[d] = name }   // sorted → last wins
+        }
+        keepers.formUnion(newestPerDay.values)
+        return keepers
     }
 
     private static func existingBackups(in dir: URL) -> [URL] {

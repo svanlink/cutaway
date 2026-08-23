@@ -44,15 +44,6 @@ Readiness checklist (each item needs proof, not belief):
   VERIFY: unit test — a store wiped and reseeded N times still retains a
   backup of the pre-wipe state after N rotations.
 
-- [data] Backup rotation nearly ate the only real-data generations. While a
-  harness bug spammed changed-store launches, keep-newest-7 came within a
-  few launches of rotating out every backup that still held the user's real
-  project. Consider: never rotate out the newest generation whose project
-  set differs from the live store's, or keep one generation per day for 30
-  days alongside the last 7.
-  VERIFY: unit test — a store wiped and reseeded N times still retains a
-  backup of the pre-wipe state after N rotations.
-
 - [ux] Suppress the idle warning over full-screen video. Watching playback
   or a colour pass generates no input, so the "still working?" panel can
   appear over full-screen Resolve during a client viewing session — the one
@@ -63,6 +54,8 @@ Readiness checklist (each item needs proof, not belief):
   controller reads full-screen state from the frontmost window.
 
 ## Done
+
+- [data] Rotation is time-tiered — a wipe cannot evict history — PENDING
 
 - [robustness] Live Tier-1 proof — real Resolve, real project, end to end — f3fb6bd
 

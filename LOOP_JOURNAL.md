@@ -7,6 +7,35 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-08-23 ~14:00 — [data] Backup rotation hardening — KEPT
+The last open goal, born of the 2026-08-23 incident: the store was wiped
+externally, same-day launches filled keep-newest-7 with generations of the
+wreckage, and the only backups holding the user's real project were a few
+launches from eviction. The flaw was structural — recency alone decided
+survival, so a burst of garbage could displace history.
+
+Rotation is now two buckets in union: the newest 7 generations (unchanged),
+plus each calendar day's newest generation for 30 days. A wipe today cannot
+touch yesterday's daily for a month, however many launches spam the
+rotation. Disk cost is irrelevant at ~80KB per generation.
+
+Details that took care:
+- The retention rule is a pure function on folder NAMES, so every rule is
+  tested without a disk. The backUp integration keeps its own tests.
+- A name that does not parse is NEVER deleted — destroying what cannot be
+  classified is how a rotation bug eats a backup.
+- An unused app must not rot its own backups: the newest-7 bucket has no
+  age limit, so two months of not launching leaves every generation intact.
+- The VERIFY line runs end to end on real files: day-1 real data, ten
+  wipe-and-reseed rotations three days later, and the pre-wipe generation
+  must both survive AND still contain the original bytes — surviving alone
+  is not the claim.
+- The pre-existing testRotationKeepsNewestSeven passes byte-unchanged: its
+  nine same-day generations still resolve to seven survivors.
+
+292 tests, smoke ALL PASS. The backlog is empty for the first time since it
+was created.
+
 ## 2026-08-23 ~13:30 — [robustness] Live Tier-1 proof — KEPT (and it caught two
 regressions the suite could not see)
 The oldest blocked goal in the backlog: the README's headline claim tested
