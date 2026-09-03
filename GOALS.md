@@ -56,6 +56,10 @@ Design gate — applies to every [design] goal, ON TOP of the functional gate:
 
 ## Done
 
+- [feature] Editable time & money (day editor with hours⇄amount, project
+  edit sheet) + forgotten-pause detection (ask via notification / panel
+  banner / pill hint, or auto-resume; Settings picker) — VERIFY: 13 new
+  unit tests (DayEditTests, AutoResumeTests) green, gate 114/114 + smoke.
 - [design] Last-banked receipt line in the menu-bar panel (functional gate met; blind judge panel outstanding) — 4adfe94
 
 (The loop moves completed goals here with the commit hash.)

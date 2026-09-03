@@ -7,6 +7,30 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-03 ~15:55 — [feature] Edit time/amount + forgotten-pause detection — KEPT
+User ask: "edit the time I worked and the amount" + "when paused, detect I'm
+working again — self-trigger or notify me". Shipped:
+- SessionStore.setActiveSeconds(day): grow = one zero-span adjustment pinned
+  to the day's last activity; shrink = trim newest sessions first, delete
+  zeroed ones. Spans survive so CSV first/last stay honest. Today while
+  recording: only the persisted part is adjusted (live accumulator excluded).
+- EditDaySheet: hours and amount are ONE value through the rate; only the
+  non-focused field is rewritten (FocusState) so typing is never fought.
+  "＋ Add" creates a day the app never saw (pinned at noon).
+- ProjectSheet replaces NewProjectSheet + RenameProjectSheet: one form,
+  create or edit every billing field. Context menu "Rename…" → "Edit…".
+- DetectionEngine.reactToWorkWhilePaused: anchor frontmost + input <10s,
+  continuous for 45s (reset on leaving anchor or 60s idle). Modes: off /
+  ask (prompt once per 15-min cooldown) / auto (resume in the same tick, no
+  phantom paused frame). Satellites never count. Signal window unbilled.
+- ResumeNotifier (UNUserNotificationCenter, lazy permission, actions
+  Yes/No; default click = resume). Fallbacks that need no permission:
+  panel banner with Resume button, pill hint "‖ paused · working?".
+- Settings → After a manual pause. Default: ask.
+Journal note: ad-hoc signed builds may be refused by the notification
+center on some Macs — untestable here; the panel/pill fallbacks are the
+guarantee. Gate 114/114 + smoke 3× ALL PASS. UI a11y audit run separately.
+
 ## 2026-08-20 ~16:25 — [design] Last-banked line in the menu-bar panel — KEPT
 Top-most Later goal. The 4s banked flash is a peak-end moment that often
 fires after the editor already walked away, leaving no answer to "did that

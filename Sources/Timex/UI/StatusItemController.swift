@@ -91,7 +91,8 @@ struct PillView: View {
                  goalReached: goalReached,
                  seconds: model.pillSeconds,
                  bankedText: model.bankedFlash,
-                 pausedHint: model.engine.pausedLong ? "‖ still paused" : nil)
+                 pausedHint: model.engine.workDetectedWhilePaused ? "‖ paused · working?"
+                             : model.engine.pausedLong ? "‖ still paused" : nil)
             .accessibilityLabel(model.selectedProject == nil ? "No project selected"
                                 : isRecording ? "Recording" : "Paused")
     }

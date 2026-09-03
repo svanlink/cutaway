@@ -53,7 +53,7 @@ struct StatsView: View {
                     currentID: model.selectedProjectID,
                     select: { model.select($0); switcherOpen = false },
                     newProject: { switcherOpen = false; model.showNewProjectSheet = true },
-                    onRename: { switcherOpen = false; model.renameTarget = $0 },
+                    onRename: { switcherOpen = false; model.editTarget = $0 },
                     onDelete: { switcherOpen = false; model.deleteTarget = $0 }
                 )
             }
@@ -156,6 +156,14 @@ struct StatsView: View {
                 Text("Daily Breakdown").font(DT.smallSemibold).foregroundStyle(DT.text)
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
+                Button { model.editDay = DayEditTarget(day: nil) } label: {
+                    Text("＋ Add").font(DT.captionMedium).foregroundStyle(DT.text2)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
+                }
+                .buttonStyle(.plain)
+                .help("Add time for a day")
+                .accessibilityLabel("Add time for a day")
             }
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -192,7 +200,19 @@ struct StatsView: View {
         .frame(maxHeight: .infinity)
     }
 
+    /// Every row is a button: click to correct the day (Fitts — the whole
+    /// row is the target, not a pencil glyph).
     private func dayRow(_ d: DayTotal, project p: Project, isToday: Bool, maxSeconds: TimeInterval) -> some View {
+        Button { model.editDay = DayEditTarget(day: d.day) } label: {
+            dayRowBody(d, project: p, isToday: isToday, maxSeconds: maxSeconds)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Edit this day")
+        .accessibilityLabel("Edit \(isToday ? "today" : d.day.formatted(.dateTime.month(.abbreviated).day()))")
+    }
+
+    private func dayRowBody(_ d: DayTotal, project p: Project, isToday: Bool, maxSeconds: TimeInterval) -> some View {
         HStack(spacing: DT.s3) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(isToday ? "Today" : d.day.formatted(.dateTime.month(.abbreviated).day()))

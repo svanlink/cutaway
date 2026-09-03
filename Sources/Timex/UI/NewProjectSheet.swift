@@ -1,7 +1,10 @@
 import SwiftUI
 
-struct NewProjectSheet: View {
+/// Create or edit a project — every billing field is editable after the
+/// fact, because rates get negotiated and budgets get amended.
+struct ProjectSheet: View {
     @Bindable var model: AppModel
+    var editing: Project? = nil
     @Environment(\.dismiss) private var dismiss
 
     @State private var name = ""
@@ -13,7 +16,7 @@ struct NewProjectSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DT.s3) {
-            Text("New Project").font(DT.title).foregroundStyle(DT.text)
+            Text(editing == nil ? "New Project" : "Edit Project").font(DT.title).foregroundStyle(DT.text)
 
             field("PROJECT NAME") {
                 TextField("e.g. Nyx Fashion Film", text: $name).textFieldStyle(.plain)
@@ -60,7 +63,7 @@ struct NewProjectSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Create Project") { create() }
+                Button(editing == nil ? "Create Project" : "Save") { save() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .tint(DT.orange)
@@ -72,21 +75,32 @@ struct NewProjectSheet: View {
         .padding(DT.s4)
         .frame(width: 400)
         .background(DT.card)
+        .onAppear {
+            guard let p = editing else { return }
+            name = p.name
+            client = p.client
+            mode = p.mode
+            rate = String(format: "%.2f", p.hourlyRate)
+            budget = p.budget > 0 ? String(format: "%.0f", p.budget) : ""
+            currency = p.currency
+        }
     }
 
     private var isDuplicate: Bool {
-        AppModel.isDuplicateName(name, existing: model.projects.map(\.name))
+        let others = model.projects.filter { $0.persistentModelID != editing?.persistentModelID }
+        return AppModel.isDuplicateName(name, existing: others.map(\.name))
     }
 
-    private func create() {
-        model.createProject(
-            name: name.trimmingCharacters(in: .whitespaces),
-            client: client.trimmingCharacters(in: .whitespaces),
-            mode: mode,
-            rate: AppModel.clampedRate(Double(rate) ?? 0),
-            budget: max(0, Double(budget) ?? 0),
-            currency: currency
-        )
+    private func save() {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        let c = client.trimmingCharacters(in: .whitespaces)
+        let r = AppModel.clampedRate(Double(rate) ?? 0)
+        let b = max(0, Double(budget) ?? 0)
+        if let p = editing {
+            model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency)
+        } else {
+            model.createProject(name: n, client: c, mode: mode, rate: r, budget: b, currency: currency)
+        }
         dismiss()
     }
 

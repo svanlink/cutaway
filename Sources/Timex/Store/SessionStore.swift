@@ -45,6 +45,11 @@ final class SessionStore {
         try context.save()
     }
 
+    func update(_ project: Project, _ mutate: (Project) -> Void) throws {
+        mutate(project)
+        try context.save()
+    }
+
     /// Deletes a project. Sessions either move to `reassignTo` or fall to the
     /// cascade delete — the caller decides, explicitly.
     func delete(_ project: Project, reassignTo target: Project?) throws {
@@ -62,6 +67,35 @@ final class SessionStore {
         for part in DaySplitter.split(record, calendar: calendar) where part.activeSeconds > 0 {
             context.insert(WorkSession(start: part.start, end: part.end,
                                        activeSeconds: part.activeSeconds, project: project))
+        }
+        try context.save()
+    }
+
+    /// Manual correction of one day's total. Growing the day appends a single
+    /// zero-span adjustment pinned to the day's last activity; shrinking it
+    /// trims the newest sessions first and deletes any that reach zero. The
+    /// day's first/last activity survives, so the CSV still tells the truth
+    /// about WHEN the work happened.
+    /// ponytail: adjustments count as a session in the CSV's session column.
+    func setActiveSeconds(_ target: TimeInterval, on day: Date, for project: Project,
+                          calendar: Calendar = .current, now: Date = Date()) throws {
+        let dayStart = calendar.startOfDay(for: day)
+        let sessions = project.sessions
+            .filter { calendar.startOfDay(for: $0.start) == dayStart }
+            .sorted { $0.end < $1.end }
+        let current = sessions.reduce(0) { $0 + $1.activeSeconds }
+        var delta = max(0, target) - current
+        if delta > 0 {
+            let noon = dayStart.addingTimeInterval(12 * 3600)
+            let anchor = sessions.last?.end ?? min(noon, now)
+            context.insert(WorkSession(start: anchor, end: anchor, activeSeconds: delta, project: project))
+        } else {
+            for s in sessions.reversed() where delta < 0 {
+                let cut = min(s.activeSeconds, -delta)
+                s.activeSeconds -= cut
+                delta += cut
+                if s.activeSeconds <= 0 { context.delete(s) }
+            }
         }
         try context.save()
     }

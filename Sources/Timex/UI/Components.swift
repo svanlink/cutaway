@@ -79,7 +79,7 @@ struct SwitcherList: View {
                         }
                         .contextMenu {
                             if let onRename {
-                                Button("Rename…") { onRename(p) }
+                                Button("Edit…") { onRename(p) }
                             }
                             if let onDelete {
                                 Button("Delete…", role: .destructive) { onDelete(p) }

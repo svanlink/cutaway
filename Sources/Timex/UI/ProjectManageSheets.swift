@@ -1,44 +1,6 @@
 import SwiftUI
 import SwiftData
 
-/// Rename sheet — small, single field.
-struct RenameProjectSheet: View {
-    @Bindable var model: AppModel
-    let project: Project
-    @Environment(\.dismiss) private var dismiss
-    @State private var name: String = ""
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DT.s3) {
-            Text("Rename Project").font(DT.title).foregroundStyle(DT.text)
-            TextField("Project name", text: $name)
-                .textFieldStyle(.plain)
-                .font(DT.body)
-                .foregroundStyle(DT.text)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
-                .overlay(RoundedRectangle(cornerRadius: DT.rMd).stroke(DT.strokeSubtle, lineWidth: 1))
-            HStack {
-                Spacer()
-                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Rename") {
-                    model.rename(project, to: name)
-                    dismiss()
-                }
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .tint(DT.orange)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-        }
-        .padding(DT.s4)
-        .frame(width: 340)
-        .background(DT.card)
-        .onAppear { name = project.name }
-    }
-}
-
 /// Delete sheet — the sessions decision is explicit, never implicit.
 struct DeleteProjectSheet: View {
     @Bindable var model: AppModel

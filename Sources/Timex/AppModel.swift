@@ -2,6 +2,12 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+struct DayEditTarget: Identifiable {
+    let id = UUID()
+    /// nil = "Add time" for a day the app never saw.
+    var day: Date?
+}
+
 /// Glue between detection, persistence, and UI. One instance per app.
 @Observable
 @MainActor
@@ -12,9 +18,11 @@ final class AppModel {
 
     var selectedProjectID: PersistentIdentifier?
     var showNewProjectSheet = false
-    /// Non-nil while the rename / delete sheet is up for that project.
-    var renameTarget: Project?
+    /// Non-nil while the edit / delete sheet is up for that project.
+    var editTarget: Project?
     var deleteTarget: Project?
+    /// Non-nil while the day editor is up. `day == nil` = add a new day.
+    var editDay: DayEditTarget?
     var mainTab: MainTab = .timer
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
@@ -78,6 +86,10 @@ final class AppModel {
         let savedName = Prefs.string(forKey: "selectedProjectName")
         selectedProjectID = (all.first { $0.name == savedName } ?? all.first)?.persistentModelID
         engine.hasActiveProject = selectedProjectID != nil
+        if !ScenarioMode.isActive {
+            ResumeNotifier.install { [weak self] in self?.engine.resume() }
+            engine.onResumePrompt = { ResumeNotifier.post() }
+        }
         engine.onSessionClosed = { [weak self] record in
             guard let self, let project = self.selectedProject else { return }
             try? self.store.record(record, to: project)
@@ -140,14 +152,55 @@ final class AppModel {
         switchOrCreate(name, canCreate: true)
     }
 
-    func rename(_ project: Project, to newName: String) {
+    func update(_ project: Project, name newName: String, client: String, mode: BillingMode,
+                rate: Double, budget: Double, currency: TimexCurrency) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
-        try? store.rename(project, to: name)
+        try? store.update(project) {
+            $0.name = name
+            $0.client = client.trimmingCharacters(in: .whitespaces)
+            $0.mode = mode
+            $0.hourlyRate = Self.clampedRate(rate)
+            $0.budget = max(0, budget)
+            $0.currency = currency
+        }
         if project.persistentModelID == selectedProjectID {
             Prefs.set(name, forKey: "selectedProjectName")
         }
         invalidateProjectCache()
+    }
+
+    /// Sets a day's TOTAL (what the Stats row shows). For today while
+    /// recording, the running session is part of that total and keeps
+    /// growing, so only the persisted part is adjusted to meet the target.
+    func setDaySeconds(_ seconds: TimeInterval, on day: Date) {
+        guard let p = selectedProject else { return }
+        var target = seconds
+        if Calendar.current.isDateInToday(day) {
+            target -= engine.accumulator.activeSeconds
+        }
+        try? store.setActiveSeconds(max(0, target), on: day, for: p)
+    }
+
+    /// Accepts "1:30", "1.5", "1,5", "90m" — whatever an editor types.
+    nonisolated static func seconds(fromHoursText text: String) -> TimeInterval? {
+        let t = text.lowercased()
+            .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "h", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        guard !t.isEmpty else { return nil }
+        if t.hasSuffix("m"), let m = Double(t.dropLast()) { return m >= 0 ? m * 60 : nil }
+        if let colon = t.firstIndex(of: ":") {
+            guard let h = Double(t[..<colon]), let m = Double(t[t.index(after: colon)...]),
+                  h >= 0, (0..<60).contains(m) else { return nil }
+            return h * 3600 + m * 60
+        }
+        guard let h = Double(t), h >= 0, h <= 24 * 366 else { return nil }
+        return h * 3600
+    }
+
+    nonisolated static func hoursText(_ seconds: TimeInterval) -> String {
+        let m = Int((seconds / 60).rounded())
+        return String(format: "%d:%02d", m / 60, m % 60)
     }
 
     func delete(_ project: Project, reassignTo target: Project?) {

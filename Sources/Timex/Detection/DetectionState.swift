@@ -9,6 +9,11 @@ enum PauseReason: String, Sendable, Codable {
     case inputIdle
 }
 
+/// How a manual pause ends when anchor work is detected again.
+enum AutoResumeMode: String, Sendable, CaseIterable {
+    case off, ask, auto
+}
+
 enum DetectionState: Equatable, Sendable {
     case recording
     case paused(PauseReason)
