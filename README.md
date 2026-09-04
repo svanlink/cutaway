@@ -61,6 +61,8 @@ Most timers make you remember to press a button. Cutaway watches how an editor a
 
 **Projects follow Resolve.** Cutaway asks Resolve which project is open and switches attribution automatically — local, network, or cloud libraries. Open a project Cutaway has never seen and it creates it on the spot.
 
+**Projects know their apps.** When you create a project, tick the apps it's worked in — DaVinci Resolve, the Adobe suite, Office, anything installed. Everything you normally use starts ticked, so most projects need no clicks; an InDesign-only template job is an untick. While a project is selected, only its apps count toward it: a colour pass in Resolve can't land on the wrong invoice. Icons are the real ones from the apps on your Mac.
+
 ## Billing
 
 Two modes per project:
