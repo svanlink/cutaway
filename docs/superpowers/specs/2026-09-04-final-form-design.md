@@ -135,10 +135,12 @@ module).
   `Detection/`, `Projects/` (Models, SessionStore, DaySplitter,
   StoreBackup, ProjectSheet, delete sheet, AppCatalog, AppPickerView,
   AppIconCache, AnchorSet), `Billing/` (BillingEngine, CSVExporter,
-  CSVExportButton), `Timer/`, `Stats/` (StatsView, EditDaySheet),
-  `MenuBar/` (MenuBarPanel, StatusItemController, IdleWarningPanel,
-  ReclaimPanel, ResumeNotifier), `Settings/` (SettingsView,
-  AppListEditor), `Design/` (DesignTokens, Components, RingView).
+  CSVExportButton), `Stats/` (StatsView, EditDaySheet),
+  `MenuBar/` (MenuBarPanel, StatusItemController, PromptCard,
+  IdleWarningPanel, ResumeNotifier), `Settings/` (SettingsView,
+  AppListEditor), `Design/` (DesignTokens, Components). No `Timer/`
+  folder and no RingView/ReclaimPanel — Part 4 removed them before
+  this step runs.
 - `AppModel` split: project selection, creation, switching, rename and
   delete move to `ProjectsModel`; live figures, announcements, zero
   state, accessibility offer stay in `AppModel`. Public surface used by
