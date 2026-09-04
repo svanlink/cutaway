@@ -108,7 +108,8 @@ final class SessionStore {
             let noon = dayStart.addingTimeInterval(12 * 3600)
             let anchor = sessions.last?.end ?? min(noon, now)
             context.insert(WorkSession(start: anchor, end: anchor, activeSeconds: delta,
-                                       hourlyRate: project.hourlyRate, project: project))
+                                       hourlyRate: project.hourlyRate, project: project,
+                                       isAdjusted: true))
         } else {
             for s in sessions.reversed() where delta < 0 {
                 let cut = min(s.activeSeconds, -delta)
@@ -180,7 +181,8 @@ final class SessionStore {
                 sessionCount: sessions.count,
                 firstStart: sessions.map(\.start).min() ?? day,
                 lastEnd: sessions.map(\.end).max() ?? day,
-                earned: sessions.reduce(0) { $0 + $1.earned(projectRate: project.hourlyRate) }
+                earned: sessions.reduce(0) { $0 + $1.earned(projectRate: project.hourlyRate) },
+                adjustedSeconds: sessions.filter { $0.isAdjusted }.reduce(0) { $0 + $1.activeSeconds }
             )
         }
         .sorted { $0.day > $1.day }

@@ -30,12 +30,16 @@ final class InvoiceArithmeticTests: XCTestCase {
 
     /// Day rows only — `split` drops the blank line before the summary, so a
     /// naive `prefix(while:)` walks straight into "total_days_worked,12".
-    private func column(_ csv: String, _ index: Int) -> [Double] {
+    /// Columns are found by header name, not position, so adding a column
+    /// (adjusted_hours, 2026-09) cannot silently shift what "earned" means.
+    private func column(_ csv: String, _ name: String) -> [Double] {
         let lines: [String] = csv.split(separator: "\n").map(String.init)
+        let header: [String] = lines[0].components(separatedBy: ",")
+        guard let index = header.firstIndex(of: name) else { XCTFail("no column \(name)"); return [] }
         var values: [Double] = []
         for line in lines.dropFirst() {
             let fields: [String] = line.components(separatedBy: ",")
-            guard fields.count == 18, let v = Double(fields[index]) else { continue }
+            guard fields.count == header.count, let v = Double(fields[index]) else { continue }
             values.append(v)
         }
         return values
@@ -62,7 +66,7 @@ final class InvoiceArithmeticTests: XCTestCase {
                                     34621, 15912, 19877, 33353, 901, 6169]
         let csv = export(days(secs, rate: 157), rate: 157)
 
-        let earnedSum: Double = column(csv, 12).reduce(0, +)
+        let earnedSum: Double = column(csv, "earned").reduce(0, +)
         XCTAssertEqual(summary(csv, "total_earned"), String(format: "%.2f", earnedSum),
                        "the total must be what the rows add up to")
 
@@ -82,7 +86,7 @@ final class InvoiceArithmeticTests: XCTestCase {
                                     14803, 27348, 18916, 12532, 26122, 11059]
         let csv = export(days(secs, rate: 85))
 
-        let hoursSum: Double = column(csv, 9).reduce(0, +)
+        let hoursSum: Double = column(csv, "active_hours").reduce(0, +)
         XCTAssertEqual(summary(csv, "total_active_hours"), String(format: "%.2f", hoursSum))
 
         let unrounded: Double = secs.reduce(0) { $0 + $1 / 3600 }
@@ -101,8 +105,8 @@ final class InvoiceArithmeticTests: XCTestCase {
             let rate = Double(Int.random(in: 40...250, using: &generator))
             let csv = export(days(secs, rate: rate))
 
-            let earnedSum = column(csv, 12).reduce(0, +)
-            let hoursSum = column(csv, 9).reduce(0, +)
+            let earnedSum = column(csv, "earned").reduce(0, +)
+            let hoursSum = column(csv, "active_hours").reduce(0, +)
             XCTAssertEqual(summary(csv, "total_earned"), String(format: "%.2f", earnedSum),
                            "\(n) days at \(rate)/h: rows and total disagree")
             XCTAssertEqual(summary(csv, "total_active_hours"), String(format: "%.2f", hoursSum),
@@ -115,7 +119,7 @@ final class InvoiceArithmeticTests: XCTestCase {
     func testFinalCumulativeRowEqualsTheSummaryTotal() {
         let secs: [TimeInterval] = [17597, 15957, 13166, 31419, 31818, 26626]
         let csv = export(days(secs, rate: 85))
-        let lastCumulative = column(csv, 17).last
+        let lastCumulative = column(csv, "cumulative_earned").last
         XCTAssertEqual(summary(csv, "total_earned"), String(format: "%.2f", lastCumulative ?? -1))
     }
 

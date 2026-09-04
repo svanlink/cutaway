@@ -29,7 +29,20 @@ final class CSVExporterTests: XCTestCase {
 
     func testHeaderMatchesSpecExactly() {
         XCTAssertEqual(CSVExporter.header,
-            "date,weekday,project,client,billing_mode,currency,sessions_count,first_start,last_end,active_hours,idle_excluded_hours,hourly_rate,earned,budget_total,budget_remaining,budget_percent_used,cumulative_hours,cumulative_earned")
+            "date,weekday,project,client,billing_mode,currency,sessions_count,first_start,last_end,active_hours,adjusted_hours,idle_excluded_hours,hourly_rate,earned,budget_total,budget_remaining,budget_percent_used,cumulative_hours,cumulative_earned")
+    }
+
+    func testAdjustedHoursColumnIsZeroUnlessTyped() {
+        var days = sampleDays
+        days[1].adjustedSeconds = 0.6 * 3600
+        let csv = CSVExporter.export(project: "Nyx", client: "", mode: .hourly, currency: .chf,
+                                     hourlyRate: 85, budget: 0, days: days, calendar: cal)
+        let rows = csv.split(separator: "\n").map { $0.split(separator: ",", omittingEmptySubsequences: false) }
+        let col = rows[0].firstIndex(of: "adjusted_hours")!
+        XCTAssertEqual(rows[1][col], "0.00", "an untouched day shows no adjustment")
+        XCTAssertEqual(rows[2][col], "0.60")
+        XCTAssertEqual(rows[2][col - 1], "4.60", "active_hours still includes the typed part")
+        XCTAssertTrue(csv.contains("total_active_hours,11.50"), "totals unchanged by the trace column")
     }
 
     func testHourlyExportRows() {
@@ -63,8 +76,9 @@ final class CSVExporterTests: XCTestCase {
         let csv = CSVExporter.export(project: "P", client: "", mode: .hourly,
                                      currency: .chf, hourlyRate: 85, budget: 0,
                                      days: sampleDays, calendar: cal)
-        // Jul 16: wall 8h, active 6.9h → idle excluded 1.10
-        XCTAssertTrue(csv.contains(",6.90,1.10,"))
+        // Jul 16: wall 8h, active 6.9h → idle excluded 1.10 (adjusted_hours,
+        // 0.00 here, sits between the two since the trace column was added)
+        XCTAssertTrue(csv.contains(",6.90,0.00,1.10,"))
     }
 
     func testCommaInProjectNameIsEscaped() {

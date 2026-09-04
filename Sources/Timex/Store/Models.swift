@@ -49,15 +49,20 @@ final class WorkSession {
     /// written before this field existed — those fall back to the project
     /// rate, which is exactly the behaviour they were billed under.
     var hourlyRate: Double = 0
+    /// True for a span that was TYPED, not tracked — the growth half of a day
+    /// edit. Invoices may carry typed time; they may not hide it. Default so
+    /// rows written before this field existed migrate as "tracked".
+    var isAdjusted: Bool = false
     var project: Project?
 
     init(start: Date, end: Date, activeSeconds: TimeInterval,
-         hourlyRate: Double, project: Project?) {
+         hourlyRate: Double, project: Project?, isAdjusted: Bool = false) {
         self.start = start
         self.end = end
         self.activeSeconds = activeSeconds
         self.hourlyRate = hourlyRate
         self.project = project
+        self.isAdjusted = isAdjusted
     }
 
     /// What this session is worth, at the rate it was worked at.
@@ -77,6 +82,9 @@ struct DayTotal: Equatable, Sendable {
     var firstStart: Date
     var lastEnd: Date
     var earned: Double = 0
+    /// Seconds of this day that were typed in, not tracked. Part of
+    /// `activeSeconds`, never in addition to it.
+    var adjustedSeconds: TimeInterval = 0
 
     /// The rate this day actually billed at — the blended rate when a day
     /// spans a rate change, so `hours × rate` always reconciles with `earned`.

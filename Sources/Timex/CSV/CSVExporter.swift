@@ -40,12 +40,12 @@ enum InvoicePeriod: String, CaseIterable, Sendable {
     }
 }
 
-/// Builds the 18-column CSV per spec. Pure string assembly — testable.
+/// Builds the 19-column CSV per spec. Pure string assembly — testable.
 enum CSVExporter {
 
     static let header = [
         "date", "weekday", "project", "client", "billing_mode", "currency",
-        "sessions_count", "first_start", "last_end", "active_hours",
+        "sessions_count", "first_start", "last_end", "active_hours", "adjusted_hours",
         "idle_excluded_hours", "hourly_rate", "earned", "budget_total",
         "budget_remaining", "budget_percent_used", "cumulative_hours",
         "cumulative_earned",
@@ -111,6 +111,7 @@ enum CSVExporter {
                 timeF.string(from: d.firstStart),
                 timeF.string(from: d.lastEnd),
                 String(format: "%.2f", hours),
+                String(format: "%.2f", round2(d.adjustedSeconds / 3600)),
                 String(format: "%.2f", idleExcluded),
                 String(format: "%.2f", rowRate),
                 String(format: "%.2f", earned),

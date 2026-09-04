@@ -92,6 +92,29 @@ final class DayEditTests: XCTestCase {
         XCTAssertEqual(f.budget, 4500)
         XCTAssertEqual(f.currency, .eur)
     }
+
+    func testGrowingADayIsFlaggedAsAdjusted() throws {
+        try store.record(SessionRecord(start: date(17, 9), end: date(17, 11), activeSeconds: 6000), to: p, calendar: cal)
+        try store.setActiveSeconds(9000, on: date(17, 15), for: p, calendar: cal)
+        let day = try XCTUnwrap(store.dayTotals(for: p, calendar: cal).first)
+        XCTAssertEqual(day.adjustedSeconds, 3000, accuracy: 0.01, "the typed part is separable from the tracked part")
+        let adjusted = try store.context.fetch(FetchDescriptor<WorkSession>()).filter { $0.isAdjusted }
+        XCTAssertEqual(adjusted.count, 1)
+        XCTAssertEqual(adjusted[0].hourlyRate, 85, "an adjustment bills at the rate in force, like any session")
+    }
+
+    func testShrinkingIsNotAnAdjustment() throws {
+        try store.record(SessionRecord(start: date(17, 9), end: date(17, 10), activeSeconds: 3600), to: p, calendar: cal)
+        try store.setActiveSeconds(1800, on: date(17, 9), for: p, calendar: cal)
+        let day = try XCTUnwrap(store.dayTotals(for: p, calendar: cal).first)
+        XCTAssertEqual(day.adjustedSeconds, 0, "removing time invents nothing — no flag")
+    }
+
+    func testUntouchedDayHasNoAdjustment() throws {
+        try store.record(SessionRecord(start: date(17, 9), end: date(17, 10), activeSeconds: 3600), to: p, calendar: cal)
+        let day = try XCTUnwrap(store.dayTotals(for: p, calendar: cal).first)
+        XCTAssertEqual(day.adjustedSeconds, 0)
+    }
 }
 
 /// A manual pause stays sacred while the editor is away; sustained ANCHOR

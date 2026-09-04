@@ -248,6 +248,13 @@ struct StatsView: View {
             .frame(minWidth: 82, alignment: .leading)
             Text(String(format: "%.1fh", d.activeSeconds / 3600))
                 .font(DT.small).foregroundStyle(DT.text2).monospacedDigit()
+            if d.adjustedSeconds > 0 {
+                Image(systemName: "pencil")
+                    .font(DT.glyph)
+                    .foregroundStyle(DT.text3)
+                    .help("Includes manual adjustment")
+                    .accessibilityLabel("includes manual adjustment")
+            }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.07))
