@@ -47,6 +47,10 @@ struct StatsView: View {
                     .minimumScaleFactor(0.85)
                     }
                     Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
+                    if let p = project, !p.appBundleIDs.isEmpty {
+                        AppIconRow(prefixes: p.appBundleIDs, installed: model.installedApps, size: 16)
+                            .padding(.leading, 4)
+                    }
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)

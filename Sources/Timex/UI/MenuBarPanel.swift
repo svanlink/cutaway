@@ -124,7 +124,8 @@ struct MenuBarPanel: View {
                         isRunning: p.persistentModelID == model.selectedProjectID && isRecording,
                         isSelected: p.persistentModelID == model.selectedProjectID,
                         todaySeconds: model.todaySecondsFor(p),
-                        sessionSeconds: model.engine.accumulator.activeSeconds
+                        sessionSeconds: model.engine.accumulator.activeSeconds,
+                        installed: model.installedApps
                     ) {
                         model.selectManually(p)
                     }
@@ -286,6 +287,7 @@ private struct PanelRow: View {
     let isSelected: Bool
     let todaySeconds: TimeInterval
     let sessionSeconds: TimeInterval
+    let installed: [InstalledApp]
     let action: () -> Void
     @State private var hovering = false
 
@@ -308,13 +310,18 @@ private struct PanelRow: View {
                 }
                 .frame(width: 26, height: 26)
 
-                Text(project.name)
-                    .font(isRunning ? DT.panelRowActive : DT.body)
-                    .foregroundStyle(isRunning ? DT.text : DT.text2)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(project.name)
+                        .font(isRunning ? DT.panelRowActive : DT.body)
+                        .foregroundStyle(isRunning ? DT.text : DT.text2)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .truncationMode(.tail)
+                    if !project.appBundleIDs.isEmpty {
+                        AppIconRow(prefixes: project.appBundleIDs, installed: installed, size: 12)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 if isRunning, sessionSeconds >= 1 {
                     Text(shortTime(sessionSeconds))

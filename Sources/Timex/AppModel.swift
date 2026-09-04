@@ -53,6 +53,10 @@ final class AppModel {
     /// True when SwiftData refused to open and we fell back to memory —
     /// the user must be TOLD their time won't survive a restart.
     var storeIsEphemeral = false
+    /// Installed apps, scanned once per launch for the icon rows. The
+    /// picker scans again when opened, so a freshly installed app shows up
+    /// there without a relaunch.
+    private(set) var installedApps: [InstalledApp] = []
 
     /// Case/diacritic-insensitive duplicate check (mirrors switchOrCreate
     /// normalization) — two "Nyx film" projects is always a mistake.
@@ -225,6 +229,10 @@ final class AppModel {
             object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.accessibilityDisplayGeneration += 1 }
+        }
+        Task.detached(priority: .utility) { [weak self] in
+            let apps = InstalledApps.scan()
+            await MainActor.run { self?.installedApps = apps }
         }
         if ScenarioMode.isActive {
             // The driver owns the tick loop and the virtual clock.
