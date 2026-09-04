@@ -17,7 +17,7 @@ files conflict; both sides are kept everywhere.
 
 | File | Resolution |
 |---|---|
-| DetectionEngine | worktree `autoResume` (off/ask/auto, 45 s anchor signal, 15 min ask cooldown) + this branch's pause persistence, `pausedLong`, reclaim, idle warning, bridge-idle fix. Auto-resume lifts the pause through `togglePause()` so `manualPauseStart` persistence stays correct. |
+| DetectionEngine | worktree `autoResume` (off/ask/auto, 45 s anchor signal, 15 min ask cooldown) + this branch's pause persistence, `pausedLong`, idle warning, bridge-idle fix. Reclaim is merged as-is here and removed in Part 4. Auto-resume lifts the pause through `togglePause()` so `manualPauseStart` persistence stays correct. |
 | NewProjectSheet / ProjectManageSheets | worktree `ProjectSheet` (create + edit) replaces NewProjectSheet and RenameProjectSheet; this branch's delete-with-reassignment sheet stays. |
 | StatsView | worktree editable day rows + "＋ Add" on top of this branch's hierarchy pass and session detail rows. |
 | MenuBarPanel / StatusItemController | worktree resume banner and pill hint on top of this branch's receipt line, research-window line, a11y. |
@@ -147,9 +147,79 @@ module).
 - graphify: `graphify update .` after the merge (the map guides the
   split) and again after the reorg; `graphify-out/` committed.
 
+## Part 4 — UI: fit to the owner's day, as little as possible
+
+Decided surface by surface. "Minimal" means fewer surfaces and fewer
+knobs, not fewer pixels.
+
+### Surfaces
+
+- **Menu-bar-first.** The pill and its panel are the app. The main
+  window's *Timer* tab is removed; the main window becomes the **Stats**
+  window (no tabs, `MainTab` enum deleted). The zero-state copy and the
+  one-time Accessibility offer move into the panel, where they were
+  needed anyway (the panel is what a new user opens first).
+- **Settings** stays a window. **Stats** stays a window. Four windows
+  become three (pill/panel, Stats, Settings).
+
+### Removed outright
+
+- **Daily-goal ring** and the `dailyGoalHours` setting: `RingView`,
+  `BillingEngine.goalProgress`, `GoalProgress`, their tests and tokens.
+  The hero shows today's time and money; "enough today?" is a Stats
+  question. The pref key is left unread (no migration needed).
+- **Reclaim offer**: `ReclaimOffer`, `ReclaimPanel`, `reclaimGapStart`,
+  `acceptReclaim`/`declineReclaim`, `ReclaimOfferTests`, and the
+  reclaim half of the bridge-idle fix (the session-close half stays —
+  that was the bug). Away time beyond the bridge is gone; the day editor
+  covers the rare case, and with a trace.
+- **Settings rows** for bridge grace and research window. Both keep
+  their pref keys and defaults (180 s, 1200 s) so anyone who set them is
+  unaffected; the rows are simply not shown.
+
+### Settings, final list
+
+Idle threshold · After a manual pause (off / ask / auto) · Render
+exemption (opt-in) · Work apps · Support apps · Default currency ·
+Default rate · Menu bar shows (today / session / total) · Accessibility
+status. Nine rows, grouped as now.
+
+### Interruptions
+
+Two cards: *"Still working?"* (idle warning) and *"Are you working?"*
+(forgotten-pause resume). One shared `PromptCard` component. Invariant,
+tested: never two on screen — the resume prompt does not fire while an
+idle warning is showing, and vice versa (they cannot coincide by state,
+manual-paused vs recording, but the test pins it).
+
+### Look
+
+- **Native where nobody looks twice.** Settings, `ProjectSheet`, the
+  delete sheet and `EditDaySheet` become standard SwiftUI `Form` with
+  `.formStyle(.grouped)` and system controls (`TextField`, `Picker`,
+  `Toggle`). The app picker is native too: a `LazyVGrid` of `Toggle`
+  buttons with the app icon as label. No custom field chrome, no custom
+  segmented control, no bespoke contrast proofs for these.
+- **Custom stays** on the pill, the panel and Stats — that is where the
+  identity lives. `DesignTokens` and `Components` shrink to what those
+  three still use; `ContrastTests`/`DesignTokenGuardTests` shrink with
+  them. Increase Contrast / Reduce Transparency handling stays for the
+  custom surfaces only.
+- `AppListEditor` (bundle-id popover) stays as the escape hatch behind
+  Work apps / Support apps, rebuilt on `Form`.
+
+### Tests
+
+- Panel shows the zero-state title when there is no project.
+- Panel shows the Accessibility offer exactly under the policy that
+  used to gate it on the Timer tab (policy unchanged, tests re-pointed).
+- Two-cards-never invariant.
+- Removed features take their tests with them; nothing is left
+  `XCTSkip`ped.
+
 ## Order and gates
 
-merge → graphify → per-project apps → reorganize + rename → graphify.
+merge → graphify → per-project apps → UI (Part 4) → reorganize + rename → graphify.
 Every step ends with the unit suite green, `scripts/smoke.sh "" 3` ALL
 PASS, and the accessibility UI test green for anything visual. Journal
 and results ledger updated per step, as the loop does.
@@ -160,4 +230,5 @@ release: the human runs `scripts/release.sh 1.2.0` after a day of use.
 ## Out of scope
 
 Per-project satellites. Auto-switch by app. Detection of Adobe project
-names. Bundled logos. Any change to billing arithmetic.
+names. Bundled logos. Any change to billing arithmetic. Restyling the
+pill, panel or Stats.
