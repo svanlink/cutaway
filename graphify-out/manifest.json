@@ -1,0 +1,626 @@
+{
+  "Sources/Timex/AppModel.swift": {
+    "mtime": 1788536229.6073196,
+    "seen": 1788536916.265792,
+    "ast_hash": "f5ef314ae4d435f97736f2a9c66ca4eb",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Billing/BillingEngine.swift": {
+    "mtime": 1787263219.097861,
+    "seen": 1788536916.265795,
+    "ast_hash": "08adcf84c0613084a1b1d16e8cea6635",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/CSV/CSVExporter.swift": {
+    "mtime": 1788536839.9661396,
+    "seen": 1788536916.2657971,
+    "ast_hash": "a3aa939d5a3a0945f73e2ae30031e881",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/DetectionEngine.swift": {
+    "mtime": 1788536304.4352095,
+    "seen": 1788536916.2657971,
+    "ast_hash": "630ee4451601b342fcdb4ff534fe4ed7",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/DetectionFollower.swift": {
+    "mtime": 1787245594.5057552,
+    "seen": 1788536916.2657979,
+    "ast_hash": "eedd0a513d707be239551149d64ffa12",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/DetectionState.swift": {
+    "mtime": 1788536229.6096232,
+    "seen": 1788536916.2657988,
+    "ast_hash": "dd4c321703f7f5244b4577fdbf466ded",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/ProjectDetector.swift": {
+    "mtime": 1787480866.898983,
+    "seen": 1788536916.2658,
+    "ast_hash": "fd1f9559af0c9ccb5fea5ea09ff54d5b",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/SessionLogger.swift": {
+    "mtime": 1787258916.870304,
+    "seen": 1788536916.265801,
+    "ast_hash": "56fe0359e6b8d7d5a2106ba8b1c89608",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Detection/SystemProbes.swift": {
+    "mtime": 1787480284.302448,
+    "seen": 1788536916.265802,
+    "ast_hash": "70be9673d035cee9cc6045168dd32785",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/HotKey.swift": {
+    "mtime": 1787235644.7459583,
+    "seen": 1788536916.265802,
+    "ast_hash": "b1d9cec0a038d1f24d699f2e17814ada",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Policy/UserFacingPolicy.swift": {
+    "mtime": 1787258512.7276216,
+    "seen": 1788536916.265803,
+    "ast_hash": "37008633743da8914b801c243e07530b",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Prefs.swift": {
+    "mtime": 1787235644.7461562,
+    "seen": 1788536916.265804,
+    "ast_hash": "540d255b8c37d2db0316ebf473b5a72c",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/ResumeNotifier.swift": {
+    "mtime": 1788536229.6111724,
+    "seen": 1788536916.265805,
+    "ast_hash": "36d6b025f11e2662a3a0d5bcb7798066",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Scenario/ScenarioDriver.swift": {
+    "mtime": 1787235644.7463348,
+    "seen": 1788536916.265805,
+    "ast_hash": "1a12a46a3ea0ddf2d84d1c16b7ae52ab",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Store/DaySplitter.swift": {
+    "mtime": 1787235644.7464883,
+    "seen": 1788536916.2658062,
+    "ast_hash": "731c7359d4492e613912e8cda38fc3a4",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Store/Models.swift": {
+    "mtime": 1788536839.9654772,
+    "seen": 1788536916.2658072,
+    "ast_hash": "1925c4eef2633810a6fc202e904b3e63",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Store/SessionStore.swift": {
+    "mtime": 1788536839.9656715,
+    "seen": 1788536916.2658072,
+    "ast_hash": "66d085abfaf30b1a5f7ff15e94925246",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/Store/StoreBackup.swift": {
+    "mtime": 1787481295.9926097,
+    "seen": 1788536916.2658079,
+    "ast_hash": "1d10d3c1558c453872387b3508fa3d3a",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/TimexApp.swift": {
+    "mtime": 1788536229.6138563,
+    "seen": 1788536916.2658079,
+    "ast_hash": "914bfac4751e1ad1969238206cb5ece5",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/AppListEditor.swift": {
+    "mtime": 1787264854.380093,
+    "seen": 1788536916.2658088,
+    "ast_hash": "0c5ff9ff2ff834d76c95832c654b9ddb",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/CSVExportButton.swift": {
+    "mtime": 1787261053.3716173,
+    "seen": 1788536916.26581,
+    "ast_hash": "1595a871703d9abe8873b8c89c9ad36b",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/Components.swift": {
+    "mtime": 1788537376.3081598,
+    "seen": 1788537436.647269,
+    "ast_hash": "5a8318b88a34c0b60edbe2164d3322bc",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/DesignTokens.swift": {
+    "mtime": 1787301448.67637,
+    "seen": 1788536916.265812,
+    "ast_hash": "3d1834bf7ea5359a7c9152a1abf8c8b9",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/EditDaySheet.swift": {
+    "mtime": 1788536304.4367943,
+    "seen": 1788536916.265812,
+    "ast_hash": "2df1421b9a769150b1fda4c12a7c3088",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/IdleWarningPanel.swift": {
+    "mtime": 1787478630.033587,
+    "seen": 1788536916.2658129,
+    "ast_hash": "6cbe2f3e386198d366cd126096a28780",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/MenuBarPanel.swift": {
+    "mtime": 1788537376.3096187,
+    "seen": 1788537436.6472719,
+    "ast_hash": "f608a8776d22c34f385100f8086885ef",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/ProjectManageSheets.swift": {
+    "mtime": 1788536304.4361382,
+    "seen": 1788536916.265814,
+    "ast_hash": "68f73c4a4c597d5b4b43a3a302105fef",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/ProjectSheet.swift": {
+    "mtime": 1788537376.3099294,
+    "seen": 1788537436.647273,
+    "ast_hash": "b685d5d4a1989d53c1c4de5f1215178b",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/ReclaimPanel.swift": {
+    "mtime": 1787479008.1381624,
+    "seen": 1788536916.265815,
+    "ast_hash": "04644b15bd25c776936587ea6b0b5e04",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/RingView.swift": {
+    "mtime": 1787300263.1877131,
+    "seen": 1788536916.265816,
+    "ast_hash": "81b748a4b67e2492805b41539314f90b",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/SettingsView.swift": {
+    "mtime": 1788536304.436279,
+    "seen": 1788536916.265816,
+    "ast_hash": "05efbceb9a57d023d6947e640cbe0ee5",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/StatsView.swift": {
+    "mtime": 1788537376.309226,
+    "seen": 1788537436.647276,
+    "ast_hash": "d4dbe848a313131695b026ed7cbc18ba",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/StatusItemController.swift": {
+    "mtime": 1788536304.436634,
+    "seen": 1788536916.265818,
+    "ast_hash": "4ff5afcefabde848f4be8ffdef773545",
+    "semantic_hash": ""
+  },
+  "Sources/Timex/UI/TimerView.swift": {
+    "mtime": 1788537376.3086288,
+    "seen": 1788537436.647277,
+    "ast_hash": "bc99af05e0fe5547e6d92c4eae136b8d",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/AccessibilityOfferTests.swift": {
+    "mtime": 1787258527.4089725,
+    "seen": 1788536916.2658188,
+    "ast_hash": "e8b739f2b8b7c7b65c4e32618fd6cbfd",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/BackupCostTests.swift": {
+    "mtime": 1787249741.4303253,
+    "seen": 1788536916.2658188,
+    "ast_hash": "2087ba77a422e7c5af53b1e99e6c244e",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/BackupRotationTests.swift": {
+    "mtime": 1787481333.415839,
+    "seen": 1788536916.2658198,
+    "ast_hash": "f53106246df996c67e952379cd6b4ee4",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/BackupWALTests.swift": {
+    "mtime": 1787249812.2551136,
+    "seen": 1788536916.2658198,
+    "ast_hash": "dc6c189a66ed360d4237fc97ba27e397",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/BillingEngineTests.swift": {
+    "mtime": 1787263267.88909,
+    "seen": 1788536916.265821,
+    "ast_hash": "8b115f18a151119b70a33c19fe207b88",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/CSVExporterTests.swift": {
+    "mtime": 1788536873.911766,
+    "seen": 1788536916.265822,
+    "ast_hash": "a95025dfe138166b341457f6a99a1b40",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/ContrastTests.swift": {
+    "mtime": 1787261818.4109435,
+    "seen": 1788536916.265822,
+    "ast_hash": "97ed42bd4e662177e95e3f5252c2b334",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DesignTokenGuardTests.swift": {
+    "mtime": 1787257348.8307602,
+    "seen": 1788536916.265823,
+    "ast_hash": "52fb13644905baea3b9ff9a684e09d68",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DetectionEngineTests.swift": {
+    "mtime": 1788512292.92428,
+    "seen": 1788536916.265823,
+    "ast_hash": "6036c229e155c9e81dd0d4d032f18f1b",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DetectionFollowerTests.swift": {
+    "mtime": 1787243781.8768835,
+    "seen": 1788536916.265825,
+    "ast_hash": "7e02f0f4d8f7df7583058e7a1b35be2d",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DetectionStateTests.swift": {
+    "mtime": 1787235644.7498155,
+    "seen": 1788536916.265825,
+    "ast_hash": "82f165243ed37ff7e095e1190a2d6ca3",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DetectionWiringTests.swift": {
+    "mtime": 1787480965.6525335,
+    "seen": 1788536916.265826,
+    "ast_hash": "27d64b0d4bb39d79739975ad5c5801e4",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/DisasterRecoveryTests.swift": {
+    "mtime": 1787258288.5697272,
+    "seen": 1788536916.265826,
+    "ast_hash": "bce70eda48e788feb68d3e30897cef2b",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/EditAndAutoResumeTests.swift": {
+    "mtime": 1788536839.966595,
+    "seen": 1788536916.2658272,
+    "ast_hash": "7cd2194100899887e00b05341f0b34ec",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/EngineClockTests.swift": {
+    "mtime": 1787246437.122558,
+    "seen": 1788536916.2658281,
+    "ast_hash": "f6b3243d37479c0edd25ea2d27572e7a",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/ForecastHonestyTests.swift": {
+    "mtime": 1787263267.8952267,
+    "seen": 1788536916.2658281,
+    "ast_hash": "79c16498ffe5e6facfe54e723fd6c0b7",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/FullScreenSuppressionTests.swift": {
+    "mtime": 1787480312.2508354,
+    "seen": 1788536916.265829,
+    "ast_hash": "71f214846827aaedc9cc1468120ef4db",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/IdleWarningTests.swift": {
+    "mtime": 1787478231.9696643,
+    "seen": 1788536916.265829,
+    "ast_hash": "c6a09228f2ba1f2fad38e563a888ab28",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/InvoiceArithmeticTests.swift": {
+    "mtime": 1788537276.8646555,
+    "seen": 1788537436.6472902,
+    "ast_hash": "0f994848dd1fefcacefdde439e9a8bab",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/InvoicePeriodTests.swift": {
+    "mtime": 1787242785.2124562,
+    "seen": 1788536916.2658298,
+    "ast_hash": "29792f82ce8edbf3baa9141d1422995c",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/LastSessionReceiptTests.swift": {
+    "mtime": 1787235838.0924106,
+    "seen": 1788536916.265831,
+    "ast_hash": "424ed7e9b9d8e06169e3b26686b8a421",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/ManualIntentTests.swift": {
+    "mtime": 1787244120.7391262,
+    "seen": 1788536916.265831,
+    "ast_hash": "61f6506c1b27d6db6bfb3d22f9a164bb",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/MenuBarContrastTests.swift": {
+    "mtime": 1787258889.559747,
+    "seen": 1788536916.265832,
+    "ast_hash": "d49bd7a14cd6b64019d745dbdd948937",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/MoneyDefaultsTests.swift": {
+    "mtime": 1787479517.7515733,
+    "seen": 1788536916.265833,
+    "ast_hash": "305606c95b5e40057fdfec5907923397",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/PausePersistenceTests.swift": {
+    "mtime": 1787245730.3348465,
+    "seen": 1788536916.265833,
+    "ast_hash": "338935d0bae26ce2065f2c5c929574fc",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/PillAccessibilityTests.swift": {
+    "mtime": 1787251399.4292088,
+    "seen": 1788536916.265834,
+    "ast_hash": "16891ab7f352acbebaf5bdde8ec70ef5",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/PillRenderTests.swift": {
+    "mtime": 1787235644.7500038,
+    "seen": 1788536916.265834,
+    "ast_hash": "528b50762452e5672211ea9710c72225",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/RateHistoryTests.swift": {
+    "mtime": 1787242530.732568,
+    "seen": 1788536916.265835,
+    "ast_hash": "6c16a6daffa71b01e7df7281cb5ecf93",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/ReclaimOfferTests.swift": {
+    "mtime": 1787479068.6303883,
+    "seen": 1788536916.265836,
+    "ast_hash": "1052087761e4a6734a9769b17cbe1792",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/RecordingSourceTests.swift": {
+    "mtime": 1787247257.1569788,
+    "seen": 1788536916.265836,
+    "ast_hash": "9a665b3e9161a2faefaeee8f22032c50",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/RenderExemptionTests.swift": {
+    "mtime": 1787245710.3692572,
+    "seen": 1788536916.265837,
+    "ast_hash": "a53e22c34d44849a91101b1019d8de62",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/SessionDetailTests.swift": {
+    "mtime": 1787236591.1863072,
+    "seen": 1788536916.265837,
+    "ast_hash": "51c003469b5436087efb68ba12bbfc50",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/SessionLoggerTests.swift": {
+    "mtime": 1787258933.829592,
+    "seen": 1788536916.2658381,
+    "ast_hash": "83d369f6b0da35705d2be8237646caaa",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/SessionStoreTests.swift": {
+    "mtime": 1787249812.254631,
+    "seen": 1788536916.2658381,
+    "ast_hash": "7df04cec9f865352804d410a2a9add31",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/SpokenContentTests.swift": {
+    "mtime": 1787264926.2655668,
+    "seen": 1788536916.265839,
+    "ast_hash": "90e2d368c05570f323f444099b42dc61",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/StatusItemTimerTests.swift": {
+    "mtime": 1787257448.7492063,
+    "seen": 1788536916.26584,
+    "ast_hash": "fc1e8eb2331ca4253663761ddbd08873",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/SystemSettingsTests.swift": {
+    "mtime": 1787301495.549648,
+    "seen": 1788536916.26584,
+    "ast_hash": "07d6560c0e2eda844f791449b8b6603a",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/Tier1LiveTests.swift": {
+    "mtime": 1787480643.1840792,
+    "seen": 1788536916.265841,
+    "ast_hash": "184c2dacd67c1b8c545ae1174c3c8eed",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/TodayCacheTests.swift": {
+    "mtime": 1787244310.1521404,
+    "seen": 1788536916.265842,
+    "ast_hash": "333326ef384e022a106d235cfd16025e",
+    "semantic_hash": ""
+  },
+  "Tests/TimexTests/ZeroStateTests.swift": {
+    "mtime": 1787258527.4086719,
+    "seen": 1788536916.265842,
+    "ast_hash": "e47ce5ba6e9666565f02325c47e993a8",
+    "semantic_hash": ""
+  },
+  "Tests/TimexUITests/AccessibilityAuditTests.swift": {
+    "mtime": 1787479517.744692,
+    "seen": 1788536916.265843,
+    "ast_hash": "8ff2aa07daf62435bd43ef4132ed38f5",
+    "semantic_hash": ""
+  },
+  "Tests/TimexUITests/MenuBarKeyboardTests.swift": {
+    "mtime": 1787479517.744327,
+    "seen": 1788536916.265843,
+    "ast_hash": "551566895a6d1dec140969cffc9f4fbd",
+    "semantic_hash": ""
+  },
+  "scripts/loop.sh": {
+    "mtime": 1787240333.3788207,
+    "seen": 1788536916.2658439,
+    "ast_hash": "a1999b877d863871abde31265882f8ac",
+    "semantic_hash": ""
+  },
+  "scripts/make-banner.swift": {
+    "mtime": 1787235644.758013,
+    "seen": 1788536916.265845,
+    "ast_hash": "58407a08de18c41ee0ae54daa7a621b3",
+    "semantic_hash": ""
+  },
+  "scripts/make-icon.swift": {
+    "mtime": 1787235644.7581244,
+    "seen": 1788536916.265845,
+    "ast_hash": "38c923380bd349f7724ff07af99dd3dd",
+    "semantic_hash": ""
+  },
+  "scripts/release.sh": {
+    "mtime": 1787235644.7582228,
+    "seen": 1788536916.265846,
+    "ast_hash": "cdd3f509dfdc8f6863a29ed0b0f34371",
+    "semantic_hash": ""
+  },
+  "scripts/smoke.sh": {
+    "mtime": 1787235644.7583418,
+    "seen": 1788536916.265846,
+    "ast_hash": "5d77a7172a7d4180d71748f6bc337146",
+    "semantic_hash": ""
+  },
+  "GOALS.md": {
+    "mtime": 1788537435.1282704,
+    "seen": 1788537436.647308,
+    "ast_hash": "08882171ba3b7469a3c0f847d2eb97bf",
+    "semantic_hash": ""
+  },
+  "LOOP_JOURNAL.md": {
+    "mtime": 1788537435.1277328,
+    "seen": 1788537436.647309,
+    "ast_hash": "1dfd9e5e6cabc1233d22fc57114d884c",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1788536898.6579597,
+    "seen": 1788536916.2658482,
+    "ast_hash": "632a4868480dc820d36004017dd69227",
+    "semantic_hash": ""
+  },
+  "design/slice-1-dashboard.html": {
+    "mtime": 1787235644.7505622,
+    "seen": 1788536916.265849,
+    "ast_hash": "c54d25d50fa74dde3c140337dbda63d1",
+    "semantic_hash": ""
+  },
+  "design/slice-2-menubar.html": {
+    "mtime": 1787235644.75074,
+    "seen": 1788536916.26585,
+    "ast_hash": "ede4b63e5cf4ad37d7a8e31951f23f88",
+    "semantic_hash": ""
+  },
+  "docs/ACCESSIBILITY-MANUAL.md": {
+    "mtime": 1787301569.5339465,
+    "seen": 1788536916.2658508,
+    "ast_hash": "75331ebfa23e1f09817dc14f78438f25",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-09-04-01-merge-worktree.md": {
+    "mtime": 1788536204.9858007,
+    "seen": 1788536916.265852,
+    "ast_hash": "efd492fe6b4144d6d60470bce452ba46",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-09-04-final-form-design.md": {
+    "mtime": 1788535820.18432,
+    "seen": 1788536916.265853,
+    "ast_hash": "63bfb331c9f236ef987ec0afab76b523",
+    "semantic_hash": ""
+  },
+  "project.yml": {
+    "mtime": 1787235644.7571023,
+    "seen": 1788536916.265853,
+    "ast_hash": "bb4d37552c103d4e7a6b4b39e16cef26",
+    "semantic_hash": ""
+  },
+  "scenarios/s1-zerostate-detect.txt": {
+    "mtime": 1787235644.7572591,
+    "seen": 1788536916.265854,
+    "ast_hash": "5dff23477a70251892f93a291401d3ef",
+    "semantic_hash": ""
+  },
+  "scenarios/s2-record60.txt": {
+    "mtime": 1787235644.75735,
+    "seen": 1788536916.265854,
+    "ast_hash": "ce43bf3888aebfed505be564d7d6490d",
+    "semantic_hash": ""
+  },
+  "scenarios/s3-bridge-credit.txt": {
+    "mtime": 1787235644.7574368,
+    "seen": 1788536916.265855,
+    "ast_hash": "db80e260e311134d6cfcc8b8c097f592",
+    "semantic_hash": ""
+  },
+  "scenarios/s4-bridge-expiry.txt": {
+    "mtime": 1787235644.7575233,
+    "seen": 1788536916.265855,
+    "ast_hash": "96fa0946d3be666a5212a0eb33242dd2",
+    "semantic_hash": ""
+  },
+  "scenarios/s5-satellite.txt": {
+    "mtime": 1787235644.7576115,
+    "seen": 1788536916.265856,
+    "ast_hash": "b8cec4b46e976a37b4b5aa09c04adae9",
+    "semantic_hash": ""
+  },
+  "scenarios/s6-pause-mid-gap.txt": {
+    "mtime": 1787235644.7577002,
+    "seen": 1788536916.265856,
+    "ast_hash": "619b836dcaf8475428071c0a1ca87411",
+    "semantic_hash": ""
+  },
+  "scenarios/s7-midnight.txt": {
+    "mtime": 1787235644.7577846,
+    "seen": 1788536916.265857,
+    "ast_hash": "7bedd13f3037f56da9d5a1d2dc164040",
+    "semantic_hash": ""
+  },
+  "scenarios/s8-noop-relaunch.txt": {
+    "mtime": 1787235644.7578695,
+    "seen": 1788536916.265857,
+    "ast_hash": "83d7204e7e4028db2ca72ee7a990c067",
+    "semantic_hash": ""
+  },
+  "scripts/loop-prompt.md": {
+    "mtime": 1787251330.112791,
+    "seen": 1788536916.265858,
+    "ast_hash": "43a2a8623f26b80153ae1dc54d1ec1a6",
+    "semantic_hash": ""
+  },
+  "docs/assets/banner.png": {
+    "mtime": 1787235644.7523963,
+    "seen": 1788536916.265858,
+    "ast_hash": "78958319125c1bad46666734b4f5daf0",
+    "semantic_hash": ""
+  },
+  "docs/assets/icon.png": {
+    "mtime": 1787235644.7542183,
+    "seen": 1788536916.2658591,
+    "ast_hash": "f0c265d8dfb74e82d74a57909990016c",
+    "semantic_hash": ""
+  },
+  "docs/assets/pill.png": {
+    "mtime": 1787235644.7544682,
+    "seen": 1788536916.2658591,
+    "ast_hash": "ff4eef750b02d428bfecf7047e0fb34c",
+    "semantic_hash": ""
+  },
+  "docs/assets/stats.png": {
+    "mtime": 1787235644.755685,
+    "seen": 1788536916.26586,
+    "ast_hash": "877bb57f9a2d4a92bca53a1788d0f6e7",
+    "semantic_hash": ""
+  },
+  "docs/assets/timer.png": {
+    "mtime": 1787235644.756978,
+    "seen": 1788536916.26586,
+    "ast_hash": "91bf2864f27b2d3e535a0b0c2006e346",
+    "semantic_hash": ""
+  }
+}
