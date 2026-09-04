@@ -105,10 +105,11 @@ struct ProjectSheet: View {
         let r = AppModel.clampedRate(Double(rate) ?? 0)
         let b = max(0, Double(budget) ?? 0)
         if let p = editing {
-            model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency)
+            model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency,
+                         apps: p.appBundleIDs)
         } else {
             model.createProject(name: n, client: c, mode: mode, rate: r, budget: b,
-                                currency: currency, isManual: true)
+                                currency: currency, apps: AppModel.globalWorkApps, isManual: true)
         }
         dismiss()
     }

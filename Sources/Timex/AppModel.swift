@@ -89,6 +89,21 @@ final class AppModel {
         clampedRate(Prefs.object(forKey: "defaultHourlyRate") as? Double ?? 85)
     }
 
+    /// The Settings list — what a project with no list of its own uses, and
+    /// what a new project starts with pre-ticked.
+    static var globalWorkApps: [String] {
+        AnchorSet.globalList(saved: Prefs.stringArray(forKey: "workApps"))
+    }
+
+    /// The ONLY writer of engine.workAppPrefixes. Called on launch, on every
+    /// selection change, after a project edit, and after the Settings list
+    /// changes — so a project-specific list is never overwritten by editing
+    /// the global one, and a global edit still reaches projects that rely on it.
+    func applyAnchors() {
+        engine.workAppPrefixes = AnchorSet.resolve(project: selectedProject?.appBundleIDs ?? [],
+                                                   global: Self.globalWorkApps)
+    }
+
     var dailyGoalHours: Double {
         get { Prefs.object(forKey: "dailyGoalHours") as? Double ?? 8 }
         set { Prefs.set(newValue, forKey: "dailyGoalHours") }
@@ -134,6 +149,7 @@ final class AppModel {
         let savedName = Prefs.string(forKey: "selectedProjectName")
         selectedProjectID = (all.first { $0.name == savedName } ?? all.first)?.persistentModelID
         engine.hasActiveProject = selectedProjectID != nil
+        applyAnchors()
         if !ScenarioMode.isActive {
             ResumeNotifier.install { [weak self] in self?.engine.resume() }
             engine.onResumePrompt = { ResumeNotifier.post() }
@@ -238,7 +254,7 @@ final class AppModel {
     }
 
     func update(_ project: Project, name newName: String, client: String, mode: BillingMode,
-                rate: Double, budget: Double, currency: TimexCurrency) {
+                rate: Double, budget: Double, currency: TimexCurrency, apps: [String]) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
         try? store.update(project) {
@@ -248,11 +264,13 @@ final class AppModel {
             $0.hourlyRate = Self.clampedRate(rate)
             $0.budget = max(0, budget)
             $0.currency = currency
+            $0.appBundleIDs = DetectionInput.sanitizedPrefixes(apps)
         }
         if project.persistentModelID == selectedProjectID {
             Prefs.set(name, forKey: "selectedProjectName")
         }
         invalidateProjectCache()
+        applyAnchors()
     }
 
     /// Sets a day's TOTAL (what the Stats row shows). For today while
@@ -364,7 +382,8 @@ final class AppModel {
         }
         guard canCreate else { return }
         createProject(name: name, client: "", mode: .hourly,
-                      rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency)
+                      rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency,
+                      apps: Self.globalWorkApps)
     }
 
     /// The user picked this project. Explicit intent — it outranks any
@@ -384,13 +403,15 @@ final class AppModel {
         selectedProjectID = project.persistentModelID
         engine.hasActiveProject = true
         Prefs.set(project.name, forKey: "selectedProjectName")
+        applyAnchors()
     }
 
     func createProject(name: String, client: String, mode: BillingMode,
                        rate: Double, budget: Double, currency: TimexCurrency,
-                       isManual: Bool = false) {
+                       apps: [String], isManual: Bool = false) {
         guard let p = try? store.createProject(name: name, client: client, mode: mode,
-                                               hourlyRate: rate, budget: budget, currency: currency) else { return }
+                                               hourlyRate: rate, budget: budget, currency: currency,
+                                               appBundleIDs: DetectionInput.sanitizedPrefixes(apps)) else { return }
         invalidateProjectCache()
         // Auto-creation routes here too, so only stamp intent when a human
         // filled in the sheet — `switchOrCreate` calls this as well.

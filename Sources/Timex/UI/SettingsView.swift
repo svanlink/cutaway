@@ -67,7 +67,7 @@ struct SettingsView: View {
                                 title: "Workflow apps",
                                 prefsKey: "workApps",
                                 defaults: DetectionInput.defaultWorkAppPrefixes
-                            ) { model.engine.workAppPrefixes = $0 }
+                            ) { _ in model.applyAnchors() }
                         }
                 }
                 divider
