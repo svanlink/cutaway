@@ -220,6 +220,38 @@ final class DetectionEngineTests: XCTestCase {
         XCTAssertEqual(engine.state, .paused(.inputIdle),
                        "idle user in a browser must not bill")
     }
+    /// The bridge holds a session open through a short detour. If, inside
+    /// that grace, the frontmost app becomes an anchor with nobody typing —
+    /// Slack quits, Resolve is what is left — the state moves straight from
+    /// notFrontmost to inputIdle. That transition used to fall through every
+    /// branch: the session stayed open until midnight, and the gap was never
+    /// offered back.
+    func testIdlePauseDuringBridgeClosesSessionAndKeepsGapReclaimable() {
+        engine.idleThreshold = 120
+        engine.tick()
+        tickRecordingFor(10)
+        probes.frontmost = "com.tinyspeck.slackmacgap"
+        advance(1); engine.tick()
+        XCTAssertEqual(engine.state, .paused(.notFrontmost))
+        let leftAt = clock!
+        // Slack quits; Resolve is frontmost again, but nobody is typing.
+        advance(150)
+        probes.frontmost = DetectionInput.resolveBundleIDs[0]
+        probes.idle = 150
+        engine.tick()
+        XCTAssertEqual(engine.state, .paused(.inputIdle))
+        XCTAssertEqual(engine.closedSessions.count, 1,
+                       "an idle pause must close the session the bridge was holding")
+        XCTAssertEqual(engine.closedSessions[0].activeSeconds, 10, accuracy: 1.5,
+                       "the away gap is not credited")
+        // Back ten minutes later: the whole away span is offered, from the
+        // moment the user actually left.
+        advance(600)
+        probes.idle = 0
+        engine.tick()
+        XCTAssertEqual(engine.state, .recording)
+        XCTAssertEqual(engine.reclaimOffer?.start, leftAt)
+    }
 }
 
 @MainActor
@@ -243,4 +275,5 @@ final class LongPauseHintTests: XCTestCase {
         engine.togglePause()
         XCTAssertFalse(engine.pausedLong, "resume clears the hint immediately")
     }
+
 }

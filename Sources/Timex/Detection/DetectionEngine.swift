@@ -235,6 +235,16 @@ final class DetectionEngine {
                 // where the billing stopped.
                 closeSessionIfOpen(reason: describe(newState))
                 reclaimGapStart = now()
+            case .paused(.inputIdle) where awayGapStart != nil:
+                // The bridge was still holding a session open when the idle
+                // pause landed — the frontmost app became an anchor with
+                // nobody typing (the detour app quit, say). This transition
+                // used to fall through: nothing closed, and the expiry check
+                // below only fires on notFrontmost, so the session stayed
+                // open until midnight and the gap was never offered back.
+                closeSessionIfOpen(reason: "bridge-idle")
+                reclaimGapStart = awayGapStart
+                awayGapStart = nil
             default:
                 break
             }
