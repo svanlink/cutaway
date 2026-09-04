@@ -13,7 +13,24 @@ xcodebuild -project Timex.xcodeproj -scheme Cutaway -destination 'platform=macOS
 
 echo "── release build"
 xcodebuild -project Timex.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"
-REL=$(ls -d "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*/Build/Products/Release/Cutaway.app | head -1)
+# The DerivedData dir that was built from THIS project — never the first one
+# alphabetically. A deleted worktree once left an older Timex-* dir that
+# sorted first, and every smoke run for a day launched its stale binary.
+derived_app() {  # $1 = Debug|Release
+  local want="$ROOT/Timex.xcodeproj" d app newest=""
+  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*; do
+    app="$d/Build/Products/$1/Cutaway.app"
+    [ -d "$app" ] || continue
+    if [ "$(/usr/libexec/PlistBuddy -c 'Print :WorkspacePath' "$d/info.plist" 2>/dev/null)" = "$want" ]; then
+      echo "$app"; return 0
+    fi
+    [ -z "$newest" ] || [ "$app/Contents/MacOS/Cutaway" -nt "$newest/Contents/MacOS/Cutaway" ] && newest="$app"
+  done
+  [ -n "$newest" ] && echo "$newest"
+}
+REL=$(derived_app Release)
+[ -d "$REL" ] || { echo "no Release Cutaway.app for $ROOT"; exit 1; }
+echo "release build: $REL"
 
 echo "── sign (ad-hoc)"
 # Ad-hoc signature: no paid Developer ID, but Apple Silicon refuses to run

@@ -7,6 +7,47 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-04 ~20:00 — [feature] Per-project apps — KEPT (ff20de8, 5b12310, 5d72fc5, 8bd620c, 6289f79, 96f01f6, c1a84a9)
+Project.appBundleIDs (empty = global). AnchorSet.resolve is the single
+replace-not-extend rule; AppModel.applyAnchors() the single writer of
+engine.workAppPrefixes (launch, select, edit, Settings). New projects
+pre-ticked with the global list; auto-created Resolve projects get it
+too, so a Resolve-only day is unchanged.
+Found by the first engine test: frontmostIsAnchor granted Resolve by
+FIAT, outside the prefix list — the gate semantics could not be true.
+Resolve's three ids now lead the default list, and AnchorSet.globalList
+repairs a list saved before this (no Resolve entry) so nobody's Resolve
+silently stops counting. The engine reads both prefix lists from its
+injected defaults, not the global store (a latent test-isolation hole).
+DetectionStateTests' helper now passes the default list, as the engine
+does — deliberate: Resolve records because it is listed.
+Catalog is pure data; one /Applications scan serves "Other…" and
+prefix→icon resolution; icons come from NSWorkspace, nothing shipped.
+Picker is a native LazyVGrid of toggles with search; the sheet refuses a
+project with no apps. Icon rows (max 4, +N) on panel rows and the Stats
+header, decorative. Scan runs once per launch for the rows (the panel
+renders every tick), and again per sheet open for the picker.
+
+HARNESS DEFECT, found by the migration proof: the first proof run came
+back with the column MISSING after the app ran — impossible for a
+lightweight migration. The app that ran was the deleted worktree's
+2026-09-03 build: its DerivedData dir sorts first alphabetically and
+smoke.sh / release.sh picked it with `ls | head -1`. Every smoke run
+since that worktree existed (all of Plan 1's and Plan 2's gates today)
+launched that stale binary. The scenario assertions are engine-level,
+which the old build also satisfies, so no pass was false about that
+binary — it just was not evidence about ours. Both scripts now resolve
+the DerivedData dir by its recorded WorkspacePath (newest-mtime
+fallback) and print which app they run. Smoke x3 re-run on the real
+build: ALL PASS. release.sh would have shipped the wrong app; it cannot
+now. The stale dir is the human's to delete (outside the repo).
+Migration proof, real build: a COPY of the real store opened via
+scenario s8 — sessions before=4|1678 after=4|1678, projects=3,
+ZAPPBUNDLEIDS present after. The live store was never touched (it had
+already migrated at 17:47 when the test host opened it).
+Gate: 333 unit tests (2 skipped = live Resolve, not running), smoke x3
+ALL PASS on the real build, accessibility audit green.
+
 ## 2026-09-04 ~18:00 — [merge] Worktree branch landed; edits leave a trace — KEPT (c8b65fc, b899ad0, 85c0303)
 Merged claude/time-tracking-edit-auto-resume-592ba4 (670af20) into
 autoresearch/aug20. Seven files conflicted; both sides kept everywhere.

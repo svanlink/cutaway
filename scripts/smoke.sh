@@ -4,7 +4,24 @@
 # Exit 0 = every scenario passed every iteration. Any flake = exit 1.
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="${1:-$(ls -d "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*/Build/Products/Debug/"Cutaway.app" 2>/dev/null | head -1)}"
+# The DerivedData dir that was built from THIS project — never the first one
+# alphabetically. A deleted worktree once left an older Timex-* dir that
+# sorted first, and every smoke run for a day launched its stale binary.
+derived_app() {  # $1 = Debug|Release
+  local want="$ROOT/Timex.xcodeproj" d app newest=""
+  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*; do
+    app="$d/Build/Products/$1/Cutaway.app"
+    [ -d "$app" ] || continue
+    if [ "$(/usr/libexec/PlistBuddy -c 'Print :WorkspacePath' "$d/info.plist" 2>/dev/null)" = "$want" ]; then
+      echo "$app"; return 0
+    fi
+    [ -z "$newest" ] || [ "$app/Contents/MacOS/Cutaway" -nt "$newest/Contents/MacOS/Cutaway" ] && newest="$app"
+  done
+  [ -n "$newest" ] && echo "$newest"
+}
+APP="${1:-$(derived_app Debug)}"
+[ -d "$APP" ] || { echo "no built Cutaway.app for $ROOT — build first"; exit 1; }
+echo "app: $APP ($(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$APP/Contents/MacOS/Cutaway"))"
 ITER="${2:-1}"
 SUITE="com.vaneickelen.cutaway.scenario"
 FAILS=0
