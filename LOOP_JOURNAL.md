@@ -7,6 +7,27 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-04 ~11:00 — [logic] Idle pause during the bridge closed nothing — KEPT (c0e9048)
+Fresh-eyes read of DetectionEngine.tick, backlog empty. The bridge holds a
+session open through a detour (paused notFrontmost, ≤ grace). If inside
+that grace the frontmost app becomes an anchor with stale input — the
+detour app quits, Resolve is what is left, nobody has typed for 2 min —
+the state goes notFrontmost → inputIdle. That transition matched no
+branch: the idle-closes-session case requires the PREVIOUS state to be
+recording, and the bridge-expiry check only fires while notFrontmost. So
+the session stayed open until the midnight rollover, the banked receipt
+never fired, and the away gap was never offered back.
+
+Not an over-billing bug (the accumulator only adds while recording), but a
+wrong-shape one: one giant session spanning the whole absence, wrong
+first/last activity in the CSV, and a reclaim that silently never came.
+
+Fix is one case in the transition switch: close the session (away time
+uncredited, exactly as bridge expiry would have) and carry the gap start
+into reclaimGapStart so the offer runs from the moment the user left.
+Regression test RED first (closedSessions 0, expected 1), GREEN after.
+293 tests, smoke x3 ALL PASS.
+
 ## 2026-08-23 ~14:00 — [data] Backup rotation hardening — KEPT
 The last open goal, born of the 2026-08-23 incident: the store was wiped
 externally, same-day launches filled keep-newest-7 with generations of the
