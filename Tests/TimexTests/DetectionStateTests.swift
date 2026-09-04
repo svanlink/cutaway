@@ -9,7 +9,10 @@ final class DetectionStateTests: XCTestCase {
         idleThreshold: TimeInterval = 120,
         manuallyPaused: Bool = false,
         isAsleep: Bool = false,
-        hasActiveProject: Bool = true
+        hasActiveProject: Bool = true,
+        // Resolve is an anchor because it is in the DEFAULT list, not by
+        // fiat — so the helper passes the list, as the engine does.
+        workAppPrefixes: [String] = DetectionInput.defaultWorkAppPrefixes
     ) -> DetectionInput {
         DetectionInput(
             frontmostBundleID: frontmost,
@@ -17,8 +20,15 @@ final class DetectionStateTests: XCTestCase {
             idleThreshold: idleThreshold,
             manuallyPaused: manuallyPaused,
             isAsleep: isAsleep,
-            hasActiveProject: hasActiveProject
+            hasActiveProject: hasActiveProject,
+            workAppPrefixes: workAppPrefixes
         )
+    }
+
+    func testResolveIsNotAnAnchorWhenTheListLeavesItOut() {
+        let i = input(workAppPrefixes: ["com.microsoft.Excel"])
+        XCTAssertEqual(DetectionState.evaluate(i), .paused(.notFrontmost),
+                       "a project that names its apps can leave Resolve out — that is the point")
     }
 
     // MARK: - Recording

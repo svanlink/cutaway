@@ -68,9 +68,12 @@ struct DetectionInput: Sendable {
         "com.blackmagic-design.DaVinciResolveStudio",
     ]
 
+    /// The default anchors: Resolve (all three ids) and the Adobe toolchain.
     /// Adobe bundle ids carry year suffixes (com.adobe.PremierePro.2025) —
-    /// prefix matching covers all versions.
-    static let defaultWorkAppPrefixes: [String] = [
+    /// prefix matching covers all versions. Resolve used to be an anchor by
+    /// fiat, outside this list; now it is IN the list, so a project that
+    /// names its own apps can genuinely exclude it (see AnchorSet).
+    static let defaultWorkAppPrefixes: [String] = resolveBundleIDs + [
         "com.adobe.AfterEffects",
         "com.adobe.Photoshop",
         "com.adobe.PremierePro",
@@ -103,9 +106,11 @@ struct DetectionInput: Sendable {
         }
     }
 
+    /// Prefix match against the anchor list — and ONLY the list. Resolve is
+    /// no longer special-cased here: it is an entry in the default list, and
+    /// a project that leaves it out means it.
     var frontmostIsAnchor: Bool {
         guard let front = frontmostBundleID else { return false }
-        if Self.resolveBundleIDs.contains(front) { return true }
         return workAppPrefixes.contains { front.hasPrefix($0) }
     }
 

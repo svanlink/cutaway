@@ -68,8 +68,10 @@ final class DetectionEngine {
     var onResumePrompt: (() -> Void)?
     var idleThreshold: TimeInterval = Prefs.object(forKey: "idleThreshold") as? TimeInterval ?? 120
     var hasActiveProject = true
-    var workAppPrefixes: [String] = Prefs.stringArray(forKey: "workApps") ?? DetectionInput.defaultWorkAppPrefixes
-    var satellitePrefixes: [String] = Prefs.stringArray(forKey: "satelliteApps") ?? DetectionInput.defaultSatellitePrefixes
+    /// Both lists come from the injected defaults in `init` — a property
+    /// initializer here would read the global store behind the injection.
+    var workAppPrefixes: [String]
+    var satellitePrefixes: [String]
     var bridgeGrace: TimeInterval = Prefs.object(forKey: "bridgeGrace") as? TimeInterval ?? 180
     /// Research window: satellite apps sustain recording only this long after
     /// the last anchor (Resolve/Adobe) activity.
@@ -117,6 +119,8 @@ final class DetectionEngine {
         self.probes = probes
         self.logger = logger
         self.defaults = defaults
+        self.workAppPrefixes = AnchorSet.globalList(saved: defaults.stringArray(forKey: "workApps"))
+        self.satellitePrefixes = defaults.stringArray(forKey: "satelliteApps") ?? DetectionInput.defaultSatellitePrefixes
         self.autoResume = AutoResumeMode(rawValue: defaults.string(forKey: "autoResume") ?? "") ?? .ask
         // A pause the user set outlives the process that set it.
         self.manuallyPaused = defaults.bool(forKey: PauseState.pausedKey)

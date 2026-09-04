@@ -11,4 +11,18 @@ enum AnchorSet {
         let own = DetectionInput.sanitizedPrefixes(project)
         return own.isEmpty ? global : own
     }
+
+    /// The global list: what Settings saved, or the defaults. Resolve used
+    /// to be an anchor outside this list, so a list saved before that
+    /// changed has no Resolve entry — and would silently stop counting
+    /// Resolve the day it became just another prefix. Put it back, once,
+    /// at the front, unless something in the list already covers it.
+    static func globalList(saved: [String]?) -> [String] {
+        guard let saved else { return DetectionInput.defaultWorkAppPrefixes }
+        let list = DetectionInput.sanitizedPrefixes(saved)
+        let coversResolve = DetectionInput.resolveBundleIDs.allSatisfy { id in
+            list.contains { id.hasPrefix($0) }
+        }
+        return coversResolve ? list : DetectionInput.sanitizedPrefixes(DetectionInput.resolveBundleIDs + list)
+    }
 }
