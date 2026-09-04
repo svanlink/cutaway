@@ -15,6 +15,9 @@ final class Project {
     var budget: Double
     var currencyRaw: String
     var createdAt: Date
+    /// Bundle-id prefixes this project is worked in. Empty = use the global
+    /// anchor list (legacy projects, and the fallback). See AnchorSet.
+    var appBundleIDs: [String] = []
     @Relationship(deleteRule: .cascade, inverse: \WorkSession.project)
     var sessions: [WorkSession] = []
 
@@ -28,7 +31,7 @@ final class Project {
     }
 
     init(name: String, client: String, mode: BillingMode, hourlyRate: Double,
-         budget: Double = 0, currency: TimexCurrency) {
+         budget: Double = 0, currency: TimexCurrency, appBundleIDs: [String] = []) {
         self.name = name
         self.client = client
         self.modeRaw = mode.rawValue
@@ -36,6 +39,7 @@ final class Project {
         self.budget = budget
         self.currencyRaw = currency.rawValue
         self.createdAt = Date()
+        self.appBundleIDs = appBundleIDs
     }
 }
 
