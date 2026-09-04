@@ -68,7 +68,7 @@ struct SwitcherList: View {
     let currentID: PersistentIdentifier?
     let select: (Project) -> Void
     let newProject: () -> Void
-    var onRename: ((Project) -> Void)? = nil
+    var onEdit: ((Project) -> Void)? = nil
     var onDelete: ((Project) -> Void)? = nil
 
     var body: some View {
@@ -80,8 +80,8 @@ struct SwitcherList: View {
                             select(p)
                         }
                         .contextMenu {
-                            if let onRename {
-                                Button("Edit…") { onRename(p) }
+                            if let onEdit {
+                                Button("Edit…") { onEdit(p) }
                             }
                             if let onDelete {
                                 Button("Delete…", role: .destructive) { onDelete(p) }

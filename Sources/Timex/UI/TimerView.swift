@@ -48,7 +48,7 @@ struct TimerView: View {
                     currentID: model.selectedProjectID,
                     select: { model.selectManually($0); switcherOpen = false },
                     newProject: { switcherOpen = false; model.showNewProjectSheet = true },
-                    onRename: { switcherOpen = false; model.editTarget = $0 },
+                    onEdit: { switcherOpen = false; model.editTarget = $0 },
                     onDelete: { switcherOpen = false; model.deleteTarget = $0 }
                 )
             }

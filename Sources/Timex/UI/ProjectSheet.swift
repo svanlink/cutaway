@@ -57,6 +57,11 @@ struct ProjectSheet: View {
                 }
             }
 
+            if editing != nil {
+                Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")
+                    .font(DT.captionMedium).foregroundStyle(DT.text3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack {
                 if isDuplicate {
                     Text("A project with this name already exists")

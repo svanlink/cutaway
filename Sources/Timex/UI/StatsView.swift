@@ -58,11 +58,24 @@ struct StatsView: View {
                     currentID: model.selectedProjectID,
                     select: { model.selectManually($0); switcherOpen = false },
                     newProject: { switcherOpen = false; model.showNewProjectSheet = true },
-                    onRename: { switcherOpen = false; model.editTarget = $0 },
+                    onEdit: { switcherOpen = false; model.editTarget = $0 },
                     onDelete: { switcherOpen = false; model.deleteTarget = $0 }
                 )
             }
             Spacer()
+            if let p = project {
+                // Visible affordance — a context menu alone is a secret.
+                Button { model.editTarget = p } label: {
+                    Image(systemName: "pencil")
+                        .font(DT.glyph)
+                        .foregroundStyle(DT.text2)
+                        .frame(width: 28, height: 26)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
+                }
+                .buttonStyle(.plain)
+                .help("Edit project: rate, budget, currency…")
+                .accessibilityLabel("Edit project")
+            }
             CSVExportButton(model: model)
         }
     }

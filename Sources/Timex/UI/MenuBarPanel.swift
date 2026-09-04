@@ -128,6 +128,12 @@ struct MenuBarPanel: View {
                     ) {
                         model.selectManually(p)
                     }
+                    .contextMenu {
+                        Button("Edit project…") {
+                            model.editTarget = p
+                            model.openMainWindow?()
+                        }
+                    }
                 }
             }
         }
