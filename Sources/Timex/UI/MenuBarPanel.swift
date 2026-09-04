@@ -18,6 +18,7 @@ struct MenuBarPanel: View {
         VStack(spacing: 0) {
             hero
             projectList
+            resumeBanner
             researchWindow
             receipt
             footer
@@ -161,6 +162,40 @@ struct MenuBarPanel: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(label)
+        }
+    }
+
+    // MARK: - Resume banner
+
+    /// Paused by hand, but Resolve is clearly being driven. The notification
+    /// asks the same question; this is the answer that needs no permission.
+    @ViewBuilder
+    private var resumeBanner: some View {
+        if model.engine.workDetectedWhilePaused {
+            HStack(spacing: DT.s2) {
+                Text("Looks like you're working")
+                    .font(DT.captionMedium)
+                    .foregroundStyle(DT.amber)
+                Spacer(minLength: 0)
+                Button {
+                    model.engine.resume()
+                } label: {
+                    Text("Resume")
+                        .font(DT.smallSemibold)
+                        .foregroundStyle(DT.onSignal)
+                        .padding(.horizontal, 10)
+                        .frame(height: 24)
+                        .background(DT.signal, in: RoundedRectangle(cornerRadius: DT.rSm))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Resume tracking")
+            }
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s2)
+            .background(DT.amber.opacity(0.08))
+            .overlay(alignment: .top) {
+                Rectangle().fill(DT.strokeSubtle).frame(height: 1)
+            }
         }
     }
 

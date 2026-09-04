@@ -57,6 +57,8 @@ Most timers make you remember to press a button. Cutaway watches how an editor a
 
 **Hard boundaries.** Manual pause (⌥⌘P, from anywhere) and system sleep are sacred. Time behind a pause is never billed, no matter what — not even by the bridge.
 
+**Forgotten pauses.** Pause for a call, come back, edit for an hour — and never notice the amber pill. Cutaway watches for that: once you've been actively editing in Resolve (or another workflow app) for about 45 seconds while paused, it asks *"Are you working?"* as a notification — one click resumes. The menu-bar panel shows the same question with a Resume button, and the pill reads *paused · working?*. Prefer it to just resume on its own? Or never interfere? Settings → *After a manual pause*. Browsers never trigger this; only workflow apps do, and the 45 seconds themselves stay unbilled.
+
 **Projects follow Resolve.** Cutaway asks Resolve which project is open and switches attribution automatically — local, network, or cloud libraries. Open a project Cutaway has never seen and it creates it on the spot.
 
 ## Billing
@@ -67,6 +69,8 @@ Two modes per project:
 - **Fixed budget** — set the total (e.g. 4 500 CHF) and your internal rate; Cutaway shows a burn-down with amber/red warnings and a pace forecast: *"≈ 2.5 working days left at current pace."*
 
 Currencies: CHF, EUR, USD, COP — formatted correctly for each. Daily goal ring in the main window (green when you beat it, overtime counted).
+
+**Everything is editable.** Click any day in *Stats → Daily Breakdown* to correct its time — type hours (`1:30`, `1.5`, `90m`) or type the amount and the hours follow from your rate. *＋ Add* enters a day Cutaway never saw. Right-click a project in the switcher → *Edit…* to change its name, client, rate, budget, mode or currency after the fact. Corrections trim or extend the recorded sessions, so first/last activity in the CSV stays truthful.
 
 **CSV export** for invoicing: one row per worked day — sessions, first/last activity, active hours, rate, earnings, budget columns, cumulative totals — plus a summary block. Opens clean in Excel and Numbers.
 

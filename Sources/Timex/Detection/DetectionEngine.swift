@@ -50,6 +50,22 @@ final class DetectionEngine {
     /// a hint so a forgotten pause doesn't silently eat a billable day.
     private(set) var pausedLong = false
     static let longPauseThreshold: TimeInterval = 900
+    /// What a manual pause does when anchor work is seen again.
+    /// What a manual pause does when anchor work is seen again. Read from the
+    /// injected defaults in `init` — never from the global store here.
+    var autoResume: AutoResumeMode
+    /// Sustained anchor input needed before a paused timer reacts — a glance
+    /// at Resolve during a call must not wake the clock.
+    static let resumeSignalDuration: TimeInterval = 45
+    /// "Stay paused" is respected for this long before asking again.
+    static let resumePromptCooldown: TimeInterval = 900
+    private var resumeSignalStart: Date?
+    private var lastResumePrompt: Date?
+    /// Paused by hand, yet the editor is clearly working — panel and pill
+    /// surface this so the Resume is one click away.
+    private(set) var workDetectedWhilePaused = false
+    /// Ask mode: fired when work is detected during a manual pause.
+    var onResumePrompt: (() -> Void)?
     var idleThreshold: TimeInterval = Prefs.object(forKey: "idleThreshold") as? TimeInterval ?? 120
     var hasActiveProject = true
     var workAppPrefixes: [String] = Prefs.stringArray(forKey: "workApps") ?? DetectionInput.defaultWorkAppPrefixes
@@ -101,6 +117,7 @@ final class DetectionEngine {
         self.probes = probes
         self.logger = logger
         self.defaults = defaults
+        self.autoResume = AutoResumeMode(rawValue: defaults.string(forKey: "autoResume") ?? "") ?? .ask
         // A pause the user set outlives the process that set it.
         self.manuallyPaused = defaults.bool(forKey: PauseState.pausedKey)
         self.manualPauseStart = PauseState.restoredStart(from: defaults)
@@ -165,6 +182,9 @@ final class DetectionEngine {
         manualPauseStart = manuallyPaused ? now() : nil
         PauseState.persist(start: manualPauseStart, to: defaults)
         pausedLong = false
+        resumeSignalStart = nil
+        lastResumePrompt = nil
+        workDetectedWhilePaused = false
         // Re-evaluate immediately but do NOT accumulate — only the 1 Hz
         // timer adds seconds, otherwise every toggle injects phantom time.
         tick(accumulate: false)
@@ -201,6 +221,7 @@ final class DetectionEngine {
             workAppPrefixes: workAppPrefixes
         )
         input.satellitePrefixes = satellitePrefixes
+        reactToWorkWhilePaused(&input)
         // Anchor activity (anchor app frontmost + fresh input) refreshes the
         // research window; satellites sustain recording only inside it.
         if input.frontmostIsAnchor, input.secondsSinceInput < idleThreshold {
@@ -365,6 +386,52 @@ final class DetectionEngine {
         renderExemptStart = started
         // Cap reached: stop exempting, and do not re-arm until input returns.
         return t.timeIntervalSince(started) <= Self.renderExemptionCap
+    }
+
+    /// Resume from the notification / panel — a no-op unless paused by hand.
+    func resume() {
+        if manuallyPaused { togglePause() }
+    }
+
+    /// A manual pause is sacred while the editor is away. Once an ANCHOR app
+    /// is frontmost with live input for `resumeSignalDuration`, the pause is
+    /// evidently forgotten: auto mode lifts it, ask mode prompts. Satellites
+    /// never count — browsing is ambiguous, editing in Resolve is not.
+    /// ponytail: the signal window itself stays unbilled (under-billing rule).
+    private func reactToWorkWhilePaused(_ input: inout DetectionInput) {
+        guard manuallyPaused, autoResume != .off else {
+            resumeSignalStart = nil
+            if workDetectedWhilePaused { workDetectedWhilePaused = false }
+            return
+        }
+        if input.frontmostIsAnchor, input.secondsSinceInput < 10 {
+            if resumeSignalStart == nil { resumeSignalStart = now() }
+        } else if !input.frontmostIsAnchor || input.secondsSinceInput >= 60 {
+            resumeSignalStart = nil
+        }
+        let sustained = resumeSignalStart.map {
+            now().timeIntervalSince($0) >= Self.resumeSignalDuration
+        } ?? false
+        if sustained != workDetectedWhilePaused { workDetectedWhilePaused = sustained }
+        guard sustained else { return }
+        switch autoResume {
+        case .auto:
+            logger.log(event: "auto-resume", detail: "anchor work during manual pause")
+            togglePause()
+            // Same tick evaluates as resumed — no phantom paused(.manual) frame.
+            input.manuallyPaused = false
+        case .ask:
+            let due = lastResumePrompt.map {
+                now().timeIntervalSince($0) >= Self.resumePromptCooldown
+            } ?? true
+            if due {
+                lastResumePrompt = now()
+                logger.log(event: "resume-prompt")
+                onResumePrompt?()
+            }
+        case .off:
+            break
+        }
     }
 
     private func snapshotOpenSession() {

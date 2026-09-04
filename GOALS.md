@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [billing] Editable time & money; forgotten-pause ask/auto resume — 670af20 (merged)
+
 - [logic] Idle pause during the bridge closes the held session — c0e9048
 
 - [data] Rotation is time-tiered — a wipe cannot evict history — e21d5e4

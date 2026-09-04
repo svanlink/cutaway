@@ -7,6 +7,102 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-03 ~15:55 — [feature] Edit time/amount + forgotten-pause detection — KEPT
+User ask: "edit the time I worked and the amount" + "when paused, detect I'm
+working again — self-trigger or notify me". Shipped:
+- SessionStore.setActiveSeconds(day): grow = one zero-span adjustment pinned
+  to the day's last activity; shrink = trim newest sessions first, delete
+  zeroed ones. Spans survive so CSV first/last stay honest. Today while
+  recording: only the persisted part is adjusted (live accumulator excluded).
+- EditDaySheet: hours and amount are ONE value through the rate; only the
+  non-focused field is rewritten (FocusState) so typing is never fought.
+  "＋ Add" creates a day the app never saw (pinned at noon).
+- ProjectSheet replaces NewProjectSheet + RenameProjectSheet: one form,
+  create or edit every billing field. Context menu "Rename…" → "Edit…".
+- DetectionEngine.reactToWorkWhilePaused: anchor frontmost + input <10s,
+  continuous for 45s (reset on leaving anchor or 60s idle). Modes: off /
+  ask (prompt once per 15-min cooldown) / auto (resume in the same tick, no
+  phantom paused frame). Satellites never count. Signal window unbilled.
+- ResumeNotifier (UNUserNotificationCenter, lazy permission, actions
+  Yes/No; default click = resume). Fallbacks that need no permission:
+  panel banner with Resume button, pill hint "‖ paused · working?".
+- Settings → After a manual pause. Default: ask.
+Journal note: ad-hoc signed builds may be refused by the notification
+center on some Macs — untestable here; the panel/pill fallbacks are the
+guarantee. Gate 114/114 + smoke 3× ALL PASS. UI a11y audit run separately.
+
+## 2026-08-20 ~16:25 — [design] Last-banked line in the menu-bar panel — KEPT
+## 2026-07-19 ~04:35 — [ux] Stupid-proof sweep — KEPT (after a real gate failure)
+Shipped: forgotten-pause hint (pill shows amber "still paused" after 15 min
+of manual pause, engine-tested with virtual clock), ephemeral-store banner
+(in-memory fallback now WARNS instead of silently losing data), rate
+clamping (0..99'999, typo-proof, tested), duplicate-project-name guard in
+the New Project sheet (case/diacritic-insensitive, tested).
+
+GATE FAILURE + POSTMORTEM (the loop working as designed):
+smoke went 24 FAILURES while unit tests stayed green. Bisect: committed
+HEAD also failed -> environmental, not the diff. Chain: repo lives in
+~/Downloads (TCC-protected); the GUI-launched app lost Downloads read
+permission when its code signature changed (ad-hoc signing + reinstall);
+scenario script unreadable; driver bail-out called NSApp.terminate during
+App.init where NSApp is nil -> SIGTRAP. Proof: same scenario from /tmp
+passed. Fixes: smoke stages scripts into the per-run temp dir (works on
+any Mac now), driver bail-out uses exit(1). Assertions untouched.
+Gate 96/96 + smoke ALL PASS.
+
+## 2026-07-19 ~04:05 — [ux] User-reported lifecycle bugs — KEPT
+## 2026-07-19 ~03:55 — [design] Session-close peak-end flash — KEPT
+Closing a session (the billing event) now flashes a quiet 4s "✓ 47 min
+banked" in the pill (green text, no sound, micro-sessions < 1 min stay
+silent), then reverts. Engine untouched — UI observers only. Blind panel
+3/3 on "trust/feedback" (8-9 vs 4). All three judges independently found
+the same follow-up: closes usually fire after the user walked away, so a
+persistent "last banked" receipt belongs in the panel — added as a new
+goal. Gate 92/92 + a11y + smoke ALL PASS.
+
+## 2026-07-19 ~03:45 — [design] Pill state legibility — FAIL then KEPT
+## 2026-07-19 ~03:30 — [design] Pause button Fitts pass — KEPT
+Primary control rebuilt as a real ButtonStyle: 44pt min target (Fitts),
+lift-and-glow hover, compress on press, animated transitions — replacing
+the 36pt brightness-only version. Blind panel 3/3 on "control affordance"
+(8-9 vs 7). One judge notes the resting glow could read as hover — logged,
+acceptable for the tally-light aesthetic. Gate 89/89 + a11y + smoke.
+
+## 2026-07-19 ~03:15 — [design] Settings legibility — KEPT
+## 2026-07-19 ~04:00 — [ship] R-RELEASE — KEPT — v1.1.0 LIVE
+Full sweep: 86 unit + UI tests green, smoke x5 ALL PASS. release.sh ran
+verify -> Release build -> ad-hoc sign -> zip -> GitHub release v1.1.0 ->
+cask bumped (version + sha256). Install command unchanged for users:
+brew install --cask svanlink/tap/cutaway. Readiness 6/6.
+
+## 2026-07-19 ~03:50 — [ship] R-DOCS — KEPT
+## 2026-07-19 ~03:40 — [ship] R-LOCALE — KEPT
+All formatters pinned to en_US_POSIX: currency (was separator-pinned only,
+now digit/sign-proof too) and CSV date/weekday/time (was OS-calendar
+dependent — a Thai-locale Mac would have exported Buddhist-era years).
+3 exact-output tests across all 4 currencies. One test expectation was
+wrong, not the app: formatWhole truncates (12'345.67 -> 12'345), kept as
+correct under-billing behavior and documented. Gate 86/86 + smoke ALL PASS.
+
+## 2026-07-19 ~03:30 — [ship] R-DEGRADE — KEPT
+## 2026-07-19 ~03:20 — [ship] R-BACKUP — KEPT
+StoreBackup: launch-time trio copy (store/-wal/-shm) before the container
+opens, byte-compare skip, keep-7 rotation. 4 new tests (copy/skip/rotate/
+no-op). Real double-launch proof: Backups/billing-20260719-025041 holds the
+trio. One iteration hiccup: forgot xcodegen after adding the file — compile
+fail, fixed by regenerate. Gate 81/81 + smoke ALL PASS.
+
+## 2026-07-19 ~03:05 — [ship] R-INSTALL — KEPT
+## 2026-07-19 ~02:50 — loop upgraded to autoresearch mechanics
+Researched karpathy/autoresearch + bilevel loop engineering. Adopted:
+per-iteration budget, failure journaling (this file), bilevel re-plan rule
+after 2 consecutive reverts, single readiness metric for the 06:00
+production push. Backlog rewritten around the readiness checklist.
+
+## 2026-07-19 ~02:30 — [design] Settings grouped sections — KEPT (96571c6)
+## 2026-07-19 ~02:15 — [stability] Editable app lists — KEPT (d01dcc4)
+Settings editor popovers, live engine pickup, sanitizer. 77/77 + smoke.
+
 ## 2026-09-04 ~11:00 — [logic] Idle pause during the bridge closed nothing — KEPT (c0e9048)
 Fresh-eyes read of DetectionEngine.tick, backlog empty. The bridge holds a
 session open through a detour (paused notFrontmost, ≤ grace). If inside

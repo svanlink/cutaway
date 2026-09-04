@@ -58,7 +58,7 @@ struct StatsView: View {
                     currentID: model.selectedProjectID,
                     select: { model.selectManually($0); switcherOpen = false },
                     newProject: { switcherOpen = false; model.showNewProjectSheet = true },
-                    onRename: { switcherOpen = false; model.renameTarget = $0 },
+                    onRename: { switcherOpen = false; model.editTarget = $0 },
                     onDelete: { switcherOpen = false; model.deleteTarget = $0 }
                 )
             }
@@ -181,6 +181,14 @@ struct StatsView: View {
                 Text("Daily Breakdown").font(DT.smallSemibold).foregroundStyle(DT.text)
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
+                Button { model.editDay = DayEditTarget(day: nil) } label: {
+                    Text("＋ Add").font(DT.captionMedium).foregroundStyle(DT.text2)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
+                }
+                .buttonStyle(.plain)
+                .help("Add time for a day")
+                .accessibilityLabel("Add time for a day")
             }
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -221,6 +229,8 @@ struct StatsView: View {
         .frame(maxHeight: .infinity)
     }
 
+    /// Click unfolds the day into its sessions; editing lives in the unfolded
+    /// detail and in the row's context menu.
     private func dayRow(_ d: DayTotal, project p: Project, isToday: Bool, maxSeconds: TimeInterval) -> some View {
         Button {
             expandedDay = expandedDay == d.day ? nil : d.day
@@ -272,6 +282,9 @@ struct StatsView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Self.dayRowLabel(d, project: p, isToday: isToday))
         .accessibilityHint(expandedDay == d.day ? "Hide sessions" : "Show sessions")
+        .contextMenu {
+            Button("Edit day…") { model.editDay = DayEditTarget(day: d.day) }
+        }
         .accessibilityAddTraits(.isButton)
     }
 
@@ -297,6 +310,16 @@ struct StatsView: View {
                                                            hourlyRate: p.hourlyRate),
                             project: p, isLive: true)
             }
+            HStack {
+                Spacer()
+                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day) }
+                    .font(DT.captionMedium)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(DT.signal)
+                    .accessibilityLabel("Edit \(isToday ? "today" : d.day.formatted(.dateTime.month(.abbreviated).day()))")
+            }
+            .padding(.horizontal, 14)
+            .padding(.bottom, 8)
         }
         .padding(.leading, DT.s5)
         .padding(.trailing, DT.rowInset)

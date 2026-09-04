@@ -30,7 +30,8 @@ final class StatusItemController: NSObject {
             isRecording: model.engine.state == .recording,
             seconds: model.pillSeconds,
             banked: model.bankedFlash,
-            pausedHint: model.engine.pausedLong ? "still paused" : nil)
+            pausedHint: model.engine.workDetectedWhilePaused ? "paused, working?"
+                        : model.engine.pausedLong ? "still paused" : nil)
         guard spoken != lastSpokenValue else { return }
         lastSpokenValue = spoken
         statusItem.button?.setAccessibilityValue(spoken)
@@ -249,13 +250,15 @@ struct PillView: View {
                  goalReached: goalReached,
                  seconds: model.pillSeconds,
                  bankedText: model.bankedFlash,
-                 pausedHint: model.engine.pausedLong ? "‖ still paused" : nil)
+                 pausedHint: model.engine.workDetectedWhilePaused ? "‖ paused · working?"
+                             : model.engine.pausedLong ? "‖ still paused" : nil)
             .accessibilityLabel(Self.accessibilityLabel(
                 project: model.selectedProject?.name,
                 isRecording: isRecording,
                 seconds: model.pillSeconds,
                 banked: model.bankedFlash,
-                pausedHint: model.engine.pausedLong ? "still paused" : nil))
+                pausedHint: model.engine.workDetectedWhilePaused ? "paused, working?"
+                            : model.engine.pausedLong ? "still paused" : nil))
     }
 }
 

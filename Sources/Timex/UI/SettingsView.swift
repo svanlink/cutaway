@@ -35,6 +35,19 @@ struct SettingsView: View {
                     .labelsHidden().frame(width: 130)
                 }
                 divider
+                row("After a manual pause", sub: "When you start editing again in a workflow app") {
+                    Picker("", selection: Binding(
+                        get: { model.engine.autoResume.rawValue },
+                        set: { Prefs.set($0, forKey: "autoResume")
+                               model.engine.autoResume = AutoResumeMode(rawValue: $0) ?? .ask }
+                    )) {
+                        Text("Stay paused").tag(AutoResumeMode.off.rawValue)
+                        Text("Ask me (notification)").tag(AutoResumeMode.ask.rawValue)
+                        Text("Resume automatically").tag(AutoResumeMode.auto.rawValue)
+                    }
+                    .labelsHidden().frame(width: 170)
+                }
+                divider
                 row("Keep counting during renders",
                     sub: "Bills export time with no input — only while Resolve is provably busy, max 30 min") {
                     Toggle("", isOn: Binding(

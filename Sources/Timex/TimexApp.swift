@@ -76,12 +76,18 @@ struct TimexApp: App {
                 .background(DT.window)
                 .preferredColorScheme(.dark)
                 .sheet(isPresented: Bindable(model).showNewProjectSheet) {
-                    NewProjectSheet(model: model)
+                    ProjectSheet(model: model)
                         .preferredColorScheme(.dark)
                 }
-                .sheet(item: Bindable(model).renameTarget) { p in
-                    RenameProjectSheet(model: model, project: p)
+                .sheet(item: Bindable(model).editTarget) { p in
+                    ProjectSheet(model: model, editing: p)
                         .preferredColorScheme(.dark)
+                }
+                .sheet(item: Bindable(model).editDay) { t in
+                    if let p = model.selectedProject {
+                        EditDaySheet(model: model, project: p, target: t)
+                            .preferredColorScheme(.dark)
+                    }
                 }
                 .sheet(item: Bindable(model).deleteTarget) { p in
                     DeleteProjectSheet(model: model, project: p)
