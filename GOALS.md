@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [billing] Typed time is marked — adjusted_hours column, Stats pencil — b899ad0
+
 - [billing] Editable time & money; forgotten-pause ask/auto resume — 670af20 (merged)
 
 - [logic] Idle pause during the bridge closes the held session — c0e9048

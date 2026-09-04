@@ -7,6 +7,37 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-04 ~18:00 — [merge] Worktree branch landed; edits leave a trace — KEPT (c8b65fc, b899ad0, 85c0303)
+Merged claude/time-tracking-edit-auto-resume-592ba4 (670af20) into
+autoresearch/aug20. Seven files conflicted; both sides kept everywhere.
+Decisions: click on a Stats day still unfolds its sessions (this branch's
+newer meaning); "Edit day…" lives in the unfolded detail and the row's
+context menu. Auto-resume lifts a pause through togglePause(), so the
+persisted pause start clears exactly as a click would; autoResume reads
+the injected defaults. AutoResumeTests moved onto a scratch defaults
+suite — the worktree's version toggled the REAL manual-pause pref from a
+unit test. Found by the merge: the worktree's adjustment insert had no
+rate (this branch stamps every session); it would not have compiled.
+Then, per the spec's honesty rule: WorkSession.isAdjusted →
+DayTotal.adjustedSeconds → CSV adjusted_hours (after active_hours) →
+pencil on the Stats row. Test expectations changed on purpose, values
+untouched: the CSV header test gains the column; testIdleExcludedHours no
+longer assumes two columns are adjacent; InvoiceArithmeticTests now find
+columns by header NAME — they hard-coded 18 fields and index 12, so the
+new column made them skip every row and pass vacuously-then-fail.
+The worktree also held ~80 uncommitted lines of "edit project"
+affordances. Kept: onRename→onEdit, Stats-header pencil (tokenised
+font), panel-row "Edit project…", a corrected sheet hint. Dropped: the
+Timer-tab pencil (Part 4 removes the tab), hover-only pencils, money
+rows as buttons, and two sentences claiming a rate change re-prices past
+days — false here since 3a9d1c2. Raw diff kept in the session scratchpad.
+One red herring: a full run took 254 s once (10 s the next); and
+Tier1LiveTests failed once while Resolve was mid-launch (PID newer than
+the test host) — green on rerun with the same code.
+Gate: 310 unit tests, smoke x3 ALL PASS, accessibility audit green.
+main fast-forwarded and pushed; worktree and branch deleted; graphify
+map built for Plan 2.
+
 ## 2026-09-03 ~15:55 — [feature] Edit time/amount + forgotten-pause detection — KEPT
 User ask: "edit the time I worked and the amount" + "when paused, detect I'm
 working again — self-trigger or notify me". Shipped:
