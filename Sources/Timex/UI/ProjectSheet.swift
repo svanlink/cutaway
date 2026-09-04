@@ -15,6 +15,9 @@ struct ProjectSheet: View {
     @State private var rate = String(format: "%.2f", AppModel.defaultHourlyRate)
     @State private var budget = ""
     @State private var currency: TimexCurrency = AppModel.defaultCurrency
+    // Pre-ticked with the global list: the normal case needs zero clicks;
+    // a narrow job (an InDesign-only template) is an untick.
+    @State private var apps: Set<String> = Set(AppModel.globalWorkApps)
 
     var body: some View {
         VStack(alignment: .leading, spacing: DT.s3) {
@@ -57,6 +60,13 @@ struct ProjectSheet: View {
                 }
             }
 
+            VStack(alignment: .leading, spacing: 6) {
+                label("APPS")
+                AppPickerView(selected: $apps)
+                Text("Only these apps count toward this project.")
+                    .font(DT.captionMedium).foregroundStyle(DT.text3)
+            }
+
             if editing != nil {
                 Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")
                     .font(DT.captionMedium).foregroundStyle(DT.text3)
@@ -76,12 +86,12 @@ struct ProjectSheet: View {
                     .buttonStyle(.borderedProminent)
                     .tint(DT.signal)
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty
-                              || Double(rate) == nil || isDuplicate)
+                              || Double(rate) == nil || isDuplicate || apps.isEmpty)
             }
             .padding(.top, DT.s1)
         }
         .padding(DT.s4)
-        .frame(width: 400)
+        .frame(width: 460)
         .background(DT.card)
         .onAppear {
             guard let p = editing else { return }
@@ -91,6 +101,9 @@ struct ProjectSheet: View {
             rate = String(format: "%.2f", p.hourlyRate)
             budget = p.budget > 0 ? String(format: "%.0f", p.budget) : ""
             currency = p.currency
+            // A legacy project (empty list) shows the global list ticked; saving
+            // it writes that list out explicitly — same behaviour, now visible.
+            apps = p.appBundleIDs.isEmpty ? Set(AppModel.globalWorkApps) : Set(p.appBundleIDs)
         }
     }
 
@@ -106,10 +119,10 @@ struct ProjectSheet: View {
         let b = max(0, Double(budget) ?? 0)
         if let p = editing {
             model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency,
-                         apps: p.appBundleIDs)
+                         apps: Array(apps).sorted())
         } else {
             model.createProject(name: n, client: c, mode: mode, rate: r, budget: b,
-                                currency: currency, apps: AppModel.globalWorkApps, isManual: true)
+                                currency: currency, apps: Array(apps).sorted(), isManual: true)
         }
         dismiss()
     }
