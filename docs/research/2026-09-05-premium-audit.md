@@ -95,6 +95,15 @@ Named here so nothing is changed by stealth.
 5. **Order of the quarter:** Invoice (PDF + client + QR-bill) before Timeline, or Timeline first?
 6. **German localization** in v1.3 or later?
 
+## Decisions taken (2026-09-05, owner)
+
+| # | Decision | Consequence for the plan |
+|---|---|---|
+| 1 | Apple Developer Program: **not yet** | Plan #1 (notarization) and #3 (Sparkle) are parked. v1.3 ships #2, #4–#10. New users on macOS 15/26 keep the Gatekeeper wall; the README's right-click/`--no-quarantine` guidance stays. Revisit before any paid or public push. |
+| 2 | Pricing: **free / open source** | No licensing, no trial, no Setapp. "Trust" is polish for reputation, not conversion. |
+| 3 | Appearance: **dark-only, done properly** | Plan #5 as written: one app-level decision, documented exception, verified under Increase Contrast × Reduce Transparency and macOS 26.1 variants. No light token set. |
+| 4 | Quarter order: **Invoice first** | v1.4 = #12–#17 (PDF, client + tax mode, QR-bill, billing status, rounding, day rates). v1.5 = #11 timeline. |
+
 ## Part E — Your prompt, optimized
 
 Diagnosis of the original ("do the thoroughest research ever … make it premium … unrecognizable"):
