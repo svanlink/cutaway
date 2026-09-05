@@ -7,6 +7,44 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-05 — [ui] Menu-bar-first, minimal — KEPT (93aadc8, 81bfd69, ef46f39, cf71c35, fb5a7df, 4e47a6a, this commit)
+Spec Part 4, decided in the grill session (Q9–Q13): the pill and panel
+are the app; fewer surfaces and fewer knobs, not fewer pixels.
+Removed: the reclaim offer (engine, panel, 12 tests; the bridge-idle
+fix keeps its session-close half — that was the bug — and one test is
+renamed and narrowed on purpose); the daily-goal ring, GoalProgress and
+the Daily goal setting (5 tests; four pill renders lose two params); the
+Timer tab, ProjectPill, SegmentedTabs, MainTab, the TIMEX_TAB hook; the
+Away grace and Research window Settings rows (prefs and defaults kept).
+Moved into the panel: the pause/resume control (primary control, now on
+the surface open all day; honours Reduce Motion), today's money in the
+hero, the zero state in place of an empty list, the one-time
+Accessibility offer. Panel composition is a pure function
+(MenuBarPanel.blocks), pinned by PanelLayoutTests.
+Prompts: one PromptCard shape, one PromptPanel host (non-activating),
+one PromptArbiter — never two cards, pinned by PromptArbiterTests.
+Deviation from Part 1, per Part 4: the forgotten-pause prompt is a card,
+not a notification; ResumeNotifier and its permission prompt are gone.
+Deviation from Part 4's list: Launch at login stays in Settings — the
+spec's nine rows omitted it by mistake; nobody chose to remove it.
+Native Forms: Settings (follows system appearance), ProjectSheet,
+EditDaySheet, DeleteProjectSheet, AppListEditor; the picker tiles use
+the accent colour. No DT token on those surfaces.
+Found by the audit now that Stats is the launch window: the Export CSV
+Menu (.borderlessButton + custom label) exposed no press action to
+accessibility — it never had; it uses the button style with plain chrome.
+The audit test now names the offending element in its log.
+Sequencing slip, owned: PanelLayoutTests.swift was swept into 81bfd69
+by `git add -A Tests` before it compiled (it was not in the generated
+project, so that commit still built). Local branch only; ef46f39 makes
+it compile.
+Owed: README screenshots (docs/assets/timer.png → the panel) are stale
+until the release prep in Plan 4. Manual checks not automatable here
+(open each Form, both popovers, create/edit/delete a project, edit a
+day) are for the human's first run.
+Gate per task: unit suite green, smoke x3 ALL PASS on the day's build,
+both UI tests green.
+
 ## 2026-09-04 ~20:00 — [feature] Per-project apps — KEPT (ff20de8, 5b12310, 5d72fc5, 8bd620c, 6289f79, 96f01f6, c1a84a9)
 Project.appBundleIDs (empty = global). AnchorSet.resolve is the single
 replace-not-extend rule; AppModel.applyAnchors() the single writer of

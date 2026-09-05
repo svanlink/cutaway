@@ -191,8 +191,6 @@ enum DT {
     // and Light font weights". The hero readout — the number the whole app
     // exists to show — was 48pt Thin, which renders as hairlines in a dark
     // room and is the standard tell of a design that reached for elegant.
-    static let hero = Font.system(size: 44, weight: .medium)
-    static let heroSec = Font.system(size: 24, weight: .regular)
     /// Currency figures. Monospaced: a money column that shifts as digits
     /// change is the tell of a timer, not a ledger.
     static let moneyFont = Font.system(size: 17, weight: .semibold).monospacedDigit()
@@ -222,7 +220,6 @@ enum DT {
     /// Leading icon inside a compact button (Export CSV).
     static let buttonGlyph = Font.system(size: 10, weight: .bold)
     static let smallBold = Font.system(size: 12, weight: .bold)
-    static let bodySemibold = Font.system(size: 13, weight: .semibold)
 
     // menu-bar pill — read at a glance, at menu-bar scale
     static let pillTime = Font.system(size: 12.5, weight: .bold)

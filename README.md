@@ -33,7 +33,7 @@ brew uninstall --zap --cask cutaway  # remove, including preferences
 
 ## What it looks like
 
-| The timer | Your money |
+| The panel | Your money |
 |:--:|:--:|
 | ![Timer](docs/assets/timer.png) | ![Stats](docs/assets/stats.png) |
 
@@ -59,6 +59,8 @@ Most timers make you remember to press a button. Cutaway watches how an editor a
 
 **Forgotten pauses.** Pause for a call, come back, edit for an hour — and never notice the amber pill. Cutaway watches for that: once you've been actively editing in Resolve (or another workflow app) for about 45 seconds while paused, it asks *"Are you working?"* in a small card under the menu bar — one click resumes, no permission needed. The panel shows the same question with a Resume button, and the pill reads *paused · working?*. The pause stays sacred backwards: nothing before the resume is ever billed, including those 45 seconds. Prefer it to resume on its own, or never to ask? Settings → *After a manual pause*. Browsers never trigger this; only workflow apps do.
 
+**Two questions, never at once.** Cutaway interrupts for exactly two things — *Still working?* before an idle pause, and *Are you working?* when you edit through a manual pause — each a small card under the menu bar that never steals focus. Everything else is in the panel.
+
 **Projects follow Resolve.** Cutaway asks Resolve which project is open and switches attribution automatically — local, network, or cloud libraries. Open a project Cutaway has never seen and it creates it on the spot.
 
 **Projects know their apps.** When you create a project, tick the apps it's worked in — DaVinci Resolve, the Adobe suite, Office, anything installed. Everything you normally use starts ticked, so most projects need no clicks; an InDesign-only template job is an untick. While a project is selected, only its apps count toward it: a colour pass in Resolve can't land on the wrong invoice. Icons are the real ones from the apps on your Mac.
@@ -70,7 +72,7 @@ Two modes per project:
 - **Hourly** — set your rate; Cutaway turns tracked time into earnings, live.
 - **Fixed budget** — set the total (e.g. 4 500 CHF) and your internal rate; Cutaway shows a burn-down with amber/red warnings and a pace forecast: *"≈ 2.5 working days left at current pace."*
 
-Currencies: CHF, EUR, USD, COP — formatted correctly for each. Daily goal ring in the main window (green when you beat it, overtime counted).
+Currencies: CHF, EUR, USD, COP — formatted correctly for each.
 
 **CSV export** for invoicing: one row per worked day — sessions, first/last activity, active hours, rate, earnings, budget columns, cumulative totals — plus a summary block. Opens clean in Excel and Numbers.
 
