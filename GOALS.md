@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [structure] Cutaway everywhere; feature folders; ProjectsModel split — b7078bd
+
 - [ui] Menu-bar-first, minimal: Timer tab, ring, reclaim, two knobs gone; native Forms; one prompt card — 4e47a6a
 
 - [feature] Per-project apps — catalog, picker, icons, gate-not-memo — c1a84a9

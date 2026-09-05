@@ -7,6 +7,38 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-05 — [structure] Cutaway everywhere; feature folders; ProjectsModel — KEPT (973b039, 5480bdd, b7078bd)
+Rename: Sources/Cutaway, Cutaway.xcodeproj (generated; Timex.xcodeproj
+removed), CutawayTests, CutawayUITests, CutawayApp, CUTAWAY_* env vars
+(scenario, data dir, demo, show), and — an addition to the spec —
+TimexCurrency → BillingCurrency, the last "Timex" in code; its raw values
+are what is persisted, so nothing on disk changed. Deliberately NOT
+renamed: default.store / timex.store, the scenario defaults suite, every
+pref key — renaming any of them strands data. DerivedData now lives in
+Cutaway-<hash>; smoke.sh and release.sh resolve it by WorkspacePath.
+The old Timex-* DerivedData dirs are the human's to delete.
+Two false starts on the substitutions, both harmless: zsh does not
+word-split an unquoted variable, and BSD grep -Z did not NUL-separate
+here — the sed ran against one nonexistent path each time and the four
+path-reading tests went red, exactly as they should. Python did it.
+Folders: App, Detection, Projects, Billing, Stats, MenuBar, Settings,
+Design — git mv only. DesignTokenGuardTests and SystemSettingsTests now
+walk the whole source tree instead of one UI folder: stronger, and
+indifferent to layout. StatusItemTimerTests and DetectionWiringTests
+read their files at the new paths.
+Split: ProjectsModel (selection, caches, manual intent, anchors,
+create/update/delete, auto-detected switching, demo seed) out of
+AppModel (595 → 429 lines); AppModel keeps the Tier-1/Tier-2 loop, live
+figures, announcements, sheets and harness hooks, and forwards the
+project API so no view changed. DetectionWiringTests reads both files
+now, and the needle is the moved token read — deliberate, journaled.
+Gate per commit: 324 unit tests, smoke x3 ALL PASS on the day's build
+(new DerivedData dir), 6/6 UI tests.
+Still owed after all four plans: README screenshots (docs/assets/
+timer.png shows a window that no longer exists); the human's first-run
+pass over the native Forms and the panel; deleting the stale Timex-*
+DerivedData dirs; a day of real use before `scripts/release.sh 1.2.0`.
+
 ## 2026-09-05 — [ui] Menu-bar-first, minimal — KEPT (93aadc8, 81bfd69, ef46f39, cf71c35, fb5a7df, 4e47a6a, this commit)
 Spec Part 4, decided in the grill session (Q9–Q13): the pill and panel
 are the app; fewer surfaces and fewer knobs, not fewer pixels.
