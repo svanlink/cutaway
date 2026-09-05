@@ -86,10 +86,13 @@ final class ProjectsModel {
 
     func seedDemoData() {
         let cal = Calendar.current
+        let resolve = DetectionInput.resolveBundleIDs[0]
         guard let nyx = try? store.createProject(name: "Nyx Fashion Film", client: "Nyx Studios",
-                                                 mode: .hourly, hourlyRate: 85, currency: .chf),
+                                                 mode: .hourly, hourlyRate: 85, currency: .chf,
+                                                 appBundleIDs: [resolve, "com.adobe.PremierePro", "com.adobe.AfterEffects"]),
               let alpina = try? store.createProject(name: "Alpina Ski Promo", client: "Alpina Sports",
-                                                    mode: .budget, hourlyRate: 85, budget: 4500, currency: .chf)
+                                                    mode: .budget, hourlyRate: 85, budget: 4500, currency: .chf,
+                                                    appBundleIDs: [resolve, "com.adobe.Photoshop", "com.adobe.illustrator"])
         else { return }
         let today = cal.startOfDay(for: Date())
         let fixtures: [(Project, Int, Double)] = [

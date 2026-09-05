@@ -21,7 +21,18 @@ enum InstalledApps {
         var found: [String: InstalledApp] = [:]
         for dir in directories {
             guard let items = try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { continue }
-            for url in items where url.pathExtension == "app" {
+            // Adobe and Blackmagic ship inside a vendor folder ("Adobe Premiere
+            // Pro 2026/…app", "DaVinci Resolve/…app"): look one level down
+            // into plain folders, never further.
+            var candidates: [URL] = []
+            for url in items {
+                if url.pathExtension == "app" { candidates.append(url); continue }
+                var isDir: ObjCBool = false
+                guard fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue,
+                      let inner = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil) else { continue }
+                candidates += inner.filter { $0.pathExtension == "app" }
+            }
+            for url in candidates {
                 let plist = url.appendingPathComponent("Contents/Info.plist")
                 guard let data = try? Data(contentsOf: plist),
                       let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],

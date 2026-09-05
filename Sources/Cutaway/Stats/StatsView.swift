@@ -38,7 +38,10 @@ struct StatsView: View {
                         .font(DT.title)
                         .foregroundStyle(DT.text)
                         .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                        .minimumScaleFactor(0.85)
+                        // The name is the header; the client and the icon
+                        // row yield to it when the window is at its minimum.
+                        .layoutPriority(1)
                     if let c = project?.client, !c.isEmpty {
                         Text("· \(c)")
                             .font(DT.captionMedium)

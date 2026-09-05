@@ -58,6 +58,27 @@ final class AppCatalogTests: XCTestCase {
         XCTAssertEqual(found.map(\.name), ["Alpha", "Zed"], "sorted; Empty.app (no plist) and notes.txt skipped")
     }
 
+    /// Adobe and Blackmagic ship inside a vendor folder ("Adobe Premiere Pro
+    /// 2026/Adobe Premiere Pro 2026.app", "DaVinci Resolve/DaVinci
+    /// Resolve.app"). A scan that stops at the top level calls the user's
+    /// main tools "not installed".
+    func testScanLooksOneFolderDeepForVendorSuites() throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("scan-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let nested = dir.appendingPathComponent("Adobe Premiere Pro 2026/Adobe Premiere Pro 2026.app/Contents")
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        let plist: [String: Any] = ["CFBundleIdentifier": "com.adobe.PremierePro.2026", "CFBundleName": "Premiere Pro"]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            .write(to: nested.appendingPathComponent("Info.plist"))
+        // Two levels down is not a suite folder; it stays out of the list.
+        let deep = dir.appendingPathComponent("Vendor/Sub/Deep.app/Contents")
+        try FileManager.default.createDirectory(at: deep, withIntermediateDirectories: true)
+        try PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": "x.deep"] as [String: Any], format: .xml, options: 0)
+            .write(to: deep.appendingPathComponent("Info.plist"))
+        let found = InstalledApps.scan(directories: [dir])
+        XCTAssertEqual(found.map(\.bundleID), ["com.adobe.PremierePro.2026"])
+    }
+
     func testPrefixResolvesToAnInstalledBundle() {
         let apps = [
             InstalledApp(name: "Premiere Pro 2025", bundleID: "com.adobe.PremierePro.2025", url: URL(fileURLWithPath: "/x")),
