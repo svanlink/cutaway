@@ -16,12 +16,6 @@ final class DetectionEngine {
     /// Non-nil during the last seconds before an idle pause — the UI shows
     /// the "still working?" panel from this.
     private(set) var idleWarning: IdleWarning?
-    /// A gap the user may reclaim, offered once on resume. nil when there is
-    /// nothing to offer or the offer lapsed.
-    private(set) var reclaimOffer: ReclaimOffer?
-    /// Where a reclaim-eligible gap began: set when an AUTOMATIC pause closes
-    /// a session (idle, or bridge expiry), cleared by the sacred boundaries.
-    private var reclaimGapStart: Date?
     /// When the user last answered the panel. An attestation counts as
     /// input: the click that delivers it usually IS system input, but a
     /// VoiceOver activation may not synthesise a CGEvent, so the engine
@@ -156,23 +150,6 @@ final class DetectionEngine {
         closeSessionIfOpen(reason: "engine-stop")
     }
 
-    /// The user said yes: the away time was work. Credited into the running
-    /// session at the moment of acceptance — the only path that ever bills a
-    /// reclaimed gap, and it requires an explicit click.
-    func acceptReclaim() {
-        guard let offer = reclaimOffer else { return }
-        reclaimOffer = nil
-        guard accumulator.sessionStart != nil else { return }
-        accumulator.credit(offer.seconds)
-        logger.log(event: "reclaim-accepted", detail: "credited=\(Int(offer.seconds))s")
-    }
-
-    /// No — or a project switch, which makes the offer meaningless: the gap
-    /// belongs to the project that was selected when it opened.
-    func declineReclaim() {
-        reclaimOffer = nil
-    }
-
     /// The user answered the "still working?" panel.
     func confirmPresence() {
         lastPresenceConfirm = now()
@@ -243,32 +220,24 @@ final class DetectionEngine {
                 // HARD boundaries: the bridge must never span time the user
                 // explicitly paused, slept through, or worked project-less.
                 // Close regardless of previous state and kill any open gap.
-                // Reclaim follows the same rule: a sacred pause is never
-                // offered back — sleeping through the night must not wake up
-                // to an "add 8 hours?" card.
                 closeSessionIfOpen(reason: describe(newState))
                 awayGapStart = nil
-                reclaimGapStart = nil
             case .paused(.notFrontmost) where state == .recording:
                 // Bridge window: keep the session open — a quick detour is
                 // bridged retroactively on return; closes on grace expiry.
                 awayGapStart = now()
             case .paused where state == .recording:
-                // An idle pause is automatic — the user never asked for it —
-                // so the gap it opens is reclaim-eligible. The billed idle
-                // tolerance before this moment stays billed; the gap starts
-                // where the billing stopped.
+                // An automatic pause closes the session where the billing
+                // stopped; the billed idle tolerance before it stays billed.
                 closeSessionIfOpen(reason: describe(newState))
-                reclaimGapStart = now()
             case .paused(.inputIdle) where awayGapStart != nil:
                 // The bridge was still holding a session open when the idle
                 // pause landed — the frontmost app became an anchor with
                 // nobody typing (the detour app quit, say). This transition
                 // used to fall through: nothing closed, and the expiry check
                 // below only fires on notFrontmost, so the session stayed
-                // open until midnight and the gap was never offered back.
+                // open until midnight.
                 closeSessionIfOpen(reason: "bridge-idle")
-                reclaimGapStart = awayGapStart
                 awayGapStart = nil
             default:
                 break
@@ -287,21 +256,6 @@ final class DetectionEngine {
             // double-counts up to the cap.
             if newState == .recording, state != .recording {
                 lastTick = now()
-                // Returning to work is the one moment a reclaim can be
-                // offered. Floor: the bridge's own grace — detours shorter
-                // than that are already the bridge's business, so the offer
-                // starts where the bridge ends. Cap and same-day guard keep
-                // a mistaken click from ever moving serious money or
-                // bleeding across a day boundary.
-                if let gapStart = reclaimGapStart {
-                    let gap = now().timeIntervalSince(gapStart)
-                    if gap > bridgeGrace, gap <= ReclaimOffer.maximumGap,
-                       Calendar.current.isDate(gapStart, inSameDayAs: now()) {
-                        reclaimOffer = ReclaimOffer(start: gapStart, end: now())
-                        logger.log(event: "reclaim-offered", detail: "gap=\(Int(gap))s")
-                    }
-                    reclaimGapStart = nil
-                }
             }
             state = newState
         }
@@ -309,9 +263,6 @@ final class DetectionEngine {
         if state == .paused(.notFrontmost), let gapStart = awayGapStart,
            now().timeIntervalSince(gapStart) > bridgeGrace {
             closeSessionIfOpen(reason: "bridge-expired")
-            // The reclaimable gap starts when the user LEFT, not when the
-            // bridge gave up — the whole away span went unbilled.
-            reclaimGapStart = gapStart
             awayGapStart = nil
         }
         let source = RecordingSource.evaluate(state: newState, input: input,
@@ -334,17 +285,6 @@ final class DetectionEngine {
             warning = nil
         }
         if warning != idleWarning { idleWarning = warning }
-        // The offer lives only while the session it would credit is running,
-        // and answers itself with No when ignored.
-        if reclaimOffer != nil {
-            if newState != .recording {
-                reclaimOffer = nil
-            } else if let offer = reclaimOffer,
-                      now().timeIntervalSince(offer.end) > ReclaimOffer.duration {
-                logger.log(event: "reclaim-lapsed")
-                reclaimOffer = nil
-            }
-        }
         if accumulate {
             // Real wall-clock delta, not an assumed 1s — RunLoop stalls and
             // App Nap would otherwise silently undercount. Capped so a

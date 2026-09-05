@@ -224,16 +224,14 @@ final class DetectionEngineTests: XCTestCase {
     /// that grace, the frontmost app becomes an anchor with nobody typing —
     /// Slack quits, Resolve is what is left — the state moves straight from
     /// notFrontmost to inputIdle. That transition used to fall through every
-    /// branch: the session stayed open until midnight, and the gap was never
-    /// offered back.
-    func testIdlePauseDuringBridgeClosesSessionAndKeepsGapReclaimable() {
+    /// branch: the session stayed open until midnight.
+    func testIdlePauseDuringBridgeClosesTheHeldSession() {
         engine.idleThreshold = 120
         engine.tick()
         tickRecordingFor(10)
         probes.frontmost = "com.tinyspeck.slackmacgap"
         advance(1); engine.tick()
         XCTAssertEqual(engine.state, .paused(.notFrontmost))
-        let leftAt = clock!
         // Slack quits; Resolve is frontmost again, but nobody is typing.
         advance(150)
         probes.frontmost = DetectionInput.resolveBundleIDs[0]
@@ -244,13 +242,13 @@ final class DetectionEngineTests: XCTestCase {
                        "an idle pause must close the session the bridge was holding")
         XCTAssertEqual(engine.closedSessions[0].activeSeconds, 10, accuracy: 1.5,
                        "the away gap is not credited")
-        // Back ten minutes later: the whole away span is offered, from the
-        // moment the user actually left.
+        // Back ten minutes later: a fresh session starts; the away span is
+        // simply gone (the day editor exists for the rare real case).
         advance(600)
         probes.idle = 0
         engine.tick()
         XCTAssertEqual(engine.state, .recording)
-        XCTAssertEqual(engine.reclaimOffer?.start, leftAt)
+        XCTAssertEqual(engine.closedSessions.count, 1, "nothing was reopened or credited")
     }
 }
 

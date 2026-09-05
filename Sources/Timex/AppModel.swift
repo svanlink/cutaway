@@ -403,9 +403,6 @@ final class AppModel {
 
     func select(_ project: Project) {
         guard project.persistentModelID != selectedProjectID else { return }
-        // A pending reclaim belongs to the OLD project's gap; crediting it
-        // into the new project's session would misattribute billed time.
-        engine.declineReclaim()
         // Close the running span first so its time stays with the old project.
         engine.closeSessionNow(reason: "project-switch")
         selectedProjectID = project.persistentModelID

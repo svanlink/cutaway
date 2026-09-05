@@ -193,29 +193,6 @@ struct IdleWarning: Equatable, Sendable {
     }
 }
 
-/// An automatic pause the user might want their time back from.
-///
-/// The bridge auto-credits detours under the grace period; beyond it, away
-/// time was simply gone even when it was billable — a client call about the
-/// cut, reference footage on another machine. This offers it back ONCE, on
-/// return, and the defaults all point the honest way: default No, timing out
-/// to No, never offered for a manual pause or system sleep (those boundaries
-/// are sacred), and nothing is billed unless the user explicitly says so.
-struct ReclaimOffer: Equatable, Sendable {
-    var start: Date
-    var end: Date
-    var seconds: TimeInterval { end.timeIntervalSince(start) }
-
-    /// How long the offer stays open before it answers itself with No.
-    /// Deliberately shorter than the idle warning's 90s trigger, so the two
-    /// cards can never be on screen at once.
-    static let duration: TimeInterval = 60
-    /// Above this, a gap is not a detour — it is a break or the end of the
-    /// day, and a one-click "add 3 hours" is an invoice mistake waiting for
-    /// a fat finger.
-    static let maximumGap: TimeInterval = 2 * 3600
-}
-
 /// A closed span of recorded work.
 struct SessionRecord: Equatable, Sendable, Codable {
     var start: Date
