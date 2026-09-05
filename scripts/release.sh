@@ -11,6 +11,13 @@ xcodegen generate
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests | grep -q "TEST SUCCEEDED"
 ./scripts/smoke.sh "" 3
 
+echo "── stamp version"
+# The bundle must say what brew says. 1.1.0 and 1.2.0 shipped with the
+# plist's original "1.0" because nothing wrote it; now the script does.
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $V" Sources/Cutaway/Info.plist
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $V" Sources/Cutaway/Info.plist
+git diff --quiet Sources/Cutaway/Info.plist || git commit -qm "chore: version $V" Sources/Cutaway/Info.plist
+
 echo "── release build"
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"
 # The DerivedData dir that was built from THIS project — never the first one

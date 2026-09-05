@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [ship] v1.2.0 released; tap recreated; release.sh stamps the bundle version — v1.2.0
+
 - [structure] Cutaway everywhere; feature folders; ProjectsModel split — b7078bd
 
 - [ui] Menu-bar-first, minimal: Timer tab, ring, reclaim, two knobs gone; native Forms; one prompt card — 4e47a6a

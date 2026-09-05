@@ -7,6 +7,25 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-05 ~12:20 — [ship] v1.2.0 released — the tap had to be recreated first
+The human asked for the release. Pre-flight found github.com/svanlink/
+homebrew-tap GONE ("Repository not found") while Homebrew's local clone
+held its full history — every existing user's `brew upgrade` had been
+failing, and release.sh would have published the GitHub release and then
+died at the cask bump. With the human's choice, the repo was recreated
+public at the same URL from the local clone (HEAD = the 1.1.0 cask
+commit), then release.sh 1.2.0 ran end to end: 325 unit tests, smoke x3
+ALL PASS, Release build, ad-hoc sign, zip, GitHub release, cask bump.
+Proof: asset Cutaway-1.2.0.zip on the release; the cask's sha256 equals
+the local zip and the downloaded asset; `brew info` reports 1.1.0 → 1.2.0;
+`brew audit` clean. Flaw, owned: the bundle's CFBundleShortVersionString
+still reads "1.0" — the plist was never stamped, and 1.1.0 shipped the
+same way. Not worth re-publishing a minutes-old asset; release.sh now
+stamps the version before building, and Info.plist says 1.2.0 in the
+tree. Also shipped in 1.2.0 (found while regenerating screenshots): the
+installed-apps scan now looks inside vendor folders — Adobe and Resolve
+live there, and the picker had been calling them "not installed".
+
 ## 2026-09-05 ~11:40 — [harness] smoke runs the built binary directly, not through LaunchServices — KEPT
 The final gate hung for 15 minutes: `open -W <Debug app path>` asked
 LaunchServices, which resolved the bundle id to /Applications/Cutaway.app
