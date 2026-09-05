@@ -104,7 +104,6 @@ struct TimexApp: App {
         // works from every entry point (panel ⚙, Cmd-comma, harness).
         Window("Cutaway Settings", id: "settings") {
             SettingsView(model: model)
-                .preferredColorScheme(.dark)
         }
         .windowResizability(.contentMinSize)
         .commands {

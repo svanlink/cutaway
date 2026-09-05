@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// Popover editor for a bundle-id prefix list (workflow anchors or
-/// research satellites). Writes to Prefs and pushes into the engine
-/// live via `onChange` — no relaunch needed.
+/// research satellites). Writes to Prefs and pushes into the engine live
+/// via `onChange` — no relaunch needed. Native list; the picker in the
+/// project sheet is the friendly way in, this is the escape hatch.
 struct AppListEditor: View {
     let title: String
     let prefsKey: String
@@ -13,53 +14,38 @@ struct AppListEditor: View {
     @State private var newPrefix = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DT.s2) {
-            Text(title).font(DT.smallSemibold).foregroundStyle(DT.text)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.headline)
             Text("Bundle id prefixes — e.g. com.adobe.PremierePro")
-                .font(DT.captionMedium).foregroundStyle(DT.text3)
-
-            ScrollView {
-                VStack(spacing: 2) {
-                    ForEach(prefixes, id: \.self) { p in
-                        HStack {
-                            Text(p).font(DT.small).foregroundStyle(DT.text2)
-                                .lineLimit(1).truncationMode(.middle)
-                            Spacer()
-                            Button {
-                                save(prefixes.filter { $0 != p })
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(DT.text3)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove \(p)")
+                .font(.caption).foregroundStyle(.secondary)
+            List {
+                ForEach(prefixes, id: \.self) { p in
+                    HStack {
+                        Text(p).lineLimit(1).truncationMode(.middle)
+                        Spacer()
+                        Button { save(prefixes.filter { $0 != p }) } label: {
+                            Image(systemName: "minus.circle.fill").foregroundStyle(.secondary)
                         }
-                        .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Remove \(p)")
                     }
                 }
             }
-            .frame(maxHeight: 220)
-
-            HStack(spacing: DT.s2) {
-                TextField("com.example.app", text: $newPrefix).accessibilityLabel("Bundle id prefix")
+            .frame(height: 200)
+            HStack {
+                TextField("com.example.app", text: $newPrefix)
                     .textFieldStyle(.roundedBorder)
-                    .font(DT.small)
+                    .accessibilityLabel("Bundle id prefix")
                     .onSubmit(add)
                 Button("Add", action: add)
                     .disabled(newPrefix.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-
             Button("Reset to defaults") { save(defaults) }
-                .font(DT.captionMedium)
-                .buttonStyle(.plain)
-                .foregroundStyle(DT.signal)
+                .buttonStyle(.link)
         }
-        .padding(DT.s3)
-        .frame(width: 320)
-        .onAppear {
-            prefixes = Prefs.stringArray(forKey: prefsKey) ?? defaults
-        }
+        .padding(12)
+        .frame(width: 340)
+        .onAppear { prefixes = Prefs.stringArray(forKey: prefsKey) ?? defaults }
     }
 
     private func add() {
