@@ -7,6 +7,18 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-05 ~11:40 — [harness] smoke runs the built binary directly, not through LaunchServices — KEPT
+The final gate hung for 15 minutes: `open -W <Debug app path>` asked
+LaunchServices, which resolved the bundle id to /Applications/Cutaway.app
+— the installed 1.1.0 release. That app knows no CUTAWAY_* variables, so
+it started as a normal app on the real store and never quit, and the
+harness waited on it. Every earlier smoke run today happened to get the
+Debug copy; nothing about the script guaranteed it. smoke.sh now execs
+"$APP/Contents/MacOS/Cutaway" with the env in its environment: exactly
+that file, and no launchctl setenv/unsetenv to leak. Proven x1 and x3.
+The 1.1.0 instance was quit gracefully (willTerminate flushes the open
+session); it had only done what it does on any launch.
+
 ## 2026-09-05 — [structure] Cutaway everywhere; feature folders; ProjectsModel — KEPT (973b039, 5480bdd, b7078bd)
 Rename: Sources/Cutaway, Cutaway.xcodeproj (generated; Timex.xcodeproj
 removed), CutawayTests, CutawayUITests, CutawayApp, CUTAWAY_* env vars

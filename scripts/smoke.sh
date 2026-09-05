@@ -50,13 +50,13 @@ run_scenario() {
   # Documents): a GUI-launched app may not have permission to read the repo,
   # and macOS resets that grant whenever the app's code signature changes.
   cp "$ROOT/scenarios/$file" "$data/scenario.txt"
-  launchctl setenv CUTAWAY_SCENARIO "$data/scenario.txt"
-  launchctl setenv CUTAWAY_DATA_DIR "$data"
-  open -W "$APP"
-  local rc=$?
-  launchctl unsetenv CUTAWAY_SCENARIO
-  launchctl unsetenv CUTAWAY_DATA_DIR
-  return $rc
+  # Run the built binary DIRECTLY, env in its environment. `open -W <path>`
+  # asks LaunchServices, which once resolved the bundle id to the installed
+  # /Applications copy (a 1.1.0 release that knows no CUTAWAY_* vars): it
+  # started as a normal app on the real store and never quit, and the
+  # harness hung on it. This launches exactly this file, and only this file.
+  CUTAWAY_SCENARIO="$data/scenario.txt" CUTAWAY_DATA_DIR="$data" "$APP/Contents/MacOS/Cutaway"
+  return $?
 }
 
 check() {
