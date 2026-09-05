@@ -35,7 +35,7 @@ brew uninstall --zap --cask cutaway  # remove, including preferences
 
 | The panel | Your money |
 |:--:|:--:|
-| ![Timer](docs/assets/timer.png) | ![Stats](docs/assets/stats.png) |
+| ![The menu-bar panel](docs/assets/panel.png) | ![Stats](docs/assets/stats.png) |
 
 A pill lives in your menu bar with today's tracked time. Its border is a tally light:
 
