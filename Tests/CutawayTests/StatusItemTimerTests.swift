@@ -12,7 +12,7 @@ final class StatusItemTimerTests: XCTestCase {
             var root = URL(fileURLWithPath: #filePath)
             for _ in 0..<3 { root.deleteLastPathComponent() }
             return try String(contentsOf: root.appendingPathComponent(
-                "Sources/Cutaway/UI/StatusItemController.swift"), encoding: .utf8)
+                "Sources/Cutaway/MenuBar/StatusItemController.swift"), encoding: .utf8)
         }
     }
 

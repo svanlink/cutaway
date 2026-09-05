@@ -45,12 +45,10 @@ final class SystemSettingsTests: XCTestCase {
     func testTheAppStillReadsTheSystemSettings() throws {
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<3 { root.deleteLastPathComponent() }
-        let ui = root.appendingPathComponent("Sources/Cutaway/UI")
-        let sources = try FileManager.default
-            .contentsOfDirectory(at: ui, includingPropertiesForKeys: nil)
-            .filter { $0.pathExtension == "swift" }
-            .map { try String(contentsOf: $0, encoding: .utf8) }
-            .joined()
+        let base = root.appendingPathComponent("Sources/Cutaway")
+        let files = FileManager.default.enumerator(at: base, includingPropertiesForKeys: nil)!
+            .compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" }
+        let sources = try files.map { try String(contentsOf: $0, encoding: .utf8) }.joined()
 
         for setting in ["accessibilityReduceMotion",
                         "accessibilityReduceTransparency",

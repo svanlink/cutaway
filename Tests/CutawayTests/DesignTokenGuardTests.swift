@@ -1,7 +1,8 @@
 import XCTest
 @testable import Cutaway
 
-/// The rule "no hardcoded font sizes outside DesignTokens" was honoured by
+/// The rule "no hardcoded font sizes outside DesignTokens" — now checked over
+/// the WHOLE source tree, not one folder — was honoured by
 /// whoever remembered to look. It caught exactly one literal in this run —
 /// because someone happened to diff for it — while eighteen others sat in
 /// the files. A rule nobody checks is a preference. This checks it.
@@ -11,11 +12,10 @@ final class DesignTokenGuardTests: XCTestCase {
     private var uiSources: [URL] {
         get throws {
             var root = URL(fileURLWithPath: #filePath)
-            for _ in 0..<3 { root.deleteLastPathComponent() }   // Tests/TimexTests/<file>
-            let ui = root.appendingPathComponent("Sources/Cutaway/UI")
-            let entries = try FileManager.default.contentsOfDirectory(
-                at: ui, includingPropertiesForKeys: nil)
-            return entries.filter { $0.pathExtension == "swift" }
+            for _ in 0..<3 { root.deleteLastPathComponent() }   // Tests/CutawayTests/<file>
+            let base = root.appendingPathComponent("Sources/Cutaway")
+            let e = FileManager.default.enumerator(at: base, includingPropertiesForKeys: nil)!
+            return e.compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" }
         }
     }
 
