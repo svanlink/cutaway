@@ -46,7 +46,7 @@ final class SessionStore {
     @discardableResult
     func createProject(name: String, client: String, mode: BillingMode,
                        hourlyRate: Double, budget: Double = 0,
-                       currency: TimexCurrency, appBundleIDs: [String] = []) throws -> Project {
+                       currency: BillingCurrency, appBundleIDs: [String] = []) throws -> Project {
         let p = Project(name: name, client: client, mode: mode,
                         hourlyRate: hourlyRate, budget: budget, currency: currency,
                         appBundleIDs: appBundleIDs)

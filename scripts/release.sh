@@ -8,17 +8,17 @@ cd "$ROOT"
 
 echo "── verification loop"
 xcodegen generate
-xcodebuild -project Timex.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:TimexTests | grep -q "TEST SUCCEEDED"
+xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests | grep -q "TEST SUCCEEDED"
 ./scripts/smoke.sh "" 3
 
 echo "── release build"
-xcodebuild -project Timex.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"
+xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"
 # The DerivedData dir that was built from THIS project — never the first one
-# alphabetically. A deleted worktree once left an older Timex-* dir that
+# alphabetically. A deleted worktree once left an older Timex-* DerivedData dir that
 # sorted first, and every smoke run for a day launched its stale binary.
 derived_app() {  # $1 = Debug|Release
-  local want="$ROOT/Timex.xcodeproj" d app newest=""
-  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*; do
+  local want="$ROOT/Cutaway.xcodeproj" d app newest=""
+  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Cutaway-*; do
     app="$d/Build/Products/$1/Cutaway.app"
     [ -d "$app" ] || continue
     if [ "$(/usr/libexec/PlistBuddy -c 'Print :WorkspacePath' "$d/info.plist" 2>/dev/null)" = "$want" ]; then

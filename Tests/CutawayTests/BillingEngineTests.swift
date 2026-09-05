@@ -74,27 +74,27 @@ final class BillingEngineTests: XCTestCase {
 final class CurrencyFormatterTests: XCTestCase {
 
     func testCHFSwissApostrophes() {
-        XCTAssertEqual(TimexCurrency.chf.format(2329.25), "CHF 2'329.25")
-        XCTAssertEqual(TimexCurrency.chf.format(393.75), "CHF 393.75")
+        XCTAssertEqual(BillingCurrency.chf.format(2329.25), "CHF 2'329.25")
+        XCTAssertEqual(BillingCurrency.chf.format(393.75), "CHF 393.75")
     }
 
     func testCOPDotsNoDecimals() {
-        XCTAssertEqual(TimexCurrency.cop.format(1_395_000), "COP 1.395.000")
-        XCTAssertEqual(TimexCurrency.cop.format(180_000), "COP 180.000")
+        XCTAssertEqual(BillingCurrency.cop.format(1_395_000), "COP 1.395.000")
+        XCTAssertEqual(BillingCurrency.cop.format(180_000), "COP 180.000")
     }
 
     func testEUR() {
-        XCTAssertEqual(TimexCurrency.eur.format(900), "€ 900.00")
-        XCTAssertEqual(TimexCurrency.eur.format(2329.25), "€ 2'329.25")
+        XCTAssertEqual(BillingCurrency.eur.format(900), "€ 900.00")
+        XCTAssertEqual(BillingCurrency.eur.format(2329.25), "€ 2'329.25")
     }
 
     func testUSD() {
-        XCTAssertEqual(TimexCurrency.usd.format(393.75), "$ 393.75")
+        XCTAssertEqual(BillingCurrency.usd.format(393.75), "$ 393.75")
     }
 
     func testWholeNumberVariant() {
         // Stat rows show whole amounts without decimals
-        XCTAssertEqual(TimexCurrency.chf.formatWhole(2329.25), "CHF 2'329")
+        XCTAssertEqual(BillingCurrency.chf.formatWhole(2329.25), "CHF 2'329")
     }
 }
 
@@ -143,21 +143,21 @@ final class DaySplitterTests: XCTestCase {
 final class CurrencyLocaleInvarianceTests: XCTestCase {
 
     func testDocumentedExactOutputs() {
-        XCTAssertEqual(TimexCurrency.chf.format(2329.25), "CHF 2'329.25")
-        XCTAssertEqual(TimexCurrency.cop.format(1_395_000), "COP 1.395.000")
-        XCTAssertEqual(TimexCurrency.eur.format(900), "€ 900.00")
-        XCTAssertEqual(TimexCurrency.usd.format(393.75), "$ 393.75")
+        XCTAssertEqual(BillingCurrency.chf.format(2329.25), "CHF 2'329.25")
+        XCTAssertEqual(BillingCurrency.cop.format(1_395_000), "COP 1.395.000")
+        XCTAssertEqual(BillingCurrency.eur.format(900), "€ 900.00")
+        XCTAssertEqual(BillingCurrency.usd.format(393.75), "$ 393.75")
     }
 
     func testWholeFormattingRoundsDown() {
         // Whole-number display truncates — consistent with the app's
         // resolve-toward-under-billing philosophy.
-        XCTAssertEqual(TimexCurrency.chf.formatWhole(12345.67), "CHF 12'345")
-        XCTAssertEqual(TimexCurrency.usd.formatWhole(0), "$ 0")
+        XCTAssertEqual(BillingCurrency.chf.formatWhole(12345.67), "CHF 12'345")
+        XCTAssertEqual(BillingCurrency.usd.formatWhole(0), "$ 0")
     }
 
     func testNegativeAndSmallAmounts() {
-        XCTAssertEqual(TimexCurrency.eur.format(-42.5), "€ -42.50")
-        XCTAssertEqual(TimexCurrency.cop.format(999), "COP 999")
+        XCTAssertEqual(BillingCurrency.eur.format(-42.5), "€ -42.50")
+        XCTAssertEqual(BillingCurrency.cop.format(999), "COP 999")
     }
 }

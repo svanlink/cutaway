@@ -16,16 +16,16 @@ final class MoneyDefaultsTests: XCTestCase {
     }
 
     func testLocaleMapsToEachSupportedCurrency() {
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("de_CH")), .chf)
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("de_DE")), .eur)
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("fr_FR")), .eur)
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("en_US")), .usd)
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("es_CO")), .cop)
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("de_CH")), .chf)
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("de_DE")), .eur)
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("fr_FR")), .eur)
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("en_US")), .usd)
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("es_CO")), .cop)
     }
 
     func testUnsupportedLocaleFallsBackRatherThanInventing() {
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("ja_JP")), .chf, "JPY is not supported")
-        XCTAssertEqual(TimexCurrency.fromLocale(locale("en_GB")), .chf, "GBP is not supported")
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("ja_JP")), .chf, "JPY is not supported")
+        XCTAssertEqual(BillingCurrency.fromLocale(locale("en_GB")), .chf, "GBP is not supported")
     }
 
     func testStoredPreferenceOutranksTheLocale() {
@@ -36,7 +36,7 @@ final class MoneyDefaultsTests: XCTestCase {
 
     func testGarbagePreferenceFallsBackToLocale() {
         Prefs.set("XYZ", forKey: "defaultCurrency")
-        XCTAssertEqual(AppModel.defaultCurrency, TimexCurrency.fromLocale(),
+        XCTAssertEqual(AppModel.defaultCurrency, BillingCurrency.fromLocale(),
                        "an unreadable pref must not crash or pin a wrong currency")
     }
 

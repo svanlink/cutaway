@@ -74,12 +74,12 @@ final class PromptPanel {
     private let model: AppModel
     private var panel: NSPanel?
     private var showing: Prompt?
-    /// Harness hook: TIMEX_SHOW=idlewarning|resume pins a card for screenshots.
+    /// Harness hook: CUTAWAY_SHOW=idlewarning|resume pins a card for screenshots.
     private let pinned: Prompt?
 
     init(model: AppModel) {
         self.model = model
-        switch ProcessInfo.processInfo.environment["TIMEX_SHOW"] {
+        switch ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] {
         case "idlewarning": pinned = .idle(secondsLeft: IdleWarning.lead)
         case "resume": pinned = .resume
         default: pinned = nil

@@ -68,7 +68,7 @@ struct SettingsView: View {
                 }
                 .multilineTextAlignment(.trailing)
                 Picker(selection: $defaultCurrency) {
-                    ForEach(TimexCurrency.allCases, id: \.rawValue) { Text($0.rawValue).tag($0.rawValue) }
+                    ForEach(BillingCurrency.allCases, id: \.rawValue) { Text($0.rawValue).tag($0.rawValue) }
                 } label: {
                     labelled("Default currency", "New projects start with this currency")
                 }

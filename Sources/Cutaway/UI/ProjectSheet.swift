@@ -14,7 +14,7 @@ struct ProjectSheet: View {
     // on this form and one auto-created from Resolve must agree.
     @State private var rate = AppModel.defaultHourlyRate
     @State private var budget: Double = 0
-    @State private var currency: TimexCurrency = AppModel.defaultCurrency
+    @State private var currency: BillingCurrency = AppModel.defaultCurrency
     // Pre-ticked with the global list: the normal case needs zero clicks;
     // a narrow job (an InDesign-only template) is an untick.
     @State private var apps: Set<String> = Set(AppModel.globalWorkApps)
@@ -37,7 +37,7 @@ struct ProjectSheet: View {
                         TextField("Budget", value: $budget, format: .number.precision(.fractionLength(0)))
                     }
                     Picker("Currency", selection: $currency) {
-                        ForEach(TimexCurrency.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                        ForEach(BillingCurrency.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                     }
                     if editing != nil {
                         Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")

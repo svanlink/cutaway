@@ -7,11 +7,11 @@ final class AccessibilityAuditTests: XCTestCase {
     @MainActor
     func testMainWindowPassesAccessibilityAudit() throws {
         let app = XCUIApplication()
-        app.launchEnvironment["TIMEX_DEMO"] = "1"
-        // Quarantine: without TIMEX_DATA_DIR the launched app opens the real
+        app.launchEnvironment["CUTAWAY_DEMO"] = "1"
+        // Quarantine: without CUTAWAY_DATA_DIR the launched app opens the real
         // billing store — these tests were recording test-run seconds into
         // the store a user invoices from.
-        app.launchEnvironment["TIMEX_DATA_DIR"] = NSTemporaryDirectory() + "cutaway-uitests"
+        app.launchEnvironment["CUTAWAY_DATA_DIR"] = NSTemporaryDirectory() + "cutaway-uitests"
         app.launch()
 
         // Audit the Stats window. Contrast is validated by hand-measured WCAG

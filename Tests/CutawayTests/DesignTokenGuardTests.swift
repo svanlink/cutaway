@@ -12,7 +12,7 @@ final class DesignTokenGuardTests: XCTestCase {
         get throws {
             var root = URL(fileURLWithPath: #filePath)
             for _ in 0..<3 { root.deleteLastPathComponent() }   // Tests/TimexTests/<file>
-            let ui = root.appendingPathComponent("Sources/Timex/UI")
+            let ui = root.appendingPathComponent("Sources/Cutaway/UI")
             let entries = try FileManager.default.contentsOfDirectory(
                 at: ui, includingPropertiesForKeys: nil)
             return entries.filter { $0.pathExtension == "swift" }

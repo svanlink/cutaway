@@ -1,4 +1,4 @@
-name: Timex
+name: Cutaway
 options:
   bundleIdPrefix: com.vaneickelen
   deploymentTarget:
@@ -10,11 +10,11 @@ targets:
     type: application
     platform: macOS
     sources:
-      - Sources/Timex
+      - Sources/Cutaway
       - path: Resources
         buildPhase: resources
     info:
-      path: Sources/Timex/Info.plist
+      path: Sources/Cutaway/Info.plist
       properties:
         CFBundleDisplayName: Cutaway
         CFBundleName: Cutaway
@@ -37,11 +37,11 @@ targets:
           DEAD_CODE_STRIPPING: true
           DEPLOYMENT_POSTPROCESSING: true
 
-  TimexTests:
+  CutawayTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - Tests/TimexTests
+      - Tests/CutawayTests
     dependencies:
       - target: Cutaway
     settings:
@@ -51,11 +51,11 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Cutaway.app/Contents/MacOS/Cutaway"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
-  TimexUITests:
+  CutawayUITests:
     type: bundle.ui-testing
     platform: macOS
     sources:
-      - Tests/TimexUITests
+      - Tests/CutawayUITests
     dependencies:
       - target: Cutaway
     settings:
@@ -70,5 +70,5 @@ schemes:
         Cutaway: all
     test:
       targets:
-        - TimexTests
-        - TimexUITests
+        - CutawayTests
+        - CutawayUITests

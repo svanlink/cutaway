@@ -13,7 +13,7 @@ final class DetectionWiringTests: XCTestCase {
         get throws {
             var root = URL(fileURLWithPath: #filePath)
             for _ in 0..<3 { root.deleteLastPathComponent() }
-            return try String(contentsOf: root.appendingPathComponent("Sources/Timex/AppModel.swift"),
+            return try String(contentsOf: root.appendingPathComponent("Sources/Cutaway/AppModel.swift"),
                               encoding: .utf8)
         }
     }

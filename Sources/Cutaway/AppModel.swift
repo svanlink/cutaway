@@ -72,7 +72,7 @@ final class AppModel {
     }
 
     /// Demo fixtures may only ever land in a quarantined store. Requesting
-    /// demo mode without TIMEX_DATA_DIR is treated as the mistake it is.
+    /// demo mode without CUTAWAY_DATA_DIR is treated as the mistake it is.
     nonisolated static func demoSeedAllowed(demoRequested: Bool, dataDir: String?) -> Bool {
         demoRequested && dataDir != nil
     }
@@ -86,10 +86,10 @@ final class AppModel {
     /// question differently — Settings, the New Project sheet, and
     /// auto-creation — which is how one Mac ended up creating projects two
     /// ways and invoicing in a currency nobody chose.
-    static var defaultCurrency: TimexCurrency {
+    static var defaultCurrency: BillingCurrency {
         if let raw = Prefs.string(forKey: "defaultCurrency"),
-           let stored = TimexCurrency(rawValue: raw) { return stored }
-        return TimexCurrency.fromLocale()
+           let stored = BillingCurrency(rawValue: raw) { return stored }
+        return BillingCurrency.fromLocale()
     }
 
     static var defaultHourlyRate: Double {
@@ -133,7 +133,7 @@ final class AppModel {
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
         }
-        // TIMEX_DEMO seeds sample data for screenshots and dev runs — but
+        // CUTAWAY_DEMO seeds sample data for screenshots and dev runs — but
         // ONLY into a quarantined store. On 2026-08-23 this guard did not
         // exist, `open` turned out to propagate the caller's environment
         // after all, and a screenshot launch seeded forty hours of fixtures
@@ -141,7 +141,7 @@ final class AppModel {
         // empty after an unrelated deletion). Real data came back from the
         // backups; the class of accident ends here: no harness convenience
         // may ever touch the store a user invoices from.
-        if Self.demoSeedAllowed(demoRequested: ProcessInfo.processInfo.environment["TIMEX_DEMO"] != nil,
+        if Self.demoSeedAllowed(demoRequested: ProcessInfo.processInfo.environment["CUTAWAY_DEMO"] != nil,
                                 dataDir: ScenarioMode.dataDir),
            (try? store.projects())?.isEmpty == true {
             seedDemoData()
@@ -260,7 +260,7 @@ final class AppModel {
     }
 
     func update(_ project: Project, name newName: String, client: String, mode: BillingMode,
-                rate: Double, budget: Double, currency: TimexCurrency, apps: [String]) {
+                rate: Double, budget: Double, currency: BillingCurrency, apps: [String]) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
         try? store.update(project) {
@@ -376,7 +376,7 @@ final class AppModel {
     }
 
     /// Switch attribution to the detected Resolve project — creating it (Tier 1
-    /// only) with the default rate/currency if Timex hasn't seen it before.
+    /// only) with the default rate/currency if Cutaway has not seen it before.
     /// Matching is normalized (trim + case/diacritic-insensitive) so tier
     /// disagreements can't spawn duplicate projects.
     private func switchOrCreate(_ detectedName: String, canCreate: Bool) {
@@ -410,7 +410,7 @@ final class AppModel {
     }
 
     func createProject(name: String, client: String, mode: BillingMode,
-                       rate: Double, budget: Double, currency: TimexCurrency,
+                       rate: Double, budget: Double, currency: BillingCurrency,
                        apps: [String], isManual: Bool = false) {
         guard let p = try? store.createProject(name: name, client: client, mode: mode,
                                                hourlyRate: rate, budget: budget, currency: currency,

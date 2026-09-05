@@ -25,13 +25,13 @@ final class Project {
         get { BillingMode(rawValue: modeRaw) ?? .hourly }
         set { modeRaw = newValue.rawValue }
     }
-    var currency: TimexCurrency {
-        get { TimexCurrency(rawValue: currencyRaw) ?? .chf }
+    var currency: BillingCurrency {
+        get { BillingCurrency(rawValue: currencyRaw) ?? .chf }
         set { currencyRaw = newValue.rawValue }
     }
 
     init(name: String, client: String, mode: BillingMode, hourlyRate: Double,
-         budget: Double = 0, currency: TimexCurrency, appBundleIDs: [String] = []) {
+         budget: Double = 0, currency: BillingCurrency, appBundleIDs: [String] = []) {
         self.name = name
         self.client = client
         self.modeRaw = mode.rawValue

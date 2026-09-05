@@ -45,7 +45,7 @@ final class SystemSettingsTests: XCTestCase {
     func testTheAppStillReadsTheSystemSettings() throws {
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<3 { root.deleteLastPathComponent() }
-        let ui = root.appendingPathComponent("Sources/Timex/UI")
+        let ui = root.appendingPathComponent("Sources/Cutaway/UI")
         let sources = try FileManager.default
             .contentsOfDirectory(at: ui, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "swift" }

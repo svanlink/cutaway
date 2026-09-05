@@ -109,13 +109,13 @@ Everything is local. No account, no network calls, no telemetry, ever. Your data
 brew install xcodegen
 git clone https://github.com/svanlink/cutaway.git && cd cutaway
 xcodegen generate
-xcodebuild -project Timex.xcodeproj -scheme Cutaway -configuration Release build
+xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release build
 ```
 
 Run the verification loop (86 unit tests plus an end-to-end scenario harness that replays scripted work sessions against the full app):
 
 ```bash
-xcodebuild -project Timex.xcodeproj -scheme Cutaway test
+xcodebuild -project Cutaway.xcodeproj -scheme Cutaway test
 ./scripts/smoke.sh "" 10
 ```
 

@@ -5,11 +5,11 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # The DerivedData dir that was built from THIS project — never the first one
-# alphabetically. A deleted worktree once left an older Timex-* dir that
+# alphabetically. A deleted worktree once left an older Timex-* DerivedData dir that
 # sorted first, and every smoke run for a day launched its stale binary.
 derived_app() {  # $1 = Debug|Release
-  local want="$ROOT/Timex.xcodeproj" d app newest=""
-  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Timex-*; do
+  local want="$ROOT/Cutaway.xcodeproj" d app newest=""
+  for d in "$HOME"/Library/Developer/Xcode/DerivedData/Cutaway-*; do
     app="$d/Build/Products/$1/Cutaway.app"
     [ -d "$app" ] || continue
     if [ "$(/usr/libexec/PlistBuddy -c 'Print :WorkspacePath' "$d/info.plist" 2>/dev/null)" = "$want" ]; then
@@ -50,12 +50,12 @@ run_scenario() {
   # Documents): a GUI-launched app may not have permission to read the repo,
   # and macOS resets that grant whenever the app's code signature changes.
   cp "$ROOT/scenarios/$file" "$data/scenario.txt"
-  launchctl setenv TIMEX_SCENARIO "$data/scenario.txt"
-  launchctl setenv TIMEX_DATA_DIR "$data"
+  launchctl setenv CUTAWAY_SCENARIO "$data/scenario.txt"
+  launchctl setenv CUTAWAY_DATA_DIR "$data"
   open -W "$APP"
   local rc=$?
-  launchctl unsetenv TIMEX_SCENARIO
-  launchctl unsetenv TIMEX_DATA_DIR
+  launchctl unsetenv CUTAWAY_SCENARIO
+  launchctl unsetenv CUTAWAY_DATA_DIR
   return $rc
 }
 

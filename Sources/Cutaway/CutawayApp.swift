@@ -50,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct TimexApp: App {
+struct CutawayApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var model: AppModel
 
@@ -153,7 +153,7 @@ struct MainWindowView: View {
                 model.showNewProjectSheet = true
             }
             // Harness hook: deterministic Settings capture.
-            if ProcessInfo.processInfo.environment["TIMEX_SHOW"] == "settings" {
+            if ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] == "settings" {
                 model.openSettingsWindow?()
             }
         }

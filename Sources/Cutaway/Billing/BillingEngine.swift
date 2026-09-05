@@ -86,7 +86,7 @@ enum BillingEngine {
 /// The four supported currencies with deterministic, design-locked formatting.
 /// Fixed separators (not locale lookups) so output can never drift with OS
 /// locale-data updates: CHF 2'329.25 · COP 1.395.000 · € 900.00 · $ 393.75
-enum TimexCurrency: String, CaseIterable, Codable, Sendable {
+enum BillingCurrency: String, CaseIterable, Codable, Sendable {
     case chf = "CHF"
     case cop = "COP"
     case eur = "EUR"
@@ -96,9 +96,9 @@ enum TimexCurrency: String, CaseIterable, Codable, Sendable {
     /// Mac set to anything else falls back to CHF rather than inventing an
     /// unsupported one. Only ever a STARTING point — the pref, once written,
     /// outranks the locale.
-    static func fromLocale(_ locale: Locale = .current) -> TimexCurrency {
+    static func fromLocale(_ locale: Locale = .current) -> BillingCurrency {
         guard let code = locale.currency?.identifier,
-              let match = TimexCurrency(rawValue: code.uppercased())
+              let match = BillingCurrency(rawValue: code.uppercased())
         else { return .chf }
         return match
     }

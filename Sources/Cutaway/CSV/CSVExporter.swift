@@ -52,7 +52,7 @@ enum CSVExporter {
     ].joined(separator: ",")
 
     static func export(project name: String, client: String, mode: BillingMode,
-                       currency: TimexCurrency, hourlyRate: Double, budget: Double,
+                       currency: BillingCurrency, hourlyRate: Double, budget: Double,
                        days: [DayTotal], period: (start: Date, end: Date)? = nil,
                        calendar: Calendar = .current) -> String {
         // Filtering happens HERE, not at the call site: cumulative columns are

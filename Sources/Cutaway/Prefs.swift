@@ -6,7 +6,7 @@ import Foundation
 /// UserDefaults is documented thread-safe; the nonisolated(unsafe) is for
 /// the compiler, not a real hazard.
 nonisolated(unsafe) let Prefs: UserDefaults = {
-    if ProcessInfo.processInfo.environment["TIMEX_SCENARIO"] != nil {
+    if ProcessInfo.processInfo.environment["CUTAWAY_SCENARIO"] != nil {
         let suite = UserDefaults(suiteName: "com.vaneickelen.cutaway.scenario")!
         return suite
     }
@@ -36,12 +36,12 @@ enum PrefsMigration {
 
 enum ScenarioMode {
     static var isActive: Bool {
-        ProcessInfo.processInfo.environment["TIMEX_SCENARIO"] != nil
+        ProcessInfo.processInfo.environment["CUTAWAY_SCENARIO"] != nil
     }
     static var scenarioPath: String? {
-        ProcessInfo.processInfo.environment["TIMEX_SCENARIO"]
+        ProcessInfo.processInfo.environment["CUTAWAY_SCENARIO"]
     }
     static var dataDir: String? {
-        ProcessInfo.processInfo.environment["TIMEX_DATA_DIR"]
+        ProcessInfo.processInfo.environment["CUTAWAY_DATA_DIR"]
     }
 }
