@@ -25,7 +25,11 @@ struct CSVExportButton: View {
                     .stroke(hovering ? DT.signal.opacity(0.5) : DT.strokeSubtle, lineWidth: 1)
             )
         }
-        .menuStyle(.borderlessButton)
+        // .borderlessButton with a custom label exposes no press action to
+        // accessibility (the audit reports "Action is missing"); the button
+        // style does, and .plain keeps the chrome above.
+        .menuStyle(.button)
+        .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
         .onHover { hovering = $0 }

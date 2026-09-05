@@ -116,7 +116,7 @@ struct TimexApp: App {
     }
 }
 
-/// The 480×660 window: custom top bar (segmented) + Timer/Stats views.
+/// The Stats window — the only window besides Settings.
 struct MainWindowView: View {
     @Bindable var model: AppModel
     @Environment(\.openWindow) private var openWindow
@@ -131,12 +131,8 @@ struct MainWindowView: View {
                     .frame(maxWidth: .infinity)
                     .background(DT.red.opacity(0.25))
             }
-            SegmentedTabs(selection: Bindable(model).mainTab)
+            StatsView(model: model)
                 .padding(.top, model.storeIsEphemeral ? 0 : DT.s4)
-            switch model.mainTab {
-            case .timer: TimerView(model: model)
-            case .stats: StatsView(model: model)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(DT.window)
@@ -157,8 +153,7 @@ struct MainWindowView: View {
                 && !ScenarioMode.isActive {
                 model.showNewProjectSheet = true
             }
-            if ProcessInfo.processInfo.environment["TIMEX_TAB"] == "stats" { model.mainTab = .stats }
-            // Harness hook (like TIMEX_TAB): deterministic Settings capture.
+            // Harness hook: deterministic Settings capture.
             if ProcessInfo.processInfo.environment["TIMEX_SHOW"] == "settings" {
                 model.openSettingsWindow?()
             }

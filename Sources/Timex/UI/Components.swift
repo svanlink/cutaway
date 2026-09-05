@@ -20,47 +20,6 @@ struct ModeTag: View {
     }
 }
 
-// MARK: - Project pill (bottom of Timer view)
-
-struct ProjectPill: View {
-    let project: Project?
-    let pointsUp: Bool
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(DT.signal)
-                    .frame(width: 8, height: 8)
-                    
-                Text(project?.name ?? "No project")
-                    .font(DT.body)
-                    .foregroundStyle(DT.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .truncationMode(.tail)
-                if let p = project {
-                    ModeTag(mode: p.mode, prominent: true)
-                }
-                Text(pointsUp ? "▲" : "▼")
-                    .font(DT.glyphLight)
-                    .foregroundStyle(DT.text3)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .frame(maxWidth: 340)
-            .background(hovering ? DT.signal.opacity(0.22) : DT.signalSoft,
-                        in: RoundedRectangle(cornerRadius: DT.rMd))
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-        .accessibilityLabel("Current project: \(project?.name ?? "none")")
-        .accessibilityHint("Switches the active project")
-    }
-}
-
 // MARK: - Switcher popover content (3 visible rows, scrolls, pinned footer)
 
 struct SwitcherList: View {
@@ -145,41 +104,3 @@ private struct SwitcherRow: View {
         .onHover { hovering = $0 }
     }
 }
-
-// MARK: - Segmented Timer|Stats
-
-struct SegmentedTabs: View {
-    @Binding var selection: MainTab
-
-    var body: some View {
-        HStack(spacing: 2) {
-            seg("Timer", .timer)
-            seg("Stats", .stats)
-        }
-        .padding(2)
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: DT.rMd))
-    }
-
-    @ViewBuilder
-    private func seg(_ label: String, _ tab: MainTab) -> some View {
-        let on = selection == tab
-        Button { selection = tab } label: {
-            Text(label)
-                .font(DT.smallSemibold)
-                .foregroundStyle(on ? DT.text : DT.text3)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 4)
-                .background(on ? AnyShapeStyle(DT.card2) : AnyShapeStyle(.clear),
-                            in: RoundedRectangle(cornerRadius: DT.rSm))
-                .shadow(color: on ? .black.opacity(0.4) : .clear, radius: 2, y: 1)
-        }
-        .buttonStyle(.plain)
-        // Without .isSelected a VoiceOver user has to activate a tab to find
-        // out which one they are on — which changes the thing they were asking
-        // about. macOS has no `.trait` accessibility audit, so nothing
-        // automated will ever catch this; it is asserted by unit test instead.
-        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
-    }
-}
-
-enum MainTab { case timer, stats }

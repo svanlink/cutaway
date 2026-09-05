@@ -1,7 +1,12 @@
 import SwiftUI
 import AppKit
 
+enum PanelBlock: Hashable {
+    case hero, zeroState, accessibilityOffer, projects, resumeBanner, researchWindow, receipt, footer
+}
+
 /// The Klokki-inspired drop-down: hero header, project list, footer bar.
+/// The pill and this panel ARE the app; the Stats window is for sitting down.
 struct MenuBarPanel: View {
     @Bindable var model: AppModel
     /// With Reduce Transparency on, a material over the desktop is exactly
@@ -9,18 +14,54 @@ struct MenuBarPanel: View {
     /// this panel's contrast cannot be computed, since it depends on whatever
     /// wallpaper happens to be behind it.
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    /// The pause control's state change is the one animation the panel
+    /// makes; Reduce Motion turns it into a cut.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isRecording: Bool { model.engine.state == .recording }
     private var accent: Color { DT.recording }
 
+    /// Pure: what the panel shows, in order. With no project there is
+    /// nothing to list, so the zero state takes the list's place.
+    static func blocks(zeroState: Bool, offersAccessibility: Bool,
+                       workDetectedWhilePaused: Bool, researchLabel: Bool,
+                       receipt: Bool) -> [PanelBlock] {
+        var b: [PanelBlock] = [.hero]
+        if zeroState { return b + [.zeroState, .footer] }
+        if offersAccessibility { b.append(.accessibilityOffer) }
+        b.append(.projects)
+        if workDetectedWhilePaused { b.append(.resumeBanner) }
+        if researchLabel { b.append(.researchWindow) }
+        if receipt { b.append(.receipt) }
+        b.append(.footer)
+        return b
+    }
+
     var body: some View {
+        let blocks = Self.blocks(zeroState: model.zeroState != nil,
+                                 offersAccessibility: model.shouldOfferAccessibility,
+                                 workDetectedWhilePaused: model.engine.workDetectedWhilePaused,
+                                 researchLabel: model.engine.recordingSource?.label != nil,
+                                 receipt: model.lastSessionLine != nil)
         VStack(spacing: 0) {
-            hero
-            projectList
-            resumeBanner
-            researchWindow
-            receipt
-            footer
+            ForEach(blocks, id: \.self) { block in
+                switch block {
+                case .hero: hero
+                case .zeroState:
+                    ZeroStateCard(state: model.zeroState ?? .noProject) {
+                        model.showNewProjectSheet = true
+                        model.openMainWindow?()
+                    }
+                case .accessibilityOffer:
+                    AccessibilityOfferCard(enable: { model.detector.requestAccessibility() },
+                                           dismiss: { model.accessibilityOfferDismissed = true })
+                case .projects: projectList
+                case .resumeBanner: resumeBanner
+                case .researchWindow: researchWindow
+                case .receipt: receipt
+                case .footer: footer
+                }
+            }
         }
         .frame(width: 340)
         // Escape is handled by the controller with a key monitor, not here:
@@ -36,10 +77,9 @@ struct MenuBarPanel: View {
     // MARK: - Hero
 
     /// The hero doubles as the way back into the app — click anywhere on
-    /// it to open the main window on the Timer tab (stupid-proof reentry).
+    /// it to open the Stats window (stupid-proof reentry).
     private var hero: some View {
         Button {
-            model.mainTab = .timer
             model.openMainWindow?()
         } label: {
             HStack(spacing: 0) {
@@ -51,6 +91,10 @@ struct MenuBarPanel: View {
 
                 VStack(alignment: .leading, spacing: 1) {
                     elapsedText
+                    Text(model.todayMoney)
+                        .font(DT.moneyFont)
+                        .foregroundStyle(isRecording ? DT.money : DT.textSecondary)
+                        .monospacedDigit()
                     Text(model.selectedProject?.client.isEmpty == false
                          ? model.selectedProject!.client.uppercased()
                          : "CUTAWAY")
@@ -85,7 +129,7 @@ struct MenuBarPanel: View {
         let worked = PillView.spokenDuration(model.todaySeconds)
         guard let project = model.selectedProject else { return "Today \(worked), no project" }
         let client = project.client.isEmpty ? "" : ", \(project.client)"
-        return "Today \(worked), \(project.name)\(client)"
+        return "Today \(worked), \(model.todayMoney), \(project.name)\(client)"
     }
 
     private var heroRing: some View {
@@ -230,16 +274,34 @@ struct MenuBarPanel: View {
 
     // MARK: - Footer
 
+    /// The app's primary control, on the surface that is open all day.
+    private var pauseButton: some View {
+        let paused = model.engine.manuallyPaused
+        return Button { model.engine.togglePause() } label: {
+            HStack(spacing: DT.s1) {
+                Image(systemName: paused ? "play.fill" : "pause.fill").font(DT.buttonGlyph)
+                Text(paused ? "Resume" : "Pause").font(DT.smallSemibold)
+            }
+            .foregroundStyle(paused ? DT.text : DT.onSignal)
+            .padding(.horizontal, 10)
+            .frame(height: 26)
+            .background(paused ? AnyShapeStyle(Color.white.opacity(0.12)) : AnyShapeStyle(DT.signal),
+                        in: RoundedRectangle(cornerRadius: 7))
+        }
+        .buttonStyle(.plain)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: paused)
+        .disabled(model.selectedProject == nil)
+        .accessibilityLabel(paused ? "Resume timer" : "Pause timer")
+    }
+
     private var footer: some View {
         HStack(spacing: 8) {
+            pauseButton
             footBtn("＋", help: "New Project") {
                 model.showNewProjectSheet = true
                 model.openMainWindow?()
             }
-            Button {
-                model.mainTab = .stats
-                model.openMainWindow?()
-            } label: {
+            Button { model.openMainWindow?() } label: {
                 Text("Stats ↗")
                     .font(DT.smallSemibold)
                     .foregroundStyle(DT.text2)

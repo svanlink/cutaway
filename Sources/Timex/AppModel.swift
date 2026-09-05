@@ -38,7 +38,6 @@ final class AppModel {
     var deleteTarget: Project?
     /// Non-nil while the day editor is up. `day == nil` = add a new day.
     var editDay: DayEditTarget?
-    var mainTab: MainTab = .timer
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
     /// The user said "not now" to the Accessibility offer. Persisted: a

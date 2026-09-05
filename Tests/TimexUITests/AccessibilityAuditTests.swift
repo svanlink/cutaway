@@ -14,7 +14,7 @@ final class AccessibilityAuditTests: XCTestCase {
         app.launchEnvironment["TIMEX_DATA_DIR"] = NSTemporaryDirectory() + "cutaway-uitests"
         app.launch()
 
-        // Audit the Timer view. Contrast is validated by hand-measured WCAG
+        // Audit the Stats window. Contrast is validated by hand-measured WCAG
         // ratios in the design system (dark theme trips the automated
         // heuristic on intentionally-muted tertiary text), so audit the
         // structural categories.
@@ -33,6 +33,11 @@ final class AccessibilityAuditTests: XCTestCase {
             // Filtering them by identity rather than dropping the audit type
             // keeps the check live for every element the app DOES own — which
             // is the half that was catching unlabelled text fields.
+            // Name the offender in the log: the audit's own message is just
+            // the category ("Action is missing"), which is not a lead.
+            print("AUDIT ISSUE: \(issue.auditType) type=\(issue.element?.elementType.rawValue ?? 0) "
+                  + "label='\(issue.element?.label ?? "")' id='\(issue.element?.identifier ?? "")' "
+                  + "frame=\(issue.element?.frame ?? .zero) — \(issue.detailedDescription)")
             guard let element = issue.element else { return false }
             if element.elementType == .touchBar { return true }
             let windowFrame = app.windows.firstMatch.frame
