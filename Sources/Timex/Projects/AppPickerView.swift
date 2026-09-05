@@ -37,18 +37,18 @@ struct AppPickerView: View {
     @State private var showOthers = false
 
     private var model: AppPickerModel { AppPickerModel(selected: selected, query: query) }
-    private let columns = [GridItem(.adaptive(minimum: 84), spacing: DT.s2)]
+    private let columns = [GridItem(.adaptive(minimum: 84), spacing: 8)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DT.s2) {
+        VStack(alignment: .leading, spacing: 8) {
             TextField("Search apps", text: $query)
                 .textFieldStyle(.roundedBorder)
                 .accessibilityLabel("Search apps")
             ScrollView {
-                VStack(alignment: .leading, spacing: DT.s3) {
+                VStack(alignment: .leading, spacing: 12) {
                     ForEach(model.visibleGroups(catalog: AppCatalog.groups, installed: installed)) { group in
-                        Text(group.name.uppercased()).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-                        LazyVGrid(columns: columns, spacing: DT.s2) {
+                        Text(group.name.uppercased()).font(.caption).foregroundStyle(.secondary)
+                        LazyVGrid(columns: columns, spacing: 8) {
                             ForEach(group.entries) { entry in
                                 tile(prefix: entry.prefix, name: entry.name,
                                      app: InstalledApps.installed(matching: entry.prefix, in: installed))
@@ -59,19 +59,17 @@ struct AppPickerView: View {
                         let others = model.otherApps(installed: installed)
                         if others.isEmpty {
                             Text(query.isEmpty ? "Nothing else installed" : "No match")
-                                .font(DT.captionMedium).foregroundStyle(DT.text3)
+                                .font(.caption).foregroundStyle(.secondary)
                         } else {
-                            LazyVGrid(columns: columns, spacing: DT.s2) {
+                            LazyVGrid(columns: columns, spacing: 8) {
                                 ForEach(others) { app in
                                     tile(prefix: app.bundleID, name: app.name, app: app)
                                 }
                             }
                         }
                     }
-                    .font(DT.smallSemibold)
-                    .foregroundStyle(DT.text2)
                 }
-                .padding(.vertical, DT.s1)
+                .padding(.vertical, 4)
             }
             .frame(maxHeight: 240)
         }
@@ -89,15 +87,15 @@ struct AppPickerView: View {
         } label: {
             VStack(spacing: 4) {
                 AppIconView(app: app, name: name, size: 32)
-                Text(name).font(DT.captionMedium).foregroundStyle(on ? DT.text : DT.text2)
+                Text(name).font(.caption).foregroundStyle(on ? .primary : .secondary)
                     .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background(on ? AnyShapeStyle(DT.signalSoft) : AnyShapeStyle(DT.card2),
-                        in: RoundedRectangle(cornerRadius: DT.rMd))
-            .overlay(RoundedRectangle(cornerRadius: DT.rMd)
-                .stroke(on ? DT.signal : DT.strokeSubtle, lineWidth: on ? 1.5 : 1))
+            .background(on ? AnyShapeStyle(Color.accentColor.opacity(0.18)) : AnyShapeStyle(.clear),
+                        in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8)
+                .stroke(on ? Color.accentColor : Color.secondary.opacity(0.25), lineWidth: on ? 1.5 : 1))
         }
         .buttonStyle(.plain)
         .help(app == nil ? "\(name) — not installed" : name)

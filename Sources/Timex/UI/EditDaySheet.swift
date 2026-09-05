@@ -18,33 +18,29 @@ struct EditDaySheet: View {
     private var seconds: TimeInterval? { AppModel.seconds(fromHoursText: hoursText) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DT.s3) {
-            Text(isAdding ? "Add Time" : "Edit \(dayLabel)").font(DT.title).foregroundStyle(DT.text)
-            if isAdding {
-                VStack(alignment: .leading, spacing: 6) {
-                    label("DAY")
-                    DatePicker("", selection: $day, in: ...Date(), displayedComponents: .date)
-                        .labelsHidden()
-                        .datePickerStyle(.field)
+        VStack(spacing: 0) {
+            Text(isAdding ? "Add Time" : "Edit \(dayLabel)")
+                .font(.headline)
+                .padding(.top)
+            Form {
+                if isAdding {
+                    DatePicker("Day", selection: $day, in: ...Date(), displayedComponents: .date)
                 }
-            }
-            HStack(alignment: .top, spacing: DT.s3) {
-                field("TIME WORKED") {
-                    TextField("h:mm", text: $hoursText).textFieldStyle(.plain).focused($focus, equals: .hours)
-                }
-                field("AMOUNT · \(project.currency.rawValue)") {
-                    TextField("0.00", text: $amountText).textFieldStyle(.plain).focused($focus, equals: .amount)
-                        .disabled(project.hourlyRate <= 0)
-                }
-            }
-            Text(project.hourlyRate > 0
-                 ? "@ \(String(format: "%.2f", project.hourlyRate)) \(project.currency.rawValue) / h — one value, two views"
-                 : "Set an hourly rate on the project to edit by amount")
-                .font(DT.captionMedium).foregroundStyle(DT.text3)
-            HStack {
+                TextField("Time worked", text: $hoursText, prompt: Text("h:mm"))
+                    .focused($focus, equals: .hours)
+                TextField("Amount · \(project.currency.rawValue)", text: $amountText, prompt: Text("0.00"))
+                    .focused($focus, equals: .amount)
+                    .disabled(project.hourlyRate <= 0)
+                Text(project.hourlyRate > 0
+                     ? "@ \(String(format: "%.2f", project.hourlyRate)) \(project.currency.rawValue) / h — one value, two views"
+                     : "Set an hourly rate on the project to edit by amount")
+                    .font(.caption).foregroundStyle(.secondary)
                 if seconds == nil, !hoursText.isEmpty {
-                    Text("Try 1:30, 1.5 or 90m").font(DT.captionMedium).foregroundStyle(DT.amber)
+                    Text("Try 1:30, 1.5 or 90m").font(.caption).foregroundStyle(.orange)
                 }
+            }
+            .formStyle(.grouped)
+            HStack {
                 Spacer()
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
                 Button("Save") {
@@ -53,13 +49,11 @@ struct EditDaySheet: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
-                .tint(DT.signal)
                 .disabled(seconds == nil)
             }
+            .padding()
         }
-        .padding(DT.s4)
-        .frame(width: 380)
-        .background(DT.card)
+        .frame(width: 420)
         .onAppear {
             day = target.day ?? Date()
             var current: TimeInterval = 0
@@ -88,23 +82,5 @@ struct EditDaySheet: View {
 
     private func money(_ s: TimeInterval) -> String {
         String(format: "%.2f", BillingEngine.earnings(activeSeconds: s, hourlyRate: project.hourlyRate))
-    }
-
-    private func label(_ t: String) -> some View {
-        Text(t).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-    }
-
-    @ViewBuilder
-    private func field(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            label(title)
-            content()
-                .font(DT.body)
-                .foregroundStyle(DT.text)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
-                .overlay(RoundedRectangle(cornerRadius: DT.rMd).stroke(DT.strokeSubtle, lineWidth: 1))
-        }
     }
 }

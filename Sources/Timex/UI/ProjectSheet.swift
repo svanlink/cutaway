@@ -12,94 +12,68 @@ struct ProjectSheet: View {
     @State private var mode: BillingMode = .hourly
     // Seeded from the shared defaults, not invented here — a project created
     // on this form and one auto-created from Resolve must agree.
-    @State private var rate = String(format: "%.2f", AppModel.defaultHourlyRate)
-    @State private var budget = ""
+    @State private var rate = AppModel.defaultHourlyRate
+    @State private var budget: Double = 0
     @State private var currency: TimexCurrency = AppModel.defaultCurrency
     // Pre-ticked with the global list: the normal case needs zero clicks;
     // a narrow job (an InDesign-only template) is an untick.
     @State private var apps: Set<String> = Set(AppModel.globalWorkApps)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DT.s3) {
-            Text(editing == nil ? "New Project" : "Edit Project").font(DT.title).foregroundStyle(DT.text)
-
-            field("PROJECT NAME") {
-                TextField("e.g. Nyx Fashion Film", text: $name).accessibilityLabel("Project name").textFieldStyle(.plain)
-            }
-            field("CLIENT") {
-                TextField("optional", text: $client).accessibilityLabel("Client").textFieldStyle(.plain)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                label("BILLING MODE")
-                HStack(spacing: 2) {
-                    modeSeg("Hourly", .hourly)
-                    modeSeg("Fixed Budget", .budget)
+        VStack(spacing: 0) {
+            Form {
+                Section {
+                    TextField("Project name", text: $name, prompt: Text("e.g. Nyx Fashion Film"))
+                    TextField("Client", text: $client, prompt: Text("optional"))
                 }
-                .padding(2)
-                .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: DT.rMd))
-            }
-
-            HStack(spacing: DT.s3) {
-                field("HOURLY RATE") {
-                    TextField(String(format: "%.2f", AppModel.defaultHourlyRate), text: $rate)
-                        .accessibilityLabel("Hourly rate").textFieldStyle(.plain)
-                }
-                if mode == .budget {
-                    field("BUDGET") {
-                        TextField("4500", text: $budget).accessibilityLabel("Fixed budget").textFieldStyle(.plain)
+                Section("Billing") {
+                    Picker("Mode", selection: $mode) {
+                        Text("Hourly").tag(BillingMode.hourly)
+                        Text("Fixed budget").tag(BillingMode.budget)
+                    }
+                    .pickerStyle(.segmented)
+                    TextField("Hourly rate", value: $rate, format: .number.precision(.fractionLength(2)))
+                    if mode == .budget {
+                        TextField("Budget", value: $budget, format: .number.precision(.fractionLength(0)))
+                    }
+                    Picker("Currency", selection: $currency) {
+                        ForEach(TimexCurrency.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    }
+                    if editing != nil {
+                        Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    label("CURRENCY")
-                    Picker("", selection: $currency) {
-                        ForEach(TimexCurrency.allCases, id: \.self) { Text($0.rawValue) }
-                    }
-                    .labelsHidden()
-                    .frame(width: 90)
+                Section {
+                    AppPickerView(selected: $apps)
+                } header: {
+                    Text("Apps")
+                } footer: {
+                    Text("Only these apps count toward this project.")
                 }
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                label("APPS")
-                AppPickerView(selected: $apps)
-                Text("Only these apps count toward this project.")
-                    .font(DT.captionMedium).foregroundStyle(DT.text3)
-            }
-
-            if editing != nil {
-                Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")
-                    .font(DT.captionMedium).foregroundStyle(DT.text3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            .formStyle(.grouped)
             HStack {
                 if isDuplicate {
-                    Text("A project with this name already exists")
-                        .font(DT.captionMedium)
-                        .foregroundStyle(DT.amber)
+                    Text("A project with this name already exists").font(.caption).foregroundStyle(.orange)
                 }
                 Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
+                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
                 Button(editing == nil ? "Create Project" : "Save") { save() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
-                    .tint(DT.signal)
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty
-                              || Double(rate) == nil || isDuplicate || apps.isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isDuplicate || apps.isEmpty)
             }
-            .padding(.top, DT.s1)
+            .padding()
         }
-        .padding(DT.s4)
-        .frame(width: 460)
-        .background(DT.card)
+        .frame(width: 480, height: 600)
         .onAppear {
             guard let p = editing else { return }
             name = p.name
             client = p.client
             mode = p.mode
-            rate = String(format: "%.2f", p.hourlyRate)
-            budget = p.budget > 0 ? String(format: "%.0f", p.budget) : ""
+            rate = p.hourlyRate
+            budget = p.budget
             currency = p.currency
             // A legacy project (empty list) shows the global list ticked; saving
             // it writes that list out explicitly — same behaviour, now visible.
@@ -115,48 +89,15 @@ struct ProjectSheet: View {
     private func save() {
         let n = name.trimmingCharacters(in: .whitespaces)
         let c = client.trimmingCharacters(in: .whitespaces)
-        let r = AppModel.clampedRate(Double(rate) ?? 0)
-        let b = max(0, Double(budget) ?? 0)
+        let r = AppModel.clampedRate(rate)
+        let b = max(0, budget)
+        let a = Array(apps).sorted()
         if let p = editing {
-            model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency,
-                         apps: Array(apps).sorted())
+            model.update(p, name: n, client: c, mode: mode, rate: r, budget: b, currency: currency, apps: a)
         } else {
             model.createProject(name: n, client: c, mode: mode, rate: r, budget: b,
-                                currency: currency, apps: Array(apps).sorted(), isManual: true)
+                                currency: currency, apps: a, isManual: true)
         }
         dismiss()
-    }
-
-    private func label(_ t: String) -> some View {
-        Text(t).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-    }
-
-    @ViewBuilder
-    private func field(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            label(title)
-            content()
-                .font(DT.body)
-                .foregroundStyle(DT.text)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
-                .overlay(RoundedRectangle(cornerRadius: DT.rMd).stroke(DT.strokeSubtle, lineWidth: 1))
-        }
-    }
-
-    @ViewBuilder
-    private func modeSeg(_ title: String, _ m: BillingMode) -> some View {
-        let on = mode == m
-        Button { mode = m } label: {
-            Text(title)
-                .font(DT.smallSemibold)
-                .foregroundStyle(on ? DT.signal : DT.text3)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 5)
-                .background(on ? AnyShapeStyle(DT.signalSoft) : AnyShapeStyle(.clear),
-                            in: RoundedRectangle(cornerRadius: DT.rSm))
-        }
-        .buttonStyle(.plain)
     }
 }

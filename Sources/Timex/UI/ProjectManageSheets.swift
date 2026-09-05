@@ -14,21 +14,24 @@ struct DeleteProjectSheet: View {
     private var sessionCount: Int { project.sessions.count }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DT.s3) {
-            Text("Delete “\(project.name)”?").font(DT.title).foregroundStyle(DT.text)
-            if sessionCount > 0 {
-                Text("It has \(sessionCount) recorded session\(sessionCount == 1 ? "" : "s").")
-                    .font(DT.body).foregroundStyle(DT.text2)
-                if !others.isEmpty {
-                    Picker("Sessions", selection: $reassignID) {
-                        Text("Delete the sessions too").tag(PersistentIdentifier?.none)
-                        ForEach(others, id: \.persistentModelID) { p in
-                            Text("Move to \(p.name)").tag(Optional(p.persistentModelID))
+        VStack(spacing: 0) {
+            Form {
+                Section {
+                    Text("Delete “\(project.name)”?").font(.headline)
+                    if sessionCount > 0 {
+                        Text("It has \(sessionCount) recorded session\(sessionCount == 1 ? "" : "s").")
+                        if !others.isEmpty {
+                            Picker("Sessions", selection: $reassignID) {
+                                Text("Delete the sessions too").tag(PersistentIdentifier?.none)
+                                ForEach(others, id: \.persistentModelID) { p in
+                                    Text("Move to \(p.name)").tag(Optional(p.persistentModelID))
+                                }
+                            }
                         }
                     }
-                    .labelsHidden()
                 }
             }
+            .formStyle(.grouped)
             HStack {
                 Spacer()
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
@@ -38,11 +41,9 @@ struct DeleteProjectSheet: View {
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(DT.red)
             }
+            .padding()
         }
-        .padding(DT.s4)
-        .frame(width: 360)
-        .background(DT.card)
+        .frame(width: 400)
     }
 }
