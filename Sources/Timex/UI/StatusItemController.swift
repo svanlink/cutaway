@@ -14,7 +14,7 @@ final class StatusItemController: NSObject {
     private var lastSpokenValue = ""
     /// Live only while the panel is open.
     private var escapeMonitor: Any?
-    private var idleWarning: IdleWarningController?
+    private var prompts: PromptPanel?
 
     /// VoiceOver re-speaks a focused element when its label changes. Writing
     /// this every second meant the pill recited itself once a second, forever,
@@ -84,11 +84,11 @@ final class StatusItemController: NSObject {
             // existing 1 Hz tick: a second timer running for the life of the
             // app — while paused, backgrounded, and showing a static number,
             // on a machine that is rendering video — bought nothing.
-            idleWarning = IdleWarningController(model: model)
+            prompts = PromptPanel(model: model)
             model.onEngineTick = { [weak self] in
                 self?.syncWidth()
                 self?.syncAccessibilityLabel()
-                self?.idleWarning?.sync()
+                self?.prompts?.sync()
             }
         }
 

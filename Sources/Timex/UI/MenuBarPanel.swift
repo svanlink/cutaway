@@ -222,6 +222,7 @@ struct MenuBarPanel: View {
                 Spacer(minLength: 0)
                 Button {
                     model.engine.resume()
+                    model.resumePromptOpen = false
                 } label: {
                     Text("Resume")
                         .font(DT.smallSemibold)

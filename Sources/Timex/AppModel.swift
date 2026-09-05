@@ -40,6 +40,10 @@ final class AppModel {
     var editDay: DayEditTarget?
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
+    /// Ask-mode: the engine asked "are you working?" and nobody has answered
+    /// yet. The floating card shows while this is true and a manual pause
+    /// is in force.
+    var resumePromptOpen = false
     /// The user said "not now" to the Accessibility offer. Persisted: a
     /// permission prompt someone has already declined is nagware.
     var accessibilityOfferDismissed: Bool = Prefs.bool(forKey: "accessibilityOfferDismissed") {
@@ -150,8 +154,7 @@ final class AppModel {
         engine.hasActiveProject = selectedProjectID != nil
         applyAnchors()
         if !ScenarioMode.isActive {
-            ResumeNotifier.install { [weak self] in self?.engine.resume() }
-            engine.onResumePrompt = { ResumeNotifier.post() }
+            engine.onResumePrompt = { [weak self] in self?.resumePromptOpen = true }
         }
         engine.onSessionClosed = { [weak self] record in
             guard let self, let project = self.selectedProject else { return }
