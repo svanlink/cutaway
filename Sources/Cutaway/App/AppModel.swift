@@ -17,7 +17,6 @@ final class AppModel {
     let store: SessionStore
     let detector = ProjectDetector()
 
-    var selectedProjectID: PersistentIdentifier?
     /// Bumped when the user changes an accessibility display setting, purely
     /// to make SwiftUI re-render: the tokens are dynamic colours, and a
     /// dynamic colour only re-resolves when something redraws.
@@ -26,12 +25,6 @@ final class AppModel {
     /// Anything else that wants to hear the engine's 1 Hz tick. The status
     /// item used to run a timer of its own for this; one clock is enough.
     var onEngineTick: (() -> Void)?
-    /// Turns Resolve's steady state into transitions, so a manual switch is
-    /// not overwritten by the next poll of a window that never moved.
-    private var follower = DetectionFollower()
-    /// Counts explicit choices, so an in-flight Tier-1 answer can tell
-    /// whether the user moved on while it was running.
-    private var intent = ManualIntent()
     var showNewProjectSheet = false
     /// Non-nil while the edit / delete sheet is up for that project.
     var editTarget: Project?
@@ -61,56 +54,11 @@ final class AppModel {
     /// there without a relaunch.
     private(set) var installedApps: [InstalledApp] = []
 
-    /// Case/diacritic-insensitive duplicate check (mirrors switchOrCreate
-    /// normalization) — two "Nyx film" projects is always a mistake.
-    nonisolated static func isDuplicateName(_ name: String, existing: [String]) -> Bool {
-        let n = name.trimmingCharacters(in: .whitespaces)
-        guard !n.isEmpty else { return false }
-        return existing.contains {
-            $0.compare(n, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
-        }
-    }
-
     /// Demo fixtures may only ever land in a quarantined store. Requesting
     /// demo mode without CUTAWAY_DATA_DIR is treated as the mistake it is.
     nonisolated static func demoSeedAllowed(demoRequested: Bool, dataDir: String?) -> Bool {
         demoRequested && dataDir != nil
     }
-
-    /// Rates are money: never negative, and six figures an hour is a typo.
-    nonisolated static func clampedRate(_ rate: Double) -> Double {
-        min(max(0, rate), 99_999)
-    }
-
-    /// Money defaults live in ONE place. Three call sites used to answer this
-    /// question differently — Settings, the New Project sheet, and
-    /// auto-creation — which is how one Mac ended up creating projects two
-    /// ways and invoicing in a currency nobody chose.
-    static var defaultCurrency: BillingCurrency {
-        if let raw = Prefs.string(forKey: "defaultCurrency"),
-           let stored = BillingCurrency(rawValue: raw) { return stored }
-        return BillingCurrency.fromLocale()
-    }
-
-    static var defaultHourlyRate: Double {
-        clampedRate(Prefs.object(forKey: "defaultHourlyRate") as? Double ?? 85)
-    }
-
-    /// The Settings list — what a project with no list of its own uses, and
-    /// what a new project starts with pre-ticked.
-    static var globalWorkApps: [String] {
-        AnchorSet.globalList(saved: Prefs.stringArray(forKey: "workApps"))
-    }
-
-    /// The ONLY writer of engine.workAppPrefixes. Called on launch, on every
-    /// selection change, after a project edit, and after the Settings list
-    /// changes — so a project-specific list is never overwritten by editing
-    /// the global one, and a global edit still reaches projects that rely on it.
-    func applyAnchors() {
-        engine.workAppPrefixes = AnchorSet.resolve(project: selectedProject?.appBundleIDs ?? [],
-                                                   global: Self.globalWorkApps)
-    }
-
 
     init() {
         engine = ScenarioMode.isActive
@@ -133,6 +81,7 @@ final class AppModel {
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
         }
+        projectsModel = ProjectsModel(store: store, engine: engine)
         // CUTAWAY_DEMO seeds sample data for screenshots and dev runs — but
         // ONLY into a quarantined store. On 2026-08-23 this guard did not
         // exist, `open` turned out to propagate the caller's environment
@@ -144,15 +93,9 @@ final class AppModel {
         if Self.demoSeedAllowed(demoRequested: ProcessInfo.processInfo.environment["CUTAWAY_DEMO"] != nil,
                                 dataDir: ScenarioMode.dataDir),
            (try? store.projects())?.isEmpty == true {
-            seedDemoData()
+            projectsModel.seedDemoData()
         }
-        // Restore last selected project by name (persistentModelID is not
-        // stable across launches); fall back to the first project.
-        let all = (try? store.projects()) ?? []
-        let savedName = Prefs.string(forKey: "selectedProjectName")
-        selectedProjectID = (all.first { $0.name == savedName } ?? all.first)?.persistentModelID
-        engine.hasActiveProject = selectedProjectID != nil
-        applyAnchors()
+        projectsModel.restoreSelection()
         if !ScenarioMode.isActive {
             engine.onResumePrompt = { [weak self] in self?.resumePromptOpen = true }
         }
@@ -205,7 +148,7 @@ final class AppModel {
                 // an edit collision — the ManualIntent unit tests kept
                 // passing because they test the struct, not the wiring. The
                 // wiring is now pinned by DetectionWiringTests.)
-                let startedAt = self.intent.token
+                let startedAt = self.projectsModel.intent.token
                 let requestStarted = Date()
                 Task { [weak self] in
                     let name = await self?.detector.detectViaScriptingAPI()
@@ -215,7 +158,7 @@ final class AppModel {
                         self.engine.logDetection("tier1",
                             detail: "name=\(name ?? "nil") took="
                                   + String(format: "%.2f", Date().timeIntervalSince(requestStarted)) + "s")
-                        guard !self.intent.hasMovedSince(startedAt) else { return }
+                        guard !self.projectsModel.intent.hasMovedSince(startedAt) else { return }
                         // Tier 1 is the exact API name — it may create.
                         if let name { self.autoDetected(name, canCreate: true) }
                     }
@@ -245,38 +188,12 @@ final class AppModel {
         autoDetected(name, canCreate: true)
     }
 
-    /// What Resolve just reported. Only a CHANGE moves attribution — polling
-    /// the same project again is not new information, and treating it as new
-    /// is what let a five-second timer overrule the user.
+    /// Detection moved attribution by itself — say so. A manual switch needs
+    /// no announcement — the user is the one who just did it.
     private func autoDetected(_ name: String, canCreate: Bool) {
-        guard let changed = follower.observe(name) else { return }
-        let before = selectedProjectID
-        switchOrCreate(changed, canCreate: canCreate)
-        // Only when the app moved attribution by itself. A manual switch needs
-        // no announcement — the user is the one who just did it.
-        if selectedProjectID != before, let now = selectedProject?.name {
+        if projectsModel.autoDetected(name, canCreate: canCreate), let now = selectedProject?.name {
             announce(Self.switchAnnouncement(to: now))
         }
-    }
-
-    func update(_ project: Project, name newName: String, client: String, mode: BillingMode,
-                rate: Double, budget: Double, currency: BillingCurrency, apps: [String]) {
-        let name = newName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-        try? store.update(project) {
-            $0.name = name
-            $0.client = client.trimmingCharacters(in: .whitespaces)
-            $0.mode = mode
-            $0.hourlyRate = Self.clampedRate(rate)
-            $0.budget = max(0, budget)
-            $0.currency = currency
-            $0.appBundleIDs = DetectionInput.sanitizedPrefixes(apps)
-        }
-        if project.persistentModelID == selectedProjectID {
-            Prefs.set(name, forKey: "selectedProjectName")
-        }
-        invalidateProjectCache()
-        applyAnchors()
     }
 
     /// Sets a day's TOTAL (what the Stats row shows). For today while
@@ -312,115 +229,32 @@ final class AppModel {
         return String(format: "%d:%02d", m / 60, m % 60)
     }
 
-    func delete(_ project: Project, reassignTo target: Project?) {
-        let wasSelected = project.persistentModelID == selectedProjectID
-        if wasSelected {
-            // The open span belongs to the project being deleted (or its heir).
-            engine.closeSessionNow(reason: "project-delete")
-        }
-        try? store.delete(project, reassignTo: target)
-        invalidateProjectCache()
-        if wasSelected {
-            selectedProjectID = (target ?? projects.first)?.persistentModelID
-            Prefs.set(selectedProject?.name, forKey: "selectedProjectName")
-            engine.hasActiveProject = selectedProjectID != nil
-        }
+    // MARK: - Projects (forwarded — the views were written against AppModel)
+
+    let projectsModel: ProjectsModel
+    var selectedProjectID: PersistentIdentifier? { projectsModel.selectedProjectID }
+    var selectedProject: Project? { projectsModel.selectedProject }
+    var projects: [Project] { projectsModel.projects }
+    func selectManually(_ p: Project) { projectsModel.selectManually(p) }
+    func select(_ p: Project) { projectsModel.select(p) }
+    func createProject(name: String, client: String, mode: BillingMode, rate: Double, budget: Double,
+                       currency: BillingCurrency, apps: [String], isManual: Bool = false) {
+        projectsModel.createProject(name: name, client: client, mode: mode, rate: rate, budget: budget,
+                                    currency: currency, apps: apps, isManual: isManual)
     }
-
-    private func seedDemoData() {
-        let cal = Calendar.current
-        guard let nyx = try? store.createProject(name: "Nyx Fashion Film", client: "Nyx Studios",
-                                                 mode: .hourly, hourlyRate: 85, currency: .chf),
-              let alpina = try? store.createProject(name: "Alpina Ski Promo", client: "Alpina Sports",
-                                                    mode: .budget, hourlyRate: 85, budget: 4500, currency: .chf)
-        else { return }
-        let today = cal.startOfDay(for: Date())
-        let fixtures: [(Project, Int, Double)] = [
-            (nyx, 0, 4.6), (nyx, 1, 6.9), (nyx, 2, 5.2), (nyx, 3, 3.1), (nyx, 6, 7.6),
-            (alpina, 0, 2.4), (alpina, 2, 5.8), (alpina, 5, 4.9),
-        ]
-        for (project, daysAgo, hoursWorked) in fixtures {
-            guard let day = cal.date(byAdding: .day, value: -daysAgo, to: today) else { continue }
-            let start = day.addingTimeInterval(10 * 3600)
-            let rec = SessionRecord(start: start,
-                                    end: start.addingTimeInterval(hoursWorked * 3600 + 1800),
-                                    activeSeconds: hoursWorked * 3600)
-            try? store.record(rec, to: project)
-        }
+    func update(_ p: Project, name: String, client: String, mode: BillingMode, rate: Double,
+                budget: Double, currency: BillingCurrency, apps: [String]) {
+        projectsModel.update(p, name: name, client: client, mode: mode, rate: rate, budget: budget,
+                             currency: currency, apps: apps)
     }
-
-    // Cached — fetching per access ran a full fetch several times per tick.
-    private var cachedProject: Project?
-
-    var selectedProject: Project? {
-        guard let id = selectedProjectID else { return nil }
-        if let cached = cachedProject, cached.persistentModelID == id { return cached }
-        cachedProject = (try? store.projects())?.first { $0.persistentModelID == id }
-        return cachedProject
-    }
-
-    // Cached — the panel re-renders every tick; refetching per render ran a
-    // full SwiftData fetch twice a second.
-    private var cachedProjects: [Project]?
-
-    var projects: [Project] {
-        if let cached = cachedProjects { return cached }
-        let list = (try? store.projects()) ?? []
-        cachedProjects = list
-        return list
-    }
-
-    private func invalidateProjectCache() {
-        cachedProjects = nil
-        cachedProject = nil
-    }
-
-    /// Switch attribution to the detected Resolve project — creating it (Tier 1
-    /// only) with the default rate/currency if Cutaway has not seen it before.
-    /// Matching is normalized (trim + case/diacritic-insensitive) so tier
-    /// disagreements can't spawn duplicate projects.
-    private func switchOrCreate(_ detectedName: String, canCreate: Bool) {
-        let name = detectedName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-        if let match = projects.first(where: { ProjectName.matches($0.name, name) }) {
-            if match.persistentModelID != selectedProjectID { select(match) }
-            return
-        }
-        guard canCreate else { return }
-        createProject(name: name, client: "", mode: .hourly,
-                      rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency,
-                      apps: Self.globalWorkApps)
-    }
-
-    /// The user picked this project. Explicit intent — it outranks any
-    /// detection already in flight.
-    func selectManually(_ project: Project) {
-        intent.userChose()
-        select(project)
-    }
-
-    func select(_ project: Project) {
-        guard project.persistentModelID != selectedProjectID else { return }
-        // Close the running span first so its time stays with the old project.
-        engine.closeSessionNow(reason: "project-switch")
-        selectedProjectID = project.persistentModelID
-        engine.hasActiveProject = true
-        Prefs.set(project.name, forKey: "selectedProjectName")
-        applyAnchors()
-    }
-
-    func createProject(name: String, client: String, mode: BillingMode,
-                       rate: Double, budget: Double, currency: BillingCurrency,
-                       apps: [String], isManual: Bool = false) {
-        guard let p = try? store.createProject(name: name, client: client, mode: mode,
-                                               hourlyRate: rate, budget: budget, currency: currency,
-                                               appBundleIDs: DetectionInput.sanitizedPrefixes(apps)) else { return }
-        invalidateProjectCache()
-        // Auto-creation routes here too, so only stamp intent when a human
-        // filled in the sheet — `switchOrCreate` calls this as well.
-        if isManual { intent.userChose() }
-        select(p)
-        engine.hasActiveProject = true
+    func delete(_ p: Project, reassignTo t: Project?) { projectsModel.delete(p, reassignTo: t) }
+    func applyAnchors() { projectsModel.applyAnchors() }
+    static var globalWorkApps: [String] { ProjectsModel.globalWorkApps }
+    static var defaultCurrency: BillingCurrency { ProjectsModel.defaultCurrency }
+    static var defaultHourlyRate: Double { ProjectsModel.defaultHourlyRate }
+    nonisolated static func clampedRate(_ r: Double) -> Double { ProjectsModel.clampedRate(r) }
+    nonisolated static func isDuplicateName(_ n: String, existing: [String]) -> Bool {
+        ProjectsModel.isDuplicateName(n, existing: existing)
     }
 
     // MARK: - Live figures (persisted + running accumulator)

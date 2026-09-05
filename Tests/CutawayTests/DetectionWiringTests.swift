@@ -9,18 +9,21 @@ import XCTest
 /// closure inside AppModel.init.
 final class DetectionWiringTests: XCTestCase {
 
+    /// The detection path spans two files now: AppModel runs the Tier-1
+    /// loop, ProjectsModel owns the intent counter it reads.
     private var appModelSource: String {
         get throws {
             var root = URL(fileURLWithPath: #filePath)
             for _ in 0..<3 { root.deleteLastPathComponent() }
-            return try String(contentsOf: root.appendingPathComponent("Sources/Cutaway/App/AppModel.swift"),
-                              encoding: .utf8)
+            return try ["Sources/Cutaway/App/AppModel.swift", "Sources/Cutaway/Projects/ProjectsModel.swift"]
+                .map { try String(contentsOf: root.appendingPathComponent($0), encoding: .utf8) }
+                .joined(separator: "\n")
         }
     }
 
     func testTheStaleTier1GuardIsActuallyWired() throws {
         let source = try appModelSource
-        XCTAssertTrue(source.contains("let startedAt = self.intent.token"),
+        XCTAssertTrue(source.contains("let startedAt = self.projectsModel.intent.token"),
                       "the Tier-1 request no longer stamps the intent token before starting")
         XCTAssertTrue(source.contains("hasMovedSince(startedAt)"),
                       "a stale Tier-1 answer can overrule a newer manual choice again")
