@@ -11,8 +11,7 @@ struct MenuBarPanel: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var isRecording: Bool { model.engine.state == .recording }
-    private var goalReached: Bool { model.goalProgress.reached }
-    private var accent: Color { goalReached ? DT.signal : DT.recording }
+    private var accent: Color { DT.recording }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -90,16 +89,9 @@ struct MenuBarPanel: View {
     }
 
     private var heroRing: some View {
-        ZStack {
-            Circle().stroke(DT.ringTrack, lineWidth: 7)
-            Circle()
-                .trim(from: 0, to: max(model.goalProgress.fraction, 0.01))
-                .stroke(isRecording ? accent : DT.ringPaused,
-                        style: StrokeStyle(lineWidth: 7, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                
-        }
-        .frame(width: 52, height: 52)
+        Circle()
+            .stroke(isRecording ? accent : DT.ringPaused, lineWidth: 7)
+            .frame(width: 52, height: 52)
     }
 
     private var elapsedText: some View {

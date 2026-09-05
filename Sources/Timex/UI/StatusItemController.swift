@@ -197,8 +197,6 @@ struct PillView: View {
     @Bindable var model: AppModel
 
     private var isRecording: Bool { model.engine.state == .recording }
-    private var goalReached: Bool { model.goalProgress.reached }
-    private var accent: Color { goalReached ? DT.signal : DT.recording }
     /// Traffic-light border: green = recording · amber = paused · red = no project.
     private var stateColor: Color {
         if model.selectedProject == nil { return DT.barRed }
@@ -243,8 +241,6 @@ struct PillView: View {
         PillBody(stateColor: stateColor,
                  isRecording: isRecording,
                  showsPauseGlyph: model.selectedProject != nil && !isRecording,
-                 goalFraction: model.goalProgress.fraction,
-                 goalReached: goalReached,
                  seconds: model.pillSeconds,
                  bankedText: model.bankedFlash,
                  pausedHint: model.engine.workDetectedWhilePaused ? "‖ paused · working?"
@@ -267,8 +263,6 @@ struct PillBody: View {
     /// Paused WITH a project — pause bars in the ring. Shape encodes state
     /// redundantly with hue (deuteranopia collapses green/amber).
     let showsPauseGlyph: Bool
-    let goalFraction: Double
-    let goalReached: Bool
     let seconds: TimeInterval
     /// Transient session-banked confirmation — replaces the time readout.
     var bankedText: String? = nil
@@ -312,14 +306,7 @@ struct PillBody: View {
 
     private var miniRing: some View {
         ZStack {
-            Circle()
-                .stroke(goalReached ? stateColor : stateColor.opacity(0.25), lineWidth: 2.4)
-            if !goalReached {
-                Circle()
-                    .trim(from: 0, to: max(goalFraction, 0.08))
-                    .stroke(stateColor, style: StrokeStyle(lineWidth: 2.4, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-            }
+            Circle().stroke(stateColor, lineWidth: 2.4)
             // Shape-coded center: ● recording, ‖ paused, empty = no project.
             if isRecording {
                 Circle().fill(stateColor).frame(width: 4.5, height: 4.5)

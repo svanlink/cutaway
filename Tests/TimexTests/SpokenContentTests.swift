@@ -50,37 +50,6 @@ final class SpokenContentTests: XCTestCase {
         XCTAssertTrue(StatsView.dayRowLabel(day, project: p, isToday: true).hasPrefix("Today, "))
     }
 
-    // MARK: - The ring
-
-    func testTheRingSaysWhetherItIsRunning() {
-        let goal = BillingEngine.goalProgress(activeSeconds: 4 * 3600, goalSeconds: 8 * 3600)
-        let recording = RingView.ringLabel(elapsed: 4 * 3600, money: "CHF 340",
-                                           goalLine: "50% of 8h", isPaused: false)
-        let paused = RingView.ringLabel(elapsed: 4 * 3600, money: "CHF 340",
-                                        goalLine: "50% of 8h", isPaused: true)
-        XCTAssertTrue(recording.hasPrefix("Recording."), recording)
-        XCTAssertTrue(paused.hasPrefix("Paused."),
-                      "paused vs recording was a colour-only distinction: \(paused)")
-        XCTAssertEqual(goal.fraction, 0.5, accuracy: 0.001)
-    }
-
-    func testTheRingKeepsTheGoalLine() {
-        let label = RingView.ringLabel(elapsed: 8 * 3600, money: "CHF 680",
-                                       goalLine: "Goal ✓ · +0:23", isPaused: false)
-        XCTAssertTrue(label.contains("Goal reached"), "a checkmark glyph is not a word: \(label)")
-        XCTAssertFalse(label.contains("✓"), label)
-    }
-
-    /// It reimplemented a duration formatter that already existed and was
-    /// already tested, and got it wrong: "0 hours 1 minutes".
-    func testTheRingDoesNotSpeakBrokenGrammar() {
-        let label = RingView.ringLabel(elapsed: 75, money: "CHF 2",
-                                       goalLine: "0% of 8h", isPaused: false)
-        XCTAssertTrue(label.contains("1 minute"), label)
-        XCTAssertFalse(label.contains("0 hours"), label)
-        XCTAssertFalse(label.contains("1 minutes"), label)
-    }
-
     // MARK: - Announcements
 
     func testAnAutoSwitchIsAnnounced() {

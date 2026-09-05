@@ -4,7 +4,6 @@ import ServiceManagement
 struct SettingsView: View {
     @Bindable var model: AppModel
     @AppStorage("idleThreshold") private var idleThreshold: Double = 120
-    @AppStorage("dailyGoalHours") private var dailyGoal: Double = 8
     @AppStorage("defaultCurrency") private var defaultCurrency = AppModel.defaultCurrency.rawValue
     @State private var editingWorkApps = false
     @State private var editingSatellites = false
@@ -114,13 +113,6 @@ struct SettingsView: View {
                 }
             }
             section("DISPLAY & SYSTEM") {
-                row("Daily goal", sub: "The ring fills toward this target") {
-                    Picker("", selection: $dailyGoal) {
-                        ForEach([4.0, 6, 8, 10, 12], id: \.self) { Text("\(Int($0)) hours").tag($0) }
-                    }
-                    .labelsHidden().frame(width: 130)
-                }
-                divider
                 row("Menu bar shows", sub: "Which time the pill displays") {
                     Picker("", selection: Binding(
                         get: { Prefs.string(forKey: "pillDisplay") ?? "today" },

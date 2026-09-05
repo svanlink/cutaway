@@ -81,24 +81,6 @@ enum BillingEngine {
                 : "≈ \(String(format: "%.1f", d)) working days left at current pace"
         }
     }
-
-    // MARK: - Daily goal
-
-    struct GoalProgress: Equatable {
-        var fraction: Double        // 0…1, capped
-        var overtimeSeconds: TimeInterval
-        var reached: Bool
-    }
-
-    static func goalProgress(activeSeconds: TimeInterval, goalSeconds: TimeInterval) -> GoalProgress {
-        guard goalSeconds > 0 else { return GoalProgress(fraction: 0, overtimeSeconds: 0, reached: false) }
-        let reached = activeSeconds >= goalSeconds
-        return GoalProgress(
-            fraction: min(activeSeconds / goalSeconds, 1),
-            overtimeSeconds: reached ? activeSeconds - goalSeconds : 0,
-            reached: reached
-        )
-    }
 }
 
 /// The four supported currencies with deterministic, design-locked formatting.

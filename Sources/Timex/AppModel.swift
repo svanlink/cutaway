@@ -108,10 +108,6 @@ final class AppModel {
                                                    global: Self.globalWorkApps)
     }
 
-    var dailyGoalHours: Double {
-        get { Prefs.object(forKey: "dailyGoalHours") as? Double ?? 8 }
-        set { Prefs.set(newValue, forKey: "dailyGoalHours") }
-    }
 
     init() {
         engine = ScenarioMode.isActive
@@ -442,11 +438,6 @@ final class AppModel {
         return p.currency.format(banked + live)
     }
 
-    var goalProgress: BillingEngine.GoalProgress {
-        BillingEngine.goalProgress(activeSeconds: todaySeconds, goalSeconds: dailyGoalHours * 3600)
-    }
-
-    var isPausedVisual: Bool { engine.state != .recording }
 
     /// What the menu-bar pill displays, per the "Menu bar shows" setting.
     /// Peak-end moment: a closed session is the billing event — the pill

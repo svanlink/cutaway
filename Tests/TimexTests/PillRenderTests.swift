@@ -23,12 +23,9 @@ final class PillRenderTests: XCTestCase {
 
     func testAllThreeStatesRenderDistinctly() throws {
         let states: [(String, PillBody)] = [
-            ("pill-green.png", PillBody(stateColor: DT.green, isRecording: true, showsPauseGlyph: false,
-                                        goalFraction: 0.57, goalReached: false, seconds: 16572)),
-            ("pill-amber.png", PillBody(stateColor: DT.amber, isRecording: false, showsPauseGlyph: true,
-                                        goalFraction: 0.57, goalReached: false, seconds: 16572)),
-            ("pill-red.png", PillBody(stateColor: DT.red, isRecording: false, showsPauseGlyph: false,
-                                      goalFraction: 0, goalReached: false, seconds: 0)),
+            ("pill-green.png", PillBody(stateColor: DT.green, isRecording: true, showsPauseGlyph: false, seconds: 16572)),
+            ("pill-amber.png", PillBody(stateColor: DT.amber, isRecording: false, showsPauseGlyph: true, seconds: 16572)),
+            ("pill-red.png", PillBody(stateColor: DT.red, isRecording: false, showsPauseGlyph: false, seconds: 0)),
         ]
         var pixels: Set<Int> = []
         for (name, pill) in states {
@@ -52,8 +49,7 @@ final class BankedFlashTests: XCTestCase {
     }
 
     func testBankedFlashRenders() throws {
-        let pill = PillBody(stateColor: DT.amber, isRecording: false, showsPauseGlyph: true,
-                            goalFraction: 0.57, goalReached: false, seconds: 16572,
+        let pill = PillBody(stateColor: DT.amber, isRecording: false, showsPauseGlyph: true, seconds: 16572,
                             bankedText: "✓ 47 min banked")
         let renderer = ImageRenderer(content: pill.background(Color.black))
         renderer.scale = 4

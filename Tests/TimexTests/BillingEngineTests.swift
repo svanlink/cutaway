@@ -69,22 +69,6 @@ final class BillingEngineTests: XCTestCase {
         XCTAssertEqual(BillingEngine.forecast(remaining: -10, avgDailySeconds: 3600,
                                               hourlyRate: 85, daysWorked: 5), .paceUnknown)
     }
-
-    // MARK: - Daily goal
-
-    func testGoalProgressBelowGoal() {
-        let g = BillingEngine.goalProgress(activeSeconds: 4.64 * 3600, goalSeconds: 8 * 3600)
-        XCTAssertEqual(g.fraction, 0.58, accuracy: 0.001)
-        XCTAssertEqual(g.overtimeSeconds, 0)
-        XCTAssertFalse(g.reached)
-    }
-
-    func testGoalProgressOvertime() {
-        let g = BillingEngine.goalProgress(activeSeconds: 8 * 3600 + 42 * 60, goalSeconds: 8 * 3600)
-        XCTAssertEqual(g.fraction, 1.0)
-        XCTAssertEqual(g.overtimeSeconds, 42 * 60)
-        XCTAssertTrue(g.reached)
-    }
 }
 
 final class CurrencyFormatterTests: XCTestCase {

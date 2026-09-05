@@ -12,14 +12,6 @@ struct TimerView: View {
             // pill stays anchored at the bottom. No status pill here — the
             // ring's color/glow IS the state (one indicator per fact).
             Spacer(minLength: DT.s2)
-            RingView(
-                elapsed: model.todaySeconds,
-                money: model.todayMoney,
-                goal: model.goalProgress,
-                goalHours: model.dailyGoalHours,
-                isPaused: model.isPausedVisual
-            )
-            .padding(.top, DT.s1)
 
             // A zero state has nothing to pause. Swap the primary control for
             // the reason nothing is counting, and the way out of it.
