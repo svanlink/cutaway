@@ -21,6 +21,16 @@
         }
       }
     },
+    "%@ today on %@ — %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ heute an %@ — %@"
+          }
+        }
+      }
+    },
     "%lld days": {
       "localizations": {
         "de": {
@@ -707,6 +717,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neue Projekte starten mit dieser Währung"
+          }
+        }
+      }
+    },
+    "No project selected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Projekt ausgewählt"
           }
         }
       }

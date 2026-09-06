@@ -112,6 +112,8 @@ EXTRA = {
  "@ %@ / h": "@ %@ / h",
  "%lld days": "%lld Tage",
  "1 day": "1 Tag",
+ "No project selected": "Kein Projekt ausgewählt",
+ "%@ today on %@ — %@": "%@ heute an %@ — %@",
  "Total  %@": "Gesamt  %@",
 }
 DE.update(EXTRA)
