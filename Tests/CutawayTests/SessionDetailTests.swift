@@ -38,7 +38,7 @@ final class SessionDetailTests: XCTestCase {
         let p = try seed()
         let rows = store.sessions(for: p, on: date(2026, 7, 17, 0), calendar: cal)
         XCTAssertEqual(rows.count, 2, "the 16th must not leak into the 17th")
-        XCTAssertEqual(rows.map(\.activeSeconds), [5400, 47 * 60], "worked order, earliest first")
+        XCTAssertEqual(rows.map { $0.activeSeconds }, [5400.0, 47 * 60.0], "worked order, earliest first")
     }
 
     func testDetailRowsSumToTheDayTotal() throws {

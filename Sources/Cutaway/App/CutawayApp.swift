@@ -183,6 +183,7 @@ struct MainWindowView: View {
             switch ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] {
             case "settings": model.openSettingsWindow?()
             case "permissions": model.openPermissionsWindow?()
+            case "newproject": model.openMainWindow?(); model.showNewProjectSheet = true
             default: break
             }
         }

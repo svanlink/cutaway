@@ -18,10 +18,11 @@ enum AppCatalog {
     }
 
     static let groups: [Group] = [
+        // One tile: the prefix covers the free, Lite and Studio editions, and
+        // only one of them is ever installed — three tiles showed two of
+        // them as "not installed" on every Mac.
         Group(name: "DaVinci Resolve", entries: [
             Entry(name: "DaVinci Resolve", prefix: "com.blackmagic-design.DaVinciResolve"),
-            Entry(name: "DaVinci Resolve (Lite)", prefix: "com.blackmagic-design.DaVinciResolveLite"),
-            Entry(name: "DaVinci Resolve Studio", prefix: "com.blackmagic-design.DaVinciResolveStudio"),
         ]),
         Group(name: "Adobe", entries: [
             Entry(name: "Premiere Pro", prefix: "com.adobe.PremierePro"),

@@ -26,9 +26,14 @@ final class AppCatalogTests: XCTestCase {
         XCTAssertTrue(AppCatalog.allEntries.contains { $0.prefix == "com.microsoft.Excel" })
     }
 
-    func testResolveEntriesAreTheEngineIds() {
-        let resolve = AppCatalog.groups.first { $0.name == "DaVinci Resolve" }!
-        XCTAssertEqual(Set(resolve.entries.map(\.prefix)), Set(DetectionInput.resolveBundleIDs))
+    /// One Resolve tile whose prefix reaches every edition the engine knows.
+    func testOneResolveTileCoversEveryEdition() throws {
+        let resolve = try XCTUnwrap(AppCatalog.groups.first { $0.name == "DaVinci Resolve" })
+        XCTAssertEqual(resolve.entries.count, 1)
+        let prefix = resolve.entries[0].prefix
+        for id in DetectionInput.resolveBundleIDs {
+            XCTAssertTrue(id.hasPrefix(prefix), "\(id) must be covered by \(prefix)")
+        }
     }
 
     /// The scan finds the app the tests are running inside — no fixture, no
