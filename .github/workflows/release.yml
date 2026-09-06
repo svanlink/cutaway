@@ -1,0 +1,43 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - name: Version (project.yml is the source; xcodegen writes the plist)
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          sed -i '' -E "s/^( *CFBundle(ShortVersionString|Version): ).*/\1\"$V\"/" project.yml
+          xcodegen generate
+          [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/Cutaway/Info.plist)" = "$V" ]
+          echo "V=$V" >> "$GITHUB_ENV"
+      - name: Test
+        run: xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests | grep -q "TEST SUCCEEDED"
+      - name: Build (ad-hoc signed — Developer ID parked by decision 1)
+        run: |
+          xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' -derivedDataPath build build | grep -q "BUILD SUCCEEDED"
+          APP=build/Build/Products/Release/Cutaway.app
+          codesign --force --deep --sign - "$APP" && codesign --verify --deep --strict "$APP"
+          ditto -c -k --keepParent "$APP" "Cutaway-$V.zip"
+          shasum -a 256 "Cutaway-$V.zip" | cut -d' ' -f1 > sha256.txt
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
+      - name: Bump cask
+        if: ${{ env.TAP_TOKEN != '' }}
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          SHA=$(cat sha256.txt)
+          gh repo clone svanlink/homebrew-tap tap -- -q
+          sed -i '' "s/version \".*\"/version \"$V\"/; s/sha256 \".*\"/sha256 \"$SHA\"/" tap/Casks/cutaway.rb
+          git -C tap -c user.name=cutaway-ci -c user.email=ci@vaneickelen.com commit -aqm "cutaway $V"
+          git -C tap push -q

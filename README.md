@@ -24,6 +24,8 @@ Requires macOS 14+. Works with [DaVinci Resolve](https://www.blackmagicdesign.co
 
 **First invoice in two minutes:** open Cutaway → it detects your open Resolve project (or you create one) → set your hourly rate or budget → edit as usual → menu-bar pill shows the day building up → *Stats → Export CSV* when it's invoice time.
 
+**Releasing** (maintainer): push a tag `vX.Y.Z`. CI tests, builds, ad-hoc signs, publishes the GitHub release and bumps the cask — the cask step needs a `TAP_TOKEN` repository secret with write access to `svanlink/homebrew-tap`. `scripts/release.sh` remains the local fallback and is the only path that also runs the smoke harness (it needs a GUI session).
+
 Updating and removing:
 
 ```bash
