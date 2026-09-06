@@ -32,6 +32,25 @@ final class DayEditTests: XCTestCase {
         XCTAssertEqual(store.dayTotals(for: p, calendar: cal).count, 1, "no stray day rows")
     }
 
+    /// A day whose last part ended exactly at midnight (DaySplitter's
+    /// overnight split) must still take its adjustment on THAT day.
+    func testGrowingAMidnightEndedDayStaysOnThatDay() throws {
+        try store.record(SessionRecord(start: date(17, 22, 40), end: date(18, 0), activeSeconds: 4800), to: p, calendar: cal)
+        try store.setActiveSeconds(7200, on: date(17, 15), for: p, calendar: cal)
+        let days = store.dayTotals(for: p, calendar: cal)
+        XCTAssertEqual(days.count, 1, "no phantom next-day row")
+        XCTAssertEqual(days.first?.activeSeconds ?? 0, 7200, accuracy: 0.01)
+        XCTAssertEqual(cal.startOfDay(for: days.first!.day), date(17, 0))
+    }
+
+    /// Asking for less than the running session alone must be refused, not
+    /// clamped to zero — the clamp deleted every banked session of the day.
+    func testATargetBelowTheLiveSessionIsRefused() {
+        XCTAssertNil(AppModel.persistedTarget(requested: 3600, live: 10800))
+        XCTAssertEqual(AppModel.persistedTarget(requested: 3600 * 8, live: 10800), 3600 * 5)
+        XCTAssertEqual(AppModel.persistedTarget(requested: 3600, live: 0), 3600)
+    }
+
     func testShrinkingTrimsNewestSessionsFirst() throws {
         try store.record(SessionRecord(start: date(17, 9), end: date(17, 10), activeSeconds: 3600), to: p, calendar: cal)
         try store.record(SessionRecord(start: date(17, 13), end: date(17, 14), activeSeconds: 1800), to: p, calendar: cal)

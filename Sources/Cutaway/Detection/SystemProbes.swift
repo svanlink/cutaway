@@ -5,7 +5,9 @@ import Darwin
 /// Live system probes behind a protocol so DetectionEngine is testable
 /// with fake values.
 protocol SystemProbing: Sendable {
-    func frontmostBundleID() -> String?
+    /// Main-actor: the live probe reads a tracker that lives there, and the
+    /// engine ticks there. A fake's nonisolated method satisfies this too.
+    @MainActor func frontmostBundleID() -> String?
     func secondsSinceLastInput() -> TimeInterval
     /// Whether the frontmost app currently owns a full-screen window. Asked
     /// LAZILY — only when an idle warning is otherwise about to show — so the
@@ -37,8 +39,10 @@ final class FrontmostTracker {
 
     init(initial: String?, center: NotificationCenter = NSWorkspace.shared.notificationCenter) {
         bundleID = initial
+        // queue: nil — NSWorkspace posts on the main thread already; a queued
+        // hop would only make "post, then read" order undefined.
         token = center.addObserver(forName: NSWorkspace.didActivateApplicationNotification,
-                                   object: nil, queue: .main) { [weak self] n in
+                                   object: nil, queue: nil) { [weak self] n in
             // Read the id here; only the String (Sendable) crosses into the actor.
             let id = (n.userInfo?[NSWorkspace.applicationUserInfoKey] as? FrontmostApplication)?.bundleIdentifier
             MainActor.assumeIsolated { self?.bundleID = id }
@@ -49,12 +53,16 @@ final class FrontmostTracker {
 /// A class, not a struct: it owns the tracker's subscription. The engine
 /// ticks on the main actor, so the nonisolated protocol read is safe.
 final class SystemProbes: SystemProbing {
-    private let frontmost = MainActor.assumeIsolated {
-        FrontmostTracker(initial: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
+    private let frontmost: FrontmostTracker
+
+    @MainActor init() {
+        frontmost = FrontmostTracker(initial: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
     }
 
-    func frontmostBundleID() -> String? {
-        MainActor.assumeIsolated { frontmost.bundleID }
+    @MainActor func frontmostBundleID() -> String? {
+        // The notification is the fast path; the direct read is the resync
+        // for an activation that landed before the observer was installed.
+        frontmost.bundleID ?? NSWorkspace.shared.frontmostApplication?.bundleIdentifier
     }
 
     func secondsSinceLastInput() -> TimeInterval {

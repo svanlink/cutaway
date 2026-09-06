@@ -82,6 +82,20 @@ final class RenderExemptionTests: XCTestCase {
                        "an unattended overnight render is not a working day")
     }
 
+    /// A one-tick CPU dip (I/O wait, a queue flush) must not hand the render
+    /// a fresh 30-minute cap — that is how an overnight export billed a night.
+    func testACPUDipDoesNotReArmTheCap() {
+        engine.renderExemption = true
+        engine.tick()
+        probes.idle = 300
+        burn(400)
+        burn(400, seconds: DetectionEngine.renderExemptionCap - 60)
+        burn(10)                                        // the dip
+        burn(400, seconds: 120)                         // back to rendering
+        XCTAssertEqual(engine.state, .paused(.inputIdle),
+                       "the cap counts from the first exempt second, dips included")
+    }
+
     func testManualPauseOutranksTheExemption() {
         engine.renderExemption = true
         engine.tick()

@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import os
 
 /// Which mechanism identified the current Resolve project.
 enum DetectionTier: String, Sendable {
@@ -107,9 +108,23 @@ final class ProjectDetector {
             // landing 30s later — is the only theory that fits. This call is
             // already async, off the main thread, and fires every 30–120s;
             // patience here costs nothing and a kill costs a detection.
-            let deadline = Date().addingTimeInterval(8)
-            while proc.isRunning && Date() < deadline { usleep(100_000) }
-            if proc.isRunning { proc.terminate(); return nil }
+            // Wait without parking a cooperative-pool thread: the handler
+            // fires on exit, a timer covers the deadline.
+            let finished = await withCheckedContinuation { (k: CheckedContinuation<Bool, Never>) in
+                let resumed = OSAllocatedUnfairLock(initialState: false)
+                let resumeOnce: @Sendable (Bool) -> Void = { ok in
+                    resumed.withLock { done in
+                        if !done { done = true; k.resume(returning: ok) }
+                    }
+                }
+                proc.terminationHandler = { _ in resumeOnce(true) }
+                DispatchQueue.global().asyncAfter(deadline: .now() + 8) {
+                    if proc.isRunning { proc.terminate() }
+                    resumeOnce(false)
+                }
+                if !proc.isRunning { resumeOnce(true) }
+            }
+            guard finished else { return nil }
             // fuscript prints a banner ("DaVinci Resolve Script Interpreter",
             // copyright line) before the result — the project name is the
             // LAST non-empty line.

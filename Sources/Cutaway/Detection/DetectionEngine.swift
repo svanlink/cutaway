@@ -92,7 +92,11 @@ final class DetectionEngine {
     var now: () -> Date = { Date() }
     private var lastTick: Date?
     /// Fired whenever a recording span closes — AppModel persists it.
-    var onSessionClosed: ((SessionRecord) -> Void)?
+    /// Returns whether the record was persisted; the crash snapshot is the
+    /// retry and is cleared only on true.
+    var onSessionClosed: ((SessionRecord) -> Bool)?
+    /// A manual pause lifted by any route — panel, hotkey, intent, card.
+    var onManualPauseLifted: (() -> Void)?
 
     private let probes: any SystemProbing
     private let logger: SessionLogger
@@ -160,6 +164,7 @@ final class DetectionEngine {
 
     func togglePause() {
         manuallyPaused.toggle()
+        if !manuallyPaused { onManualPauseLifted?() }
         manualPauseStart = manuallyPaused ? now() : nil
         PauseState.persist(start: manualPauseStart, to: defaults)
         pausedLong = false
@@ -323,9 +328,12 @@ final class DetectionEngine {
         guard input.secondsSinceInput >= idleThreshold else { renderExemptStart = nil; return false }
         guard let previous, nanos >= previous.nanos else { return false }
         let elapsed = t.timeIntervalSince(previous.at)
-        guard elapsed > 0 else { return renderExemptStart != nil }
+        let withinCap = renderExemptStart.map { t.timeIntervalSince($0) <= Self.renderExemptionCap } ?? false
+        guard elapsed > 0 else { return withinCap }
         let percent = Double(nanos - previous.nanos) / 1_000_000_000 / elapsed * 100
-        guard percent >= Self.renderCPUThreshold else { renderExemptStart = nil; return false }
+        // A CPU dip (I/O wait, a queue flush) is not the editor coming back:
+        // it must not hand the render a fresh cap. Only input re-arms (above).
+        guard percent >= Self.renderCPUThreshold else { return false }
         let started = renderExemptStart ?? t
         renderExemptStart = started
         // Cap reached: stop exempting, and do not re-arm until input returns.
@@ -378,8 +386,13 @@ final class DetectionEngine {
         }
     }
 
+    /// Who the open session belongs to, for the crash snapshot. AppModel
+    /// wires it; the engine itself knows nothing about projects.
+    var projectNameForSnapshot: (() -> String?)?
+
     private func snapshotOpenSession() {
         guard let start = accumulator.sessionStart else { return }
+        defaults.set(projectNameForSnapshot?(), forKey: "openSession.project")
         defaults.set(start.timeIntervalSince1970, forKey: "openSession.start")
         defaults.set(accumulator.activeSeconds, forKey: "openSession.active")
         // The engine's clock, like everything else here — this stamp becomes
@@ -388,6 +401,7 @@ final class DetectionEngine {
     }
 
     private func clearOpenSessionSnapshot() {
+        defaults.removeObject(forKey: "openSession.project")
         defaults.removeObject(forKey: "openSession.start")
         defaults.removeObject(forKey: "openSession.active")
         defaults.removeObject(forKey: "openSession.updatedAt")
@@ -397,19 +411,19 @@ final class DetectionEngine {
     /// here. PEEKS only — call `clearCrashedSessionSnapshot()` AFTER the
     /// record has actually been persisted, so a failed recovery can retry on
     /// the next launch instead of silently dropping money.
-    static func peekCrashedSession() -> SessionRecord? {
-        let d = Prefs
+    static func peekCrashedSession(in d: UserDefaults = Prefs) -> (record: SessionRecord, project: String?)? {
         let start = d.double(forKey: "openSession.start")
         let active = d.double(forKey: "openSession.active")
         let updated = d.double(forKey: "openSession.updatedAt")
         guard start > 0, active >= 1, updated > start else { return nil }
-        return SessionRecord(start: Date(timeIntervalSince1970: start),
-                             end: Date(timeIntervalSince1970: updated),
-                             activeSeconds: active)
+        return (SessionRecord(start: Date(timeIntervalSince1970: start),
+                              end: Date(timeIntervalSince1970: updated),
+                              activeSeconds: active),
+                d.string(forKey: "openSession.project"))
     }
 
-    static func clearCrashedSessionSnapshot() {
-        let d = Prefs
+    static func clearCrashedSessionSnapshot(in d: UserDefaults = Prefs) {
+        d.removeObject(forKey: "openSession.project")
         d.removeObject(forKey: "openSession.start")
         d.removeObject(forKey: "openSession.active")
         d.removeObject(forKey: "openSession.updatedAt")
@@ -438,9 +452,12 @@ final class DetectionEngine {
             // In-memory diagnostics only (persistence is via onSessionClosed);
             // cap so a weeks-long run can't grow unboundedly.
             if closedSessions.count > 20 { closedSessions.removeFirst() }
-            clearOpenSessionSnapshot()
             logger.log(event: "session-closed", detail: "reason=\(reason) active=\(Int(record.activeSeconds))s")
-            onSessionClosed?(record)
+            if onSessionClosed?(record) ?? true {
+                clearOpenSessionSnapshot()
+            } else {
+                logger.log(event: "session-close-unsaved", detail: "snapshot kept for the next launch")
+            }
         }
     }
 

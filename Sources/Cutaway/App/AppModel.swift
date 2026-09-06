@@ -74,15 +74,20 @@ final class AppModel {
             let backupsDir = FileManager.default
                 .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("Cutaway/Backups")
-            try? StoreBackup.backUp(storeURL: storeURL, backupsDir: backupsDir)
+            do { try StoreBackup.backUp(storeURL: storeURL, backupsDir: backupsDir) }
+            catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
         }
         do {
             store = try SessionStore()
         } catch {
             // SwiftData refusing to open is unrecoverable at runtime; an
-            // in-memory store keeps the app alive for this run.
+            // in-memory store keeps the app alive for this run. Say why in
+            // the log, and say so in the PANEL — a menu-bar user may never
+            // open the Stats window where the ephemeral banner lives.
+            NSLog("Cutaway: store failed to open, running in memory — %@", String(describing: error))
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
+            storeErrors.flag("open the billing store — nothing tracked this run will be kept")
         }
         projectsModel = ProjectsModel(store: store, engine: engine, errors: storeErrors)
         // After the last stored property: a closure over self before that is
@@ -106,19 +111,32 @@ final class AppModel {
             engine.onResumePrompt = { [weak self] in self?.resumePromptOpen = true }
         }
         engine.onSessionClosed = { [weak self] record in
-            guard let self, let project = self.selectedProject else { return }
-            self.storeErrors.attempt("save session") { try self.store.record(record, to: project) }
+            guard let self, let project = self.selectedProject else { return false }
+            let saved = self.storeErrors.attempt("save session") { try self.store.record(record, to: project) } != nil
             self.flashBankedSession(record.activeSeconds)
+            return saved
         }
+        engine.onManualPauseLifted = { [weak self] in self?.resumePromptOpen = false }
         // Crash recovery: persist the last checkpoint of a session that never
         // closed. The snapshot is cleared ONLY after a successful persist —
         // otherwise it survives for the next launch to retry.
         if let crashed = DetectionEngine.peekCrashedSession() {
-            if let p = selectedProject,
-               storeErrors.attempt("recover the last session", { try store.record(crashed, to: p) }) != nil {
-                DetectionEngine.clearCrashedSessionSnapshot()
+            // Snapshots written before the project name was recorded fall
+            // back to the selection; a named snapshot only ever lands on
+            // that project — a phantom session on a new client is worse
+            // than a dropped one, so an unmatched name is discarded, logged.
+            let target: Project? = crashed.project.map { name in projects.first { ProjectName.matches($0.name, name) } }
+                ?? selectedProject
+            if let p = target {
+                if storeErrors.attempt("recover the last session", { try store.record(crashed.record, to: p) }) != nil {
+                    DetectionEngine.clearCrashedSessionSnapshot()
+                }
+            } else {
+                // Kept, not cleared: the project may come back (rename, restore).
+                engine.logDetection("recovery-deferred", detail: "project=\(crashed.project ?? "nil") not found")
             }
         }
+        engine.projectNameForSnapshot = { [weak self] in self?.selectedProject?.name }
         // Project auto-switch while recording:
         // Tier 2 (window title) every 5s — cheap AX read.
         // Tier 1 (Studio scripting API) every 30s — spawns fuscript, exact name.
@@ -206,13 +224,24 @@ final class AppModel {
     /// Sets a day's TOTAL (what the Stats row shows). For today while
     /// recording, the running session is part of that total and keeps
     /// growing, so only the persisted part is adjusted to meet the target.
-    func setDaySeconds(_ seconds: TimeInterval, on day: Date) {
-        guard let p = selectedProject else { return }
-        var target = seconds
-        if Calendar.current.isDateInToday(day) {
-            target -= engine.accumulator.activeSeconds
-        }
-        storeErrors.attempt("save the day edit") { try store.setActiveSeconds(max(0, target), on: day, for: p) }
+    /// False when the request could not be honoured (the running session
+    /// alone is longer than the total asked for).
+    @discardableResult
+    func setDaySeconds(_ seconds: TimeInterval, on day: Date, for p: Project) -> Bool {
+        // The running session only belongs to the SELECTED project's today;
+        // detection may have switched projects while the sheet was open.
+        let live = Calendar.current.isDateInToday(day) && p.persistentModelID == selectedProject?.persistentModelID
+            ? engine.accumulator.activeSeconds : 0
+        guard let target = Self.persistedTarget(requested: seconds, live: live) else { return false }
+        return storeErrors.attempt("save the day edit") { try store.setActiveSeconds(target, on: day, for: p) } != nil
+    }
+
+    /// What the persisted part of today must become for the day to total
+    /// `requested` with `live` seconds still running. Nil when impossible:
+    /// clamping to zero used to delete every banked session of the day.
+    nonisolated static func persistedTarget(requested: TimeInterval, live: TimeInterval) -> TimeInterval? {
+        let t = requested - live
+        return t < 0 ? nil : t
     }
 
     /// Accepts "1:30", "1.5", "1,5", "90m" — whatever an editor types.
