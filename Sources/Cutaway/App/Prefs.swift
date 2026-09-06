@@ -6,12 +6,24 @@ import Foundation
 /// UserDefaults is documented thread-safe; the nonisolated(unsafe) is for
 /// the compiler, not a real hazard.
 nonisolated(unsafe) let Prefs: UserDefaults = {
-    if ProcessInfo.processInfo.environment["CUTAWAY_SCENARIO"] != nil {
-        let suite = UserDefaults(suiteName: "com.vaneickelen.cutaway.scenario")!
-        return suite
+    let env = ProcessInfo.processInfo.environment
+    if let suite = PrefsPolicy.suiteName(scenario: env["CUTAWAY_SCENARIO"] != nil,
+                                         dataDir: env["CUTAWAY_DATA_DIR"]) {
+        return UserDefaults(suiteName: suite)!
     }
     return .standard
 }()
+
+enum PrefsPolicy {
+    /// A quarantined store means quarantined prefs: a demo/capture launch with
+    /// CUTAWAY_DATA_DIR once wrote its selected project and "primer shown"
+    /// into the user's real defaults, so the real first run never showed it.
+    static func suiteName(scenario: Bool, dataDir: String?) -> String? {
+        if scenario { return "com.vaneickelen.cutaway.scenario" }
+        if dataDir != nil { return "com.vaneickelen.cutaway.harness" }
+        return nil
+    }
+}
 
 /// One-time migration from the app's earlier bundle id — the rename moved
 /// the UserDefaults domain; settings and the crash snapshot come along.

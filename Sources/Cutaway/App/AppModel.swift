@@ -70,7 +70,11 @@ final class AppModel {
         // Back up the real billing store before it opens (quiescent files).
         // Scenario/demo stores are disposable — never backed up.
         if !ScenarioMode.isActive {
-            let storeURL = ModelConfiguration(isStoredInMemoryOnly: false).url
+            // First launch after 1.3.1: bring the work over from the shared
+            // default.store into Cutaway's own file (copied, never removed).
+            do { if try StorePath.adoptLegacyIfNeeded() { NSLog("Cutaway: adopted the legacy default.store") } }
+            catch { NSLog("Cutaway: legacy store adoption failed — %@", String(describing: error)) }
+            let storeURL = StorePath.url()
             let backupsDir = FileManager.default
                 .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("Cutaway/Backups")

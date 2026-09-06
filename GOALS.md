@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [data] store wipes traced to the shared default.store (another app's schema); named store + legacy adoption; data restored from backups + log
+
 - [ship] v1.3.0 released; tag on the stamped commit; bundle version finally true — dea6339
 
 - [hardening] three-reviewer pass: five money/time bugs and twelve silent failures fixed, each pinned; 0 compiler warnings — e17915c, b4f1889

@@ -7,6 +7,33 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-06 ~12:15 — [keep] the store was being wiped by ANOTHER app — data restored, store renamed
+Sebastian asked for everything to be verified. The live store had 0 projects
+and 0 sessions; the backups showed 3 projects / 4 sessions on Sep 4 18:04,
+7 Richemont sessions (4.4 h, Sep 2) on Sep 3, and blank stores on Sep 2,
+Sep 5 10:47 and today 10:37. The blank ones hold a table Cutaway never had:
+ZAPIREQUESTMODEL. Cutaway's store was `~/Library/Application Support/
+default.store` — SwiftData's name for an UNNAMED store, i.e. the file every
+other SwiftData app that names nothing also opens. One such app on this Mac
+rewrote the file to its own schema three times in a week; Cutaway then
+found no ZPROJECT and created empty tables. Not the test harness (proved:
+the unit suite ran against a restored store and left it intact, though the
+test host does open the real store — now quarantined too).
+
+Restored, in `Cutaway/billing.store` (a named file in Cutaway's own folder,
+adopted once from the legacy file, which is never removed): the Sep 4 backup
+(3 projects) + the 7 Sep-2 sessions from the Sep 3 backup + 3 sessions of
+Sep 5 evening (11 min) reconstructed from the detection log and flagged
+isAdjusted so the trace is honest. 14 sessions, 5.03 h on Richemont. The
+work of Sep 3–4 that the day-before backups did not catch stays lost;
+the daily backups are what made the rest recoverable. Pristine copies of
+the restored store and of the empty forensic store are in the session
+scratchpad. Real prefs had been polluted by demo launches (selected project
+"Nyx Fashion Film", primer marked shown) — CUTAWAY_DATA_DIR now quarantines
+prefs as well as the store; the two keys were removed.
+
+---
+
 ## 2026-09-06 ~12:00 — [keep] the picker shows only what is installed; one Resolve tile
 Sebastian saw three DaVinci Resolve tiles (free / Lite / Studio — the catalog
 listed each edition; one prefix already covers all three) and dashed

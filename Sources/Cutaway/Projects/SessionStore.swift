@@ -26,13 +26,11 @@ final class SessionStore {
             // Explicit location — used to prove that a restored backup really
             // opens and still holds the work someone invoiced against.
             config = ModelConfiguration(url: url)
-        } else if let dir = ScenarioMode.dataDir {
-            // Verification runs live in their own quarantined store — the
-            // real billing database is untouchable from scenario mode.
-            let url = URL(fileURLWithPath: dir).appendingPathComponent("timex.store")
-            config = ModelConfiguration(url: url)
         } else {
-            config = ModelConfiguration(isStoredInMemoryOnly: false)
+            // Named and quarantined by policy — never the shared default.store.
+            let url = StorePath.url()
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            config = ModelConfiguration(url: url)
         }
         container = try ModelContainer(for: Project.self, WorkSession.self, configurations: config)
     }
