@@ -8,6 +8,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pauseHotKey: GlobalHotKey?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Dark-only, decided once. Cutaway sits beside a grading suite; a
+        // light window there is glare. Documented exception (Apple: "rare
+        // cases"); Increase Contrast and Reduce Transparency are still honoured
+        // by the tokens (SystemSettingsTests).
+        NSApp.appearance = NSAppearance(named: .darkAqua)
         Task { @MainActor in
             if let model = AppDelegate.model {
                 statusController = StatusItemController(model: model)
@@ -74,24 +79,19 @@ struct CutawayApp: App {
                 // magnified viewport around a 480pt window.
                 .frame(minWidth: DT.windowSize.width, minHeight: DT.windowSize.height)
                 .background(DT.window)
-                .preferredColorScheme(.dark)
                 .sheet(isPresented: Bindable(model).showNewProjectSheet) {
                     ProjectSheet(model: model)
-                        .preferredColorScheme(.dark)
                 }
                 .sheet(item: Bindable(model).editTarget) { p in
                     ProjectSheet(model: model, editing: p)
-                        .preferredColorScheme(.dark)
                 }
                 .sheet(item: Bindable(model).editDay) { t in
                     if let p = model.selectedProject {
                         EditDaySheet(model: model, project: p, target: t)
-                            .preferredColorScheme(.dark)
                     }
                 }
                 .sheet(item: Bindable(model).deleteTarget) { p in
                     DeleteProjectSheet(model: model, project: p)
-                        .preferredColorScheme(.dark)
                 }
         }
         .windowStyle(.hiddenTitleBar)

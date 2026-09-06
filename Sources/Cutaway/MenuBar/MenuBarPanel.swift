@@ -84,7 +84,6 @@ struct MenuBarPanel: View {
         .accessibilityAddTraits(.isModal)
         .background(reduceTransparency ? AnyShapeStyle(DT.overlay) : AnyShapeStyle(.ultraThinMaterial))
         .background(reduceTransparency ? DT.overlay : DT.window.opacity(0.55))
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Hero

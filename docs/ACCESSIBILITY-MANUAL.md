@@ -100,3 +100,10 @@ To check the whole path by hand:
   again.
 - Force a project auto-switch (open a different project in Resolve). It
   should be announced.
+
+## Appearance
+
+Cutaway is dark-only as an instrument exception, decided once at the app
+level (`NSApp.appearance` in `AppDelegate`), never per view. The manual
+checks above for Increase Contrast and Reduce Transparency apply to it
+unchanged — those settings are honoured by the tokens, not by the scheme.

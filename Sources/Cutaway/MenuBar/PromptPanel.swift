@@ -40,7 +40,6 @@ struct PromptCard<Actions: View>: View {
         .frame(width: 400)
         .background(DT.overlay, in: RoundedRectangle(cornerRadius: DT.rLg))
         .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(tint.opacity(0.5), lineWidth: 1))
-        .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(spoken)
     }
