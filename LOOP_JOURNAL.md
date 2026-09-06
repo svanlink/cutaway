@@ -7,6 +7,20 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-06 ~11:45 — [ship] v1.3.0 released on request
+Sebastian asked for it after the hardening pass. release.sh 1.3.0 ran end
+to end: 343 unit tests, smoke ×3 ALL PASS, project.yml stamped and the plist
+verified, Release build, ad-hoc sign, zip, and — new this release — main
+fast-forwarded and pushed BEFORE tagging, so v1.3.0 points at the stamped
+commit (dea6339) and the bundle says 1.3.0 (1.1.0 and 1.2.0 said 1.0).
+Proof: release asset sha256 equals the cask's; `brew upgrade` went 1.2.0 →
+1.3.0; the installed bundle reports 1.3.0 and the productivity category;
+codesign verifies. The tag also fired .github/workflows/release.yml for the
+first time — a second verification build; it finds the release existing
+and does not republish.
+
+---
+
 ## 2026-09-06 — [keep] hardening pass: three reviewers, seventeen fixes, zero warnings
 Sebastian asked for everything to be cleaned up and every bug found. Three
 reviewer agents ran in parallel against the working tree (an engine/billing

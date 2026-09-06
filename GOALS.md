@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [ship] v1.3.0 released; tag on the stamped commit; bundle version finally true — dea6339
+
 - [hardening] three-reviewer pass: five money/time bugs and twelve silent failures fixed, each pinned; 0 compiler warnings — e17915c, b4f1889
 
 - [trust] v1.3 on the branch: visible save failures, one appearance decision, honest bundle metadata, String Catalog + German, permissions primer, Shortcuts actions, notification-driven frontmost, local diagnostics, CI release — plan 5, not tagged
