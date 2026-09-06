@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 enum PanelBlock: Hashable {
-    case hero, zeroState, accessibilityOffer, projects, resumeBanner, researchWindow, receipt, footer
+    case hero, storeProblem, zeroState, accessibilityOffer, projects, resumeBanner, researchWindow, receipt, footer
 }
 
 /// The Klokki-inspired drop-down: hero header, project list, footer bar.
@@ -25,8 +25,11 @@ struct MenuBarPanel: View {
     /// nothing to list, so the zero state takes the list's place.
     static func blocks(zeroState: Bool, offersAccessibility: Bool,
                        workDetectedWhilePaused: Bool, researchLabel: Bool,
-                       receipt: Bool) -> [PanelBlock] {
+                       receipt: Bool, storeProblem: Bool = false) -> [PanelBlock] {
         var b: [PanelBlock] = [.hero]
+        // A failed save outranks everything: it is the one line that can
+        // save the user money if they read it.
+        if storeProblem { b.append(.storeProblem) }
         if zeroState { return b + [.zeroState, .footer] }
         if offersAccessibility { b.append(.accessibilityOffer) }
         b.append(.projects)
@@ -42,11 +45,21 @@ struct MenuBarPanel: View {
                                  offersAccessibility: model.shouldOfferAccessibility,
                                  workDetectedWhilePaused: model.engine.workDetectedWhilePaused,
                                  researchLabel: model.engine.recordingSource?.label != nil,
-                                 receipt: model.lastSessionLine != nil)
+                                 receipt: model.lastSessionLine != nil,
+                                 storeProblem: model.storeErrors.problem != nil)
         VStack(spacing: 0) {
             ForEach(blocks, id: \.self) { block in
                 switch block {
                 case .hero: hero
+                case .storeProblem:
+                    Text(model.storeErrors.problem ?? "")
+                        .font(DT.captionMedium)
+                        .foregroundStyle(DT.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, DT.rowInset).padding(.vertical, DT.s2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(DT.alarm.opacity(0.25))
+                        .accessibilityLabel(model.storeErrors.problem ?? "")
                 case .zeroState:
                     ZeroStateCard(state: model.zeroState ?? .noProject) {
                         model.showNewProjectSheet = true

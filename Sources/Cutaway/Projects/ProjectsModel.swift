@@ -11,6 +11,7 @@ import SwiftData
 final class ProjectsModel {
     private let store: SessionStore
     private let engine: DetectionEngine
+    private let errors: StoreErrorReporter
 
     var selectedProjectID: PersistentIdentifier?
     /// Turns Resolve's steady state into transitions, so a manual switch is
@@ -21,9 +22,10 @@ final class ProjectsModel {
     /// Tier-1 loop; only this class bumps it.
     private(set) var intent = ManualIntent()
 
-    init(store: SessionStore, engine: DetectionEngine) {
+    init(store: SessionStore, engine: DetectionEngine, errors: StoreErrorReporter) {
         self.store = store
         self.engine = engine
+        self.errors = errors
     }
 
     // MARK: - Defaults and pure helpers
@@ -105,7 +107,7 @@ final class ProjectsModel {
             let rec = SessionRecord(start: start,
                                     end: start.addingTimeInterval(hoursWorked * 3600 + 1800),
                                     activeSeconds: hoursWorked * 3600)
-            try? store.record(rec, to: project)
+            try? store.record(rec, to: project)   // harness fixtures — not a user's data
         }
     }
 
@@ -192,9 +194,11 @@ final class ProjectsModel {
     func createProject(name: String, client: String, mode: BillingMode,
                        rate: Double, budget: Double, currency: BillingCurrency,
                        apps: [String], isManual: Bool = false) {
-        guard let p = try? store.createProject(name: name, client: client, mode: mode,
-                                               hourlyRate: rate, budget: budget, currency: currency,
-                                               appBundleIDs: DetectionInput.sanitizedPrefixes(apps)) else { return }
+        guard let p = errors.attempt("create the project", {
+            try store.createProject(name: name, client: client, mode: mode,
+                                    hourlyRate: rate, budget: budget, currency: currency,
+                                    appBundleIDs: DetectionInput.sanitizedPrefixes(apps))
+        }) else { return }
         invalidateProjectCache()
         // Auto-creation routes here too, so only stamp intent when a human
         // filled in the sheet — `switchOrCreate` calls this as well.
@@ -207,7 +211,7 @@ final class ProjectsModel {
                 rate: Double, budget: Double, currency: BillingCurrency, apps: [String]) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
-        try? store.update(project) {
+        errors.attempt("save the project") { try store.update(project) {
             $0.name = name
             $0.client = client.trimmingCharacters(in: .whitespaces)
             $0.mode = mode
@@ -215,7 +219,7 @@ final class ProjectsModel {
             $0.budget = max(0, budget)
             $0.currency = currency
             $0.appBundleIDs = DetectionInput.sanitizedPrefixes(apps)
-        }
+        } }
         if project.persistentModelID == selectedProjectID {
             Prefs.set(name, forKey: "selectedProjectName")
         }
@@ -229,7 +233,7 @@ final class ProjectsModel {
             // The open span belongs to the project being deleted (or its heir).
             engine.closeSessionNow(reason: "project-delete")
         }
-        try? store.delete(project, reassignTo: target)
+        errors.attempt("delete the project") { try store.delete(project, reassignTo: target) }
         invalidateProjectCache()
         if wasSelected {
             selectedProjectID = (target ?? projects.first)?.persistentModelID

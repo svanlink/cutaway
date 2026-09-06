@@ -16,6 +16,8 @@ final class AppModel {
     let engine: DetectionEngine
     let store: SessionStore
     let detector = ProjectDetector()
+    /// Every store write reports here; the panel and Stats show its sentence.
+    let storeErrors = StoreErrorReporter()
 
     /// Bumped when the user changes an accessibility display setting, purely
     /// to make SwiftUI re-render: the tokens are dynamic colours, and a
@@ -81,7 +83,10 @@ final class AppModel {
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
         }
-        projectsModel = ProjectsModel(store: store, engine: engine)
+        projectsModel = ProjectsModel(store: store, engine: engine, errors: storeErrors)
+        // After the last stored property: a closure over self before that is
+        // a compile error, not a style choice.
+        storeErrors.log = { [weak self] in self?.engine.logDetection("store", detail: $0) }
         // CUTAWAY_DEMO seeds sample data for screenshots and dev runs — but
         // ONLY into a quarantined store. On 2026-08-23 this guard did not
         // exist, `open` turned out to propagate the caller's environment
@@ -101,14 +106,15 @@ final class AppModel {
         }
         engine.onSessionClosed = { [weak self] record in
             guard let self, let project = self.selectedProject else { return }
-            try? self.store.record(record, to: project)
+            self.storeErrors.attempt("save session") { try self.store.record(record, to: project) }
             self.flashBankedSession(record.activeSeconds)
         }
         // Crash recovery: persist the last checkpoint of a session that never
         // closed. The snapshot is cleared ONLY after a successful persist —
         // otherwise it survives for the next launch to retry.
         if let crashed = DetectionEngine.peekCrashedSession() {
-            if let p = selectedProject, (try? store.record(crashed, to: p)) != nil {
+            if let p = selectedProject,
+               storeErrors.attempt("recover the last session", { try store.record(crashed, to: p) }) != nil {
                 DetectionEngine.clearCrashedSessionSnapshot()
             }
         }
@@ -205,7 +211,7 @@ final class AppModel {
         if Calendar.current.isDateInToday(day) {
             target -= engine.accumulator.activeSeconds
         }
-        try? store.setActiveSeconds(max(0, target), on: day, for: p)
+        storeErrors.attempt("save the day edit") { try store.setActiveSeconds(max(0, target), on: day, for: p) }
     }
 
     /// Accepts "1:30", "1.5", "1,5", "90m" — whatever an editor types.

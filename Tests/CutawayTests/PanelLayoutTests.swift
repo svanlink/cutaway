@@ -26,6 +26,13 @@ final class PanelLayoutTests: XCTestCase {
         XCTAssertEqual(blocks, [.hero, .projects, .resumeBanner, .researchWindow, .receipt, .footer])
     }
 
+    func testAFailedSaveOutranksEverythingButTheHero() {
+        let blocks = MenuBarPanel.blocks(zeroState: false, offersAccessibility: false,
+                                         workDetectedWhilePaused: false, researchLabel: false,
+                                         receipt: false, storeProblem: true)
+        XCTAssertEqual(blocks, [.hero, .storeProblem, .projects, .footer])
+    }
+
     func testTheCardsRender() throws {
         let zero = ImageRenderer(content: ZeroStateCard(state: .noProject, createProject: {}).frame(width: 340))
         XCTAssertNotNil(zero.cgImage)
