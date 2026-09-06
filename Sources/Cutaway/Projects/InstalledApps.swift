@@ -47,6 +47,16 @@ enum InstalledApps {
         return found.values.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
+    /// One bundle the user pointed at — the escape hatch for an app that
+    /// lives where the scan does not look (external volume, ~/Downloads).
+    static func app(at url: URL) -> InstalledApp? {
+        guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier, !id.isEmpty else { return nil }
+        let name = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
+            ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
+            ?? url.deletingPathExtension().lastPathComponent
+        return InstalledApp(name: name, bundleID: id, url: url)
+    }
+
     /// The installed bundle a catalog PREFIX stands for, if any.
     static func installed(matching prefix: String, in apps: [InstalledApp]) -> InstalledApp? {
         apps.first { $0.bundleID.hasPrefix(prefix) }

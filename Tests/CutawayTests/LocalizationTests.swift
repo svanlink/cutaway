@@ -22,6 +22,23 @@ final class LocalizationTests: XCTestCase {
         XCTAssertGreaterThan(withDe.count, 60, "German must cover the catalog")
     }
 
+    /// The committed catalog must be exactly what the generator produces from
+    /// the sources today — otherwise a new UI string ships untranslated with
+    /// the suite green, which is how the primer shipped in English once.
+    func testTheCatalogMatchesTheSources() throws {
+        let out = FileManager.default.temporaryDirectory.appendingPathComponent("strings-\(UUID().uuidString).xcstrings")
+        defer { try? FileManager.default.removeItem(at: out) }
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        p.arguments = ["python3", root.appendingPathComponent("scripts/strings.py").path]
+        p.environment = ProcessInfo.processInfo.environment.merging(["STRINGS_OUT": out.path]) { $1 }
+        p.standardOutput = Pipe()
+        try p.run(); p.waitUntilExit()
+        XCTAssertEqual(p.terminationStatus, 0, "generator reported a gap — run it and read its output")
+        let committed = try Data(contentsOf: root.appendingPathComponent("Sources/Cutaway/Localizable.xcstrings"))
+        XCTAssertEqual(try Data(contentsOf: out), committed, "run python3 scripts/strings.py and commit the catalog")
+    }
+
     func testNoAppKitStringIsLeftUnlocalized() throws {
         let f = try String(contentsOf: root.appendingPathComponent("Sources/Cutaway/MenuBar/StatusItemController.swift"), encoding: .utf8)
         XCTAssertFalse(f.contains("withTitle: \"Open Cutaway\""), "menu titles go through String(localized:)")

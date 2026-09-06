@@ -194,7 +194,7 @@ final class ProjectsModel {
     func createProject(name: String, client: String, mode: BillingMode,
                        rate: Double, budget: Double, currency: BillingCurrency,
                        apps: [String], isManual: Bool = false) {
-        guard let p = errors.attempt("create the project", {
+        guard let p = errors.attempt("create the project", recovery: false, {
             try store.createProject(name: name, client: client, mode: mode,
                                     hourlyRate: rate, budget: budget, currency: currency,
                                     appBundleIDs: DetectionInput.sanitizedPrefixes(apps))
@@ -211,7 +211,7 @@ final class ProjectsModel {
                 rate: Double, budget: Double, currency: BillingCurrency, apps: [String]) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
-        errors.attempt("save the project") { try store.update(project) {
+        errors.attempt("save the project", recovery: false) { try store.update(project) {
             $0.name = name
             $0.client = client.trimmingCharacters(in: .whitespaces)
             $0.mode = mode
@@ -233,7 +233,7 @@ final class ProjectsModel {
             // The open span belongs to the project being deleted (or its heir).
             engine.closeSessionNow(reason: "project-delete")
         }
-        errors.attempt("delete the project") { try store.delete(project, reassignTo: target) }
+        errors.attempt("delete the project", recovery: false) { try store.delete(project, reassignTo: target) }
         invalidateProjectCache()
         if wasSelected {
             selectedProjectID = (target ?? projects.first)?.persistentModelID

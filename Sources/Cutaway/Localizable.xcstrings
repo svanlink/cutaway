@@ -101,6 +101,16 @@
         }
       }
     },
+    "@ %@ %@ / h — one value, two views": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@ %@ %@ / h — ein Wert, zwei Ansichten"
+          }
+        }
+      }
+    },
     "@ %@ / h": {
       "localizations": {
         "de": {
@@ -181,12 +191,32 @@
         }
       }
     },
+    "Amount · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betrag · %@"
+          }
+        }
+      }
+    },
     "Apps": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Apps"
+          }
+        }
+      }
+    },
+    "Are you working?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitest du gerade?"
           }
         }
       }
@@ -217,6 +247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Automatisch erkannte Projekte starten mit diesem Satz"
+          }
+        }
+      }
+    },
+    "Automation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisierung"
           }
         }
       }
@@ -291,12 +331,32 @@
         }
       }
     },
+    "Choose app…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App auswählen …"
+          }
+        }
+      }
+    },
     "Client": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Kunde"
+          }
+        }
+      }
+    },
+    "Coming with Adobe project names: asks once per app, reads the document name only.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommt mit Adobe-Projektnamen: fragt einmal pro App, liest nur den Dokumentnamen."
           }
         }
       }
@@ -321,12 +381,32 @@
         }
       }
     },
+    "Couldn't change Launch at login": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Beim Anmelden starten“ konnte nicht geändert werden"
+          }
+        }
+      }
+    },
     "Crash and hang reports stay on this Mac; copy one into a bug report if you want to": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Absturz- und Hänger-Berichte bleiben auf diesem Mac; kopiere einen in einen Fehlerbericht, wenn du möchtest"
+          }
+        }
+      }
+    },
+    "Create Project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekt anlegen"
           }
         }
       }
@@ -371,12 +451,62 @@
         }
       }
     },
+    "Cutaway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway"
+          }
+        }
+      }
+    },
+    "Cutaway Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway-Einstellungen"
+          }
+        }
+      }
+    },
     "Cutaway can read Resolve's window title to switch projects the moment you do. It works without this — switching is just slower.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway kann Resolves Fenstertitel lesen und Projekte im selben Moment wechseln wie du. Es funktioniert auch ohne — der Wechsel ist nur langsamer."
+          }
+        }
+      }
+    },
+    "Cutaway is not running yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway läuft noch nicht"
+          }
+        }
+      }
+    },
+    "Cutaway is paused, but you're editing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway ist pausiert, aber du schneidest."
+          }
+        }
+      }
+    },
+    "Cutaway never asks for Screen Recording, never reads keystrokes, and nothing leaves your Mac.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway fragt nie nach Bildschirmaufnahme, liest nie Tastatureingaben, und nichts verlässt deinen Mac."
           }
         }
       }
@@ -471,12 +601,32 @@
         }
       }
     },
+    "Diagnostics folder unreadable: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose-Ordner nicht lesbar: %@"
+          }
+        }
+      }
+    },
     "EARNED": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "VERDIENT"
+          }
+        }
+      }
+    },
+    "Edit %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bearbeiten"
           }
         }
       }
@@ -731,6 +881,16 @@
         }
       }
     },
+    "New Project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Projekt"
+          }
+        }
+      }
+    },
     "New Project…": {
       "localizations": {
         "de": {
@@ -747,6 +907,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neue Projekte starten mit dieser Währung"
+          }
+        }
+      }
+    },
+    "No match": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Treffer"
+          }
+        }
+      }
+    },
+    "No project named %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Projekt namens %@"
           }
         }
       }
@@ -801,6 +981,26 @@
         }
       }
     },
+    "Nothing else installed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts weiter installiert"
+          }
+        }
+      }
+    },
+    "Now tracking %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt wird %@ erfasst"
+          }
+        }
+      }
+    },
     "Only these apps count toward this project.": {
       "localizations": {
         "de": {
@@ -851,12 +1051,32 @@
         }
       }
     },
+    "Pause Cutaway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway pausieren"
+          }
+        }
+      }
+    },
     "Pause shortcut": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pause-Kurzbefehl"
+          }
+        }
+      }
+    },
+    "Pause timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer pausieren"
           }
         }
       }
@@ -911,12 +1131,32 @@
         }
       }
     },
+    "Reads Resolve's window title so the project switches when you do. Never controls your Mac.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest Resolves Fenstertitel, damit das Projekt wechselt, wenn du wechselst. Steuert deinen Mac nie."
+          }
+        }
+      }
+    },
     "Research & comms": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Recherche & Kommunikation"
+          }
+        }
+      }
+    },
+    "Research & comms apps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche- & Kommunikations-Apps"
           }
         }
       }
@@ -961,12 +1201,32 @@
         }
       }
     },
+    "Resume Cutaway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway fortsetzen"
+          }
+        }
+      }
+    },
     "Resume automatically": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Automatisch fortsetzen"
+          }
+        }
+      }
+    },
+    "Resume timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer fortsetzen"
           }
         }
       }
@@ -1021,6 +1281,36 @@
         }
       }
     },
+    "Set an hourly rate on the project to edit by amount": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lege im Projekt einen Stundensatz fest, um nach Betrag zu bearbeiten"
+          }
+        }
+      }
+    },
+    "Set time for a day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit für einen Tag festlegen"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
     "Settings…": {
       "localizations": {
         "de": {
@@ -1061,6 +1351,16 @@
         }
       }
     },
+    "Still working?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch dabei?"
+          }
+        }
+      }
+    },
     "Still working? %@": {
       "localizations": {
         "de": {
@@ -1077,6 +1377,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Noch dabei? Der Timer pausiert in %lld Sekunden."
+          }
+        }
+      }
+    },
+    "Switch Cutaway Project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway-Projekt wechseln"
+          }
+        }
+      }
+    },
+    "The running session alone is longer than that — pause first, then edit.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die laufende Sitzung allein ist schon länger — erst pausieren, dann bearbeiten."
           }
         }
       }
@@ -1131,6 +1451,16 @@
         }
       }
     },
+    "Today's Time in Cutaway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heutige Zeit in Cutaway"
+          }
+        }
+      }
+    },
     "Total  %@": {
       "localizations": {
         "de": {
@@ -1161,12 +1491,32 @@
         }
       }
     },
+    "Welcome to Cutaway": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei Cutaway"
+          }
+        }
+      }
+    },
     "What Cutaway asks for, and what it never does": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wofür Cutaway fragt — und was es nie tut"
+          }
+        }
+      }
+    },
+    "What Cutaway needs, and why": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was Cutaway braucht, und warum"
           }
         }
       }
@@ -1247,6 +1597,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "⌥⌘P is taken by another app — pause from the panel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥⌘P ist von einer anderen App belegt — pausiere über das Panel"
           }
         }
       }

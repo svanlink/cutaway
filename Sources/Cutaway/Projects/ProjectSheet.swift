@@ -59,7 +59,7 @@ struct ProjectSheet: View {
                 }
                 Spacer()
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button(editing == nil ? "Create Project" : "Save") { save() }
+                Button(action: save) { editing == nil ? Text("Create Project") : Text("Save") }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isDuplicate || apps.isEmpty)

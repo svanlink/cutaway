@@ -9,7 +9,7 @@ final class AppearanceGuardTests: XCTestCase {
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<3 { root.deleteLastPathComponent() }
         let base = root.appendingPathComponent("Sources/Cutaway")
-        return try FileManager.default.enumerator(at: base, includingPropertiesForKeys: nil)!
+        return try XCTUnwrap(FileManager.default.enumerator(at: base, includingPropertiesForKeys: nil))
             .compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" }
             .map { ($0.lastPathComponent, try String(contentsOf: $0, encoding: .utf8)) }
     }

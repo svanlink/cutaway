@@ -31,7 +31,7 @@ final class MenuBarKeyboardTests: XCTestCase {
             .post(tap: .cghidEventTap)
     }
 
-    private func launched() -> XCUIApplication {
+    @MainActor private func launched() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["CUTAWAY_DEMO"] = "1"
         // Quarantine: without CUTAWAY_DATA_DIR the launched app opens the real

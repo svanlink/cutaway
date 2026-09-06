@@ -8,7 +8,7 @@ import XCTest
 final class ManualIntentTests: XCTestCase {
 
     func testAnUninterruptedDetectionStillApplies() {
-        var intent = ManualIntent()
+        let intent = ManualIntent()
         let started = intent.token
         // ...fuscript runs, nobody touches anything...
         XCTAssertFalse(intent.hasMovedSince(started),

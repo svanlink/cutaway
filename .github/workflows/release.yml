@@ -7,6 +7,9 @@ jobs:
     runs-on: macos-15
     permissions:
       contents: write
+    env:
+      # Job-level: a step's own env is not in scope for its `if`.
+      TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - run: brew install xcodegen
@@ -18,10 +21,10 @@ jobs:
           [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/Cutaway/Info.plist)" = "$V" ]
           echo "V=$V" >> "$GITHUB_ENV"
       - name: Test
-        run: xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests | grep -q "TEST SUCCEEDED"
+        run: xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests
       - name: Build (ad-hoc signed — Developer ID parked by decision 1)
         run: |
-          xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' -derivedDataPath build build | grep -q "BUILD SUCCEEDED"
+          xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' -derivedDataPath build build
           APP=build/Build/Products/Release/Cutaway.app
           codesign --force --deep --sign - "$APP" && codesign --verify --deep --strict "$APP"
           ditto -c -k --keepParent "$APP" "Cutaway-$V.zip"
@@ -32,12 +35,9 @@ jobs:
         run: gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
       - name: Bump cask
         if: ${{ env.TAP_TOKEN != '' }}
-        env:
-          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
-          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
         run: |
           SHA=$(cat sha256.txt)
-          gh repo clone svanlink/homebrew-tap tap -- -q
+          git clone -q "https://x-access-token:${TAP_TOKEN}@github.com/svanlink/homebrew-tap" tap
           sed -i '' "s/version \".*\"/version \"$V\"/; s/sha256 \".*\"/sha256 \"$SHA\"/" tap/Casks/cutaway.rb
           git -C tap -c user.name=cutaway-ci -c user.email=ci@vaneickelen.com commit -aqm "cutaway $V"
           git -C tap push -q

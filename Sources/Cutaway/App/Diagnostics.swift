@@ -1,5 +1,6 @@
 import Foundation
 import MetricKit
+import os
 
 /// Crash and hang reports, on disk, nowhere else. MetricKit delivers them
 /// on the next launch; the user copies them into a bug report by choice.
@@ -14,7 +15,10 @@ final class DiagnosticsStore: @unchecked Sendable {
 
     func write(_ data: Data, stamp: Date = Date()) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let name = ISO8601DateFormatter().string(from: stamp).replacingOccurrences(of: ":", with: "-") + ".json"
+        // MetricKit hands over a BATCH at launch; a second-resolution name
+        // alone made them overwrite each other. Sorting stays by the stamp.
+        let name = ISO8601DateFormatter().string(from: stamp).replacingOccurrences(of: ":", with: "-")
+            + "-" + UUID().uuidString.prefix(8) + ".json"
         try data.write(to: directory.appendingPathComponent(name))
         for old in try reports().dropFirst(keep) { try? FileManager.default.removeItem(at: old) }
     }
@@ -42,7 +46,13 @@ final class DiagnosticsSubscriber: NSObject, MXMetricManagerSubscriber {
         MXMetricManager.shared.add(self)
     }
     func didReceive(_ payloads: [MXDiagnosticPayload]) {
-        for p in payloads { try? store.write(p.jsonRepresentation()) }
+        for p in payloads {
+            do { try store.write(p.jsonRepresentation()) } catch {
+                // MetricKit delivers once; at least the unified log keeps it.
+                Logger(subsystem: "com.vaneickelen.cutaway", category: "diagnostics")
+                    .error("could not store diagnostic payload: \(error, privacy: .public)")
+            }
+        }
     }
     func didReceive(_ payloads: [MXMetricPayload]) {}
 }

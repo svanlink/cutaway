@@ -41,16 +41,27 @@ enum StoreBackup {
         fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "yyyyMMdd-HHmmss"
         let dest = backupsDir.appendingPathComponent("billing-\(fmt.string(from: now))")
-        try fm.createDirectory(at: dest, withIntermediateDirectories: true)
-        for suffix in copiedSuffixes {
-            let src = URL(fileURLWithPath: storeURL.path + suffix)
-            guard fm.fileExists(atPath: src.path) else { continue }
-            try fm.copyItem(at: src, to: dest.appendingPathComponent(src.lastPathComponent))
+        // Copy into a staging folder and rename at the end: a folder carrying
+        // the real `billing-…` name is complete by construction. A copy that
+        // died mid-WAL used to leave a folder that looked exactly like a good
+        // backup — the one the recovery procedure says to restore.
+        let staging = backupsDir.appendingPathComponent(".staging-\(fmt.string(from: now))")
+        try? fm.removeItem(at: staging)
+        try fm.createDirectory(at: staging, withIntermediateDirectories: true)
+        do {
+            for suffix in copiedSuffixes {
+                let src = URL(fileURLWithPath: storeURL.path + suffix)
+                guard fm.fileExists(atPath: src.path) else { continue }
+                try fm.copyItem(at: src, to: staging.appendingPathComponent(src.lastPathComponent))
+            }
+            // Record what the store looked like, so the NEXT launch can decide
+            // with stat calls instead of reading the whole database.
+            writeManifest(facts(for: storeURL), to: staging)
+            try fm.moveItem(at: staging, to: dest)
+        } catch {
+            try? fm.removeItem(at: staging)
+            throw error
         }
-
-        // Record what the store looked like, so the NEXT launch can decide
-        // with stat calls instead of reading the whole database.
-        writeManifest(facts(for: storeURL), to: dest)
 
         // Rotate. Two buckets survive: the newest `keep` generations, and
         // each calendar day's newest generation for `dailyDays` days.

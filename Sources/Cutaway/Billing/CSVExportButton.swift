@@ -52,7 +52,7 @@ struct CSVExportButton: View {
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
             do {
-                try csv.data(using: .utf8)?.write(to: url)
+                try Data(csv.utf8).write(to: url)
             } catch {
                 // A silent export failure in a billing app is unacceptable.
                 let alert = NSAlert()

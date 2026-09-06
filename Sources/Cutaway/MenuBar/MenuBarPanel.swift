@@ -46,20 +46,22 @@ struct MenuBarPanel: View {
                                  workDetectedWhilePaused: model.engine.workDetectedWhilePaused,
                                  researchLabel: model.engine.recordingSource?.label != nil,
                                  receipt: model.lastSessionLine != nil,
-                                 storeProblem: model.storeErrors.problem != nil)
+                                 storeProblem: model.storeErrors.banner != nil)
         VStack(spacing: 0) {
             ForEach(blocks, id: \.self) { block in
                 switch block {
                 case .hero: hero
                 case .storeProblem:
-                    Text(model.storeErrors.problem ?? "")
+                    Text(model.storeErrors.banner ?? "")
                         .font(DT.captionMedium)
                         .foregroundStyle(DT.text)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, DT.rowInset).padding(.vertical, DT.s2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(DT.alarm.opacity(0.25))
-                        .accessibilityLabel(model.storeErrors.problem ?? "")
+                        .contentShape(Rectangle())
+                        .onTapGesture { model.storeErrors.clear() }   // a fatal one stays
+                        .accessibilityLabel(model.storeErrors.banner ?? "")
                 case .zeroState:
                     ZeroStateCard(state: model.zeroState ?? .noProject) {
                         model.showNewProjectSheet = true
@@ -304,7 +306,7 @@ struct MenuBarPanel: View {
         .buttonStyle(.plain)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: paused)
         .disabled(model.selectedProject == nil)
-        .accessibilityLabel(paused ? "Resume timer" : "Pause timer")
+        .accessibilityLabel(paused ? Text("Resume timer") : Text("Pause timer"))
     }
 
     private var footer: some View {

@@ -58,7 +58,7 @@ struct AppPickerView: View {
                     DisclosureGroup("Other…", isExpanded: $showOthers) {
                         let others = model.otherApps(installed: installed)
                         if others.isEmpty {
-                            Text(query.isEmpty ? "Nothing else installed" : "No match")
+                            (query.isEmpty ? Text("Nothing else installed") : Text("No match"))
                                 .font(.caption).foregroundStyle(.secondary)
                         } else {
                             LazyVGrid(columns: columns, spacing: 8) {
@@ -67,6 +67,10 @@ struct AppPickerView: View {
                                 }
                             }
                         }
+                        // The scan looks in /Applications and ~/Applications, one
+                        // vendor folder deep. An app anywhere else is still billable.
+                        Button("Choose app…") { chooseApp() }
+                            .font(.caption)
                     }
                 }
                 .padding(.vertical, 4)
@@ -78,6 +82,17 @@ struct AppPickerView: View {
             let apps = await Task.detached(priority: .utility) { InstalledApps.scan() }.value
             installed = apps
         }
+    }
+
+    private func chooseApp() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url, let app = InstalledApps.app(at: url) else { return }
+        if !installed.contains(where: { $0.bundleID == app.bundleID }) { installed.append(app) }
+        selected.insert(app.bundleID)
+        showOthers = true
     }
 
     private func tile(prefix: String, name: String, app: InstalledApp?) -> some View {

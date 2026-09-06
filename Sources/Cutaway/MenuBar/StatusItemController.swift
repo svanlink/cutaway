@@ -5,7 +5,7 @@ import SwiftUI
 /// renders template-only, so the pill lives in an NSStatusItem hosting a
 /// SwiftUI view, with an NSPopover for the panel.
 @MainActor
-final class StatusItemController: NSObject {
+final class StatusItemController: NSObject, NSPopoverDelegate {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private let model: AppModel
@@ -93,6 +93,7 @@ final class StatusItemController: NSObject {
         }
 
         popover.behavior = .transient
+        popover.delegate = self
         // The popover's scale-in is the largest movement this app makes, it
         // fires dozens of times a day, and it happens in peripheral vision
         // next to the menu bar.
@@ -163,14 +164,22 @@ final class StatusItemController: NSObject {
 
     private func closePopover() {
         popover.performClose(nil)
+        endPanelSession()
+        // Focus goes back where it came from, so Escape does not strand the
+        // keyboard user somewhere they did not navigate to.
+        statusItem.button?.window?.makeKey()
+    }
+
+    /// A transient popover also closes on a click outside — without this,
+    /// the Escape monitor outlived the panel and ate Escape in every sheet.
+    func popoverDidClose(_ notification: Notification) { endPanelSession() }
+
+    private func endPanelSession() {
         NSApp.setAccessibilityChildren(nil)
         if let escapeMonitor {
             NSEvent.removeMonitor(escapeMonitor)
             self.escapeMonitor = nil
         }
-        // Focus goes back where it came from, so Escape does not strand the
-        // keyboard user somewhere they did not navigate to.
-        statusItem.button?.window?.makeKey()
     }
 
     @objc private func openMain() { model.openMainWindow?() }
@@ -211,7 +220,7 @@ struct PillView: View {
     /// "Recording" — while the number the whole app exists to show, and the
     /// project it belongs to, were visible to everyone else and to nobody
     /// using a screen reader.
-    static func accessibilityLabel(project: String?, isRecording: Bool,
+    nonisolated static func accessibilityLabel(project: String?, isRecording: Bool,
                                    seconds: TimeInterval, banked: String?,
                                    pausedHint: String?) -> String {
         guard let project, !project.isEmpty else { return "Cutaway — no project selected" }
@@ -230,7 +239,7 @@ struct PillView: View {
 
     /// "2 hours 14 minutes", not "2:14:07" — a screen reader spelling out a
     /// clock string is a worse experience than no clock string.
-    static func spokenDuration(_ seconds: TimeInterval) -> String {
+    nonisolated static func spokenDuration(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds))
         let hours = total / 3600
         let minutes = (total % 3600) / 60

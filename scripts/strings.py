@@ -11,12 +11,13 @@ the gap is visible in Xcode, never silent.
 Usage: python3 scripts/strings.py   (idempotent; run after adding UI strings)
 """
 import json
+import os
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "Sources" / "Cutaway"
-OUT = SRC / "Localizable.xcstrings"
+OUT = Path(os.environ.get("STRINGS_OUT", SRC / "Localizable.xcstrings"))
 
 # A quoted Swift literal without escapes or interpolation.
 LIT = r'"((?:[^"\\]|\\[^(])*)"'
@@ -36,6 +37,15 @@ PATTERNS = [
     rf'prompt:\s*Text\({LIT}',
     rf'String\(localized:\s*{LIT}',
     rf'\bsupportStat\(key:\s*{LIT}',
+    rf'\.navigationTitle\({LIT}',
+    rf'\bWindow\({LIT}',
+    rf'LocalizedStringResource = {LIT}',
+    rf'shortTitle:\s*{LIT}',
+    rf'@Parameter\(title:\s*{LIT}',
+    rf'LocalizedStringResource \{{ {LIT}',
+    rf'\bhelp:\s*{LIT}',
+    rf'\btitle:\s*{LIT}',
+    rf'\bline:\s*{LIT}',
 ]
 SKIP = {"", " · ", "＋", "▼", "h:mm", "com.example.app", "%d:%02d", "0.00", "4500", "85"}
 
@@ -52,13 +62,13 @@ DE = {
  "A new rate applies from now on. Work already recorded keeps the rate it was worked at.": "Ein neuer Satz gilt ab jetzt. Bereits erfasste Arbeit behält den Satz, zu dem sie geleistet wurde.",
  "A project with this name already exists": "Ein Projekt mit diesem Namen existiert bereits",
  "Search apps": "Apps suchen", "Other…": "Weitere …", "Nothing else installed": "Nichts weiter installiert", "No match": "Kein Treffer",
- "Add Time": "Zeit hinzufügen", "Day": "Tag", "Time worked": "Gearbeitete Zeit", "Try 1:30, 1.5 or 90m": "Versuche 1:30, 1.5 oder 90m",
+ "Set time for a day": "Zeit für einen Tag festlegen", "The running session alone is longer than that — pause first, then edit.": "Die laufende Sitzung allein ist schon länger — erst pausieren, dann bearbeiten.", "Day": "Tag", "Time worked": "Gearbeitete Zeit", "Try 1:30, 1.5 or 90m": "Versuche 1:30, 1.5 oder 90m",
  "Delete the sessions too": "Sitzungen ebenfalls löschen", "Sessions": "Sitzungen",
  "Daily Breakdown": "Tagesübersicht", "＋ Add": "＋ Hinzufügen", "Add time for a day": "Zeit für einen Tag hinzufügen",
  "Includes manual adjustment": "Enthält manuelle Anpassung", "includes manual adjustment": "enthält manuelle Anpassung",
  "Export CSV": "CSV exportieren", "Export project data as CSV": "Projektdaten als CSV exportieren", "Export failed": "Export fehlgeschlagen",
- "EARNED": "VERDIENT", "BUDGET": "BUDGET", "PROJECT TOTAL": "PROJEKT GESAMT", "AVG PER DAY": "Ø PRO TAG", "USED": "VERBRAUCHT",
- "Today": "Heute", "running": "läuft", " active": " aktiv", "Total": "Gesamt", "Total  ": "Gesamt  ",
+ "EARNED": "VERDIENT", "BUDGET": "BUDGET", "PROJECT TOTAL": "PROJEKT GESAMT", "AVG PER DAY": "Ø PRO TAG",
+ "Today": "Heute", "running": "läuft", " active": " aktiv",
  "Tracking": "Erfassung", "Idle threshold": "Inaktivitäts-Schwelle", "Timer pauses after this much inactivity": "Der Timer pausiert nach so viel Inaktivität",
  "1 minute": "1 Minute", "2 minutes": "2 Minuten", "5 minutes": "5 Minuten", "10 minutes": "10 Minuten",
  "After a manual pause": "Nach einer manuellen Pause", "When you start editing again in a workflow app": "Wenn du in einer Workflow-App wieder zu schneiden beginnst",
@@ -94,7 +104,7 @@ DE = {
  "Not needed yet": "Noch nicht nötig", "Continue": "Weiter",
  "Cutaway never asks for Screen Recording, never reads keystrokes, and nothing leaves your Mac.": "Cutaway fragt nie nach Bildschirmaufnahme, liest nie Tastatureingaben, und nichts verlässt deinen Mac.",
  "Diagnostics": "Diagnose", "Crash and hang reports stay on this Mac; copy one into a bug report if you want to": "Absturz- und Hänger-Berichte bleiben auf diesem Mac; kopiere einen in einen Fehlerbericht, wenn du möchtest",
- "No reports": "Keine Berichte", "Copy report": "Bericht kopieren", "Reveal…": "Anzeigen …",
+ "No reports": "Keine Berichte", "Choose app…": "App auswählen …", "Couldn't change Launch at login": "„Beim Anmelden starten“ konnte nicht geändert werden", "Copy report": "Bericht kopieren", "Cutaway": "Cutaway", "Cutaway Settings": "Cutaway-Einstellungen", "Welcome to Cutaway": "Willkommen bei Cutaway", "Pause Cutaway": "Cutaway pausieren", "Resume Cutaway": "Cutaway fortsetzen", "Today's Time in Cutaway": "Heutige Zeit in Cutaway", "Switch Cutaway Project": "Cutaway-Projekt wechseln", "Cutaway is not running yet": "Cutaway läuft noch nicht", "Reveal…": "Anzeigen …",
 }
 
 
@@ -105,6 +115,13 @@ EXTRA = {
  "Research time · under a minute left": "Recherchezeit · unter einer Minute",
  "Are you working? Cutaway is paused, but you're editing.": "Arbeitest du gerade? Cutaway ist pausiert, aber du schneidest.",
  "Still working? %@": "Noch dabei? %@",
+ "No project named %@": "Kein Projekt namens %@",
+ "Now tracking %@": "Jetzt wird %@ erfasst",
+ "Diagnostics folder unreadable: %@": "Diagnose-Ordner nicht lesbar: %@",
+ "Edit %@": "%@ bearbeiten",
+ "Set an hourly rate on the project to edit by amount": "Lege im Projekt einen Stundensatz fest, um nach Betrag zu bearbeiten",
+ "Amount · %@": "Betrag · %@",
+ "@ %@ %@ / h — one value, two views": "@ %@ %@ / h — ein Wert, zwei Ansichten",
  "Still working? The timer pauses in %lld seconds.": "Noch dabei? Der Timer pausiert in %lld Sekunden.",
  "Last session: %@ · %@": "Letzte Sitzung: %@ · %@",
  "%lld min": "%lld Min.",
@@ -145,9 +162,15 @@ def main() -> None:
     OUT.write_text(json.dumps({"sourceLanguage": "en", "version": "1.0", "strings": strings},
                               ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     missing = [k for k in keys if k not in DE]
-    print(f"{len(keys)} keys, {translated} translated → {OUT.relative_to(ROOT)}")
+    print(f"{len(keys)} keys, {translated} translated → {OUT}")
     if missing:
         print("needs_review:", *missing, sep="\n  ")
+    # German that no source literal reaches is a string the scan missed —
+    # the primer shipped in English this way once. Loud, not silent.
+    orphans = sorted(set(DE) - set(keys))
+    if orphans:
+        print("orphans (in DE, not in sources):", *orphans, sep="\n  ")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

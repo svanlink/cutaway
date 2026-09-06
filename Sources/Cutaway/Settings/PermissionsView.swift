@@ -17,13 +17,13 @@ struct PermissionsView: View {
                             Button("Enable…") { model.detector.requestAccessibility() }
                         }
                     } label: {
-                        row("Accessibility",
+                        labelled("Accessibility",
                             "Reads Resolve's window title so the project switches when you do. Never controls your Mac.")
                     }
                     LabeledContent {
                         Text("Not needed yet").foregroundStyle(.secondary)
                     } label: {
-                        row("Automation",
+                        labelled("Automation",
                             "Coming with Adobe project names: asks once per app, reads the document name only.")
                     }
                 } header: {
@@ -43,13 +43,5 @@ struct PermissionsView: View {
         // A grouped Form fills whatever it is given; this is a one-screen note.
         .frame(width: 480, height: 300)
         .onAppear { Prefs.set(true, forKey: "didShowPermissionsPrimer") }
-    }
-
-    private func row(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-            Text(subtitle).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
     }
 }

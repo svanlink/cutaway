@@ -138,13 +138,15 @@ struct MainWindowView: View {
                     .frame(maxWidth: .infinity)
                     .background(DT.red.opacity(0.25))
             }
-            if let problem = model.storeErrors.problem {
+            if let problem = model.storeErrors.banner {
                 Text(problem)
                     .font(DT.captionMedium)
                     .foregroundStyle(DT.text)
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
                     .background(DT.red.opacity(0.25))
+                    .contentShape(Rectangle())
+                    .onTapGesture { model.storeErrors.clear() }
             }
             StatsView(model: model)
                 .padding(.top, model.storeIsEphemeral ? 0 : DT.s4)

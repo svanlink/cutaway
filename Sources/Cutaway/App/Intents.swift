@@ -9,11 +9,18 @@ enum IntentText {
     }
 }
 
+/// Shortcuts shows a failure instead of a green tick that did nothing.
+enum IntentFailure: Error, CustomLocalizedStringResourceConvertible {
+    case notRunning
+    var localizedStringResource: LocalizedStringResource { "Cutaway is not running yet" }
+}
+
 struct PauseTrackingIntent: AppIntent {
     static let title: LocalizedStringResource = "Pause Cutaway"
     static let openAppWhenRun = false
     @MainActor func perform() async throws -> some IntentResult {
-        if let m = AppDelegate.model, !m.engine.manuallyPaused { m.engine.togglePause() }
+        guard let m = AppDelegate.model else { throw IntentFailure.notRunning }
+        if !m.engine.manuallyPaused { m.engine.togglePause() }
         return .result()
     }
 }
@@ -22,7 +29,8 @@ struct ResumeTrackingIntent: AppIntent {
     static let title: LocalizedStringResource = "Resume Cutaway"
     static let openAppWhenRun = false
     @MainActor func perform() async throws -> some IntentResult {
-        AppDelegate.model?.engine.resume()
+        guard let m = AppDelegate.model else { throw IntentFailure.notRunning }
+        m.engine.resume()
         return .result()
     }
 }

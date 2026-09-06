@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage("pillDisplay") private var pillDisplay = "today"
     @State private var editingWorkApps = false
     @State private var editingSatellites = false
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         Form {
@@ -82,13 +83,28 @@ struct SettingsView: View {
                     labelled("Menu bar shows", "Which time the pill displays")
                 }
                 Toggle(isOn: Binding(
-                    get: { SMAppService.mainApp.status == .enabled },
-                    set: { on in try? on ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister() }
+                    get: { launchAtLogin },
+                    set: { on in
+                        // The switch must never sit ON while the system says
+                        // otherwise: re-read the status after every attempt
+                        // and explain a refusal instead of swallowing it.
+                        do { try on ? SMAppService.mainApp.register() : SMAppService.mainApp.unregister() }
+                        catch {
+                            let alert = NSAlert()
+                            alert.messageText = String(localized: "Couldn't change Launch at login")
+                            alert.informativeText = error.localizedDescription
+                            alert.runModal()
+                        }
+                        if SMAppService.mainApp.status == .requiresApproval {
+                            SMAppService.openSystemSettingsLoginItems()
+                        }
+                        launchAtLogin = SMAppService.mainApp.status == .enabled
+                    }
                 )) {
                     labelled("Launch at login", "Start tracking when the Mac starts")
                 }
                 if model.hotkeyUnavailable {
-                    LabeledContent("Pause shortcut", value: "⌥⌘P is taken by another app — pause from the panel")
+                    LabeledContent("Pause shortcut") { Text("⌥⌘P is taken by another app — pause from the panel") }
                 }
                 LabeledContent("DaVinci Resolve", value: model.detectLine)
                 LabeledContent {
@@ -109,10 +125,14 @@ struct SettingsView: View {
                     HStack {
                         Button("Copy report") {
                             NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(
-                                (try? DiagnosticsStore.default.combinedReport()).flatMap { $0.isEmpty ? nil : $0 }
-                                    ?? String(localized: "No reports"),
-                                forType: .string)
+                            let text: String
+                            do {
+                                let r = try DiagnosticsStore.default.combinedReport()
+                                text = r.isEmpty ? String(localized: "No reports") : r
+                            } catch {
+                                text = String(localized: "Diagnostics folder unreadable: \(error.localizedDescription)")
+                            }
+                            NSPasteboard.general.setString(text, forType: .string)
                         }
                         Button("Reveal…") {
                             NSWorkspace.shared.activateFileViewerSelecting([DiagnosticsStore.default.directory])
@@ -126,13 +146,5 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 540)
         .onChange(of: idleThreshold) { _, new in model.engine.idleThreshold = new }
-    }
-
-    private func labelled(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-            Text(subtitle).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
     }
 }

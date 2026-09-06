@@ -70,5 +70,5 @@ static func shouldOfferAccessibility(granted: Bool, dismissed: Bool, hasProject:
 /// The first-run primer: shown once, never during a verification run.
 enum PermissionsPrimerPolicy {
     static func shouldShow(alreadyShown: Bool, scenario: Bool) -> Bool { !alreadyShown && !scenario }
-    static let statement = "Cutaway never asks for Screen Recording, never reads keystrokes, and nothing leaves your Mac."
+    static var statement: String { String(localized: "Cutaway never asks for Screen Recording, never reads keystrokes, and nothing leaves your Mac.") }
 }
