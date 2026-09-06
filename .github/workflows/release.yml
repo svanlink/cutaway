@@ -13,6 +13,9 @@ jobs:
       TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      # The image's default is Xcode 16.4 (Swift 6.0, macOS 15 SDK); the app is
+      # built and tested against the Swift 6.2 / macOS 26 toolchain locally.
+      - run: sudo xcode-select -s /Applications/Xcode_26.3.app && xcodebuild -version
       - run: brew install xcodegen
       - name: Version (project.yml is the source; xcodegen writes the plist)
         run: |

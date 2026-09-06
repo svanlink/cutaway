@@ -196,9 +196,11 @@ final class AppModel {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.accessibilityDisplayGeneration += 1 }
         }
-        Task.detached(priority: .utility) { [weak self] in
-            let apps = InstalledApps.scan()
-            await MainActor.run { self?.installedApps = apps }
+        // Same shape as the picker's scan: the detached task carries no
+        // `self` across isolation, which Swift 6.0 (CI's Xcode 16) rejects.
+        Task { @MainActor [weak self] in
+            let apps = await Task.detached(priority: .utility) { InstalledApps.scan() }.value
+            self?.installedApps = apps
         }
         if ScenarioMode.isActive {
             // The driver owns the tick loop and the virtual clock.
