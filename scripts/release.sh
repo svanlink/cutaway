@@ -14,9 +14,12 @@ xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=mac
 echo "── stamp version"
 # The bundle must say what brew says. 1.1.0 and 1.2.0 shipped with the
 # plist's original "1.0" because nothing wrote it; now the script does.
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $V" Sources/Cutaway/Info.plist
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $V" Sources/Cutaway/Info.plist
-git diff --quiet Sources/Cutaway/Info.plist || git commit -qm "chore: version $V" Sources/Cutaway/Info.plist
+# xcodegen rewrites Info.plist from project.yml on every generate, so the
+# stamp goes into project.yml (the source) and the plist follows.
+sed -i '' -E "s/^( *CFBundle(ShortVersionString|Version): ).*/\1\"$V\"/" project.yml
+xcodegen generate
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/Cutaway/Info.plist)" = "$V" ] || { echo "stamp failed"; exit 1; }
+git diff --quiet project.yml Sources/Cutaway/Info.plist || git commit -qm "chore: version $V" project.yml Sources/Cutaway/Info.plist
 
 echo "── release build"
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' build | grep -q "BUILD SUCCEEDED"

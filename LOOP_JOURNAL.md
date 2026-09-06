@@ -7,6 +7,21 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-06 — [keep] bundle metadata lives in project.yml; the 1.2.0 stamp had already been lost
+Plan 5 Task 3. Adding the app category and copyright surfaced a regression
+from the same morning: `xcodegen generate` rewrites Sources/Cutaway/Info.plist
+from project.yml's `info.properties` on every run, and those carried no
+version — so the first Task 1 build regenerated the plist back to "1.0" and
+the commit swept it in (72401f1). The 1.2.0 stamp survived exactly one
+commit. Fix at the source: CFBundleShortVersionString/CFBundleVersion
+(1.2.0), LSApplicationCategoryType (productivity) and
+NSHumanReadableCopyright now live in project.yml; release.sh and the CI
+workflow stamp project.yml, regenerate, and verify the plist says what
+the tag says before building. Owed, not done here: the Icon Composer
+icon (plan #6) needs the GUI tool and a design pass; the `.icns` stays.
+
+---
+
 ## 2026-09-05 ~12:20 — [ship] v1.2.0 released — the tap had to be recreated first
 The human asked for the release. Pre-flight found github.com/svanlink/
 homebrew-tap GONE ("Repository not found") while Homebrew's local clone
