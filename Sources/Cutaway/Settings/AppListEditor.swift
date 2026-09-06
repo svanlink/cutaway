@@ -5,7 +5,7 @@ import SwiftUI
 /// via `onChange` — no relaunch needed. Native list; the picker in the
 /// project sheet is the friendly way in, this is the escape hatch.
 struct AppListEditor: View {
-    let title: String
+    let title: LocalizedStringKey
     let prefsKey: String
     let defaults: [String]
     let onChange: ([String]) -> Void

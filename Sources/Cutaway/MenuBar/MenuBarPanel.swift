@@ -334,7 +334,7 @@ struct MenuBarPanel: View {
         .background(Color.black.opacity(0.35))
     }
 
-    private func footBtn(_ label: String, help: String, action: @escaping () -> Void) -> some View {
+    private func footBtn(_ label: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
                 .font(DT.smallSemibold)

@@ -97,6 +97,10 @@ final class StatusItemController: NSObject {
         // fires dozens of times a day, and it happens in peripheral vision
         // next to the menu bar.
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // A popover takes its appearance from the view it is anchored to —
+        // here the system menu bar, which follows the wallpaper, not the app.
+        // Inherit the one decision made in AppDelegate; decide nothing here.
+        popover.appearance = NSApp.appearance
         let panel = NSHostingController(rootView: MenuBarPanel(model: model))
         panel.view.frame.size = CGSize(width: 340, height: 380)
         popover.contentViewController = panel

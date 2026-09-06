@@ -11,6 +11,46 @@
         }
       }
     },
+    "%@ / day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / Tag"
+          }
+        }
+      }
+    },
+    "%lld days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Tage"
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Min."
+          }
+        }
+      }
+    },
+    "1 day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Tag"
+          }
+        }
+      }
+    },
     "1 minute": {
       "localizations": {
         "de": {
@@ -51,6 +91,16 @@
         }
       }
     },
+    "@ %@ / h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@ %@ / h"
+          }
+        }
+      }
+    },
     "A new rate applies from now on. Work already recorded keeps the rate it was worked at.": {
       "localizations": {
         "de": {
@@ -67,6 +117,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Projekt mit diesem Namen existiert bereits"
+          }
+        }
+      }
+    },
+    "AVG PER DAY": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ø PRO TAG"
           }
         }
       }
@@ -117,6 +177,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apps"
+          }
+        }
+      }
+    },
+    "Are you working? Cutaway is paused, but you're editing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitest du gerade? Cutaway ist pausiert, aber du schneidest."
           }
         }
       }
@@ -541,6 +611,16 @@
         }
       }
     },
+    "Last session: %@ · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Sitzung: %@ · %@"
+          }
+        }
+      }
+    },
     "Launch at login": {
       "localizations": {
         "de": {
@@ -671,6 +751,16 @@
         }
       }
     },
+    "PROJECT TOTAL": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROJEKT GESAMT"
+          }
+        }
+      }
+    },
     "Pause": {
       "localizations": {
         "de": {
@@ -727,6 +817,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recherche & Kommunikation"
+          }
+        }
+      }
+    },
+    "Research time · %lld min left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherchezeit · noch %lld Min."
+          }
+        }
+      }
+    },
+    "Research time · under a minute left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherchezeit · unter einer Minute"
           }
         }
       }
@@ -841,6 +951,26 @@
         }
       }
     },
+    "Still working? %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch dabei? %@"
+          }
+        }
+      }
+    },
+    "Still working? The timer pauses in %lld seconds.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch dabei? Der Timer pausiert in %lld Sekunden."
+          }
+        }
+      }
+    },
     "These sustain the timer for 20 minutes after workflow-app activity": {
       "localizations": {
         "de": {
@@ -887,6 +1017,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heute"
+          }
+        }
+      }
+    },
+    "Total  %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesamt  %@"
           }
         }
       }

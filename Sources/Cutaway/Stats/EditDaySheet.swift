@@ -77,7 +77,7 @@ struct EditDaySheet: View {
 
     private var dayLabel: String {
         guard let d = target.day else { return "" }
-        return Calendar.current.isDateInToday(d) ? "Today" : d.formatted(.dateTime.month(.abbreviated).day())
+        return Calendar.current.isDateInToday(d) ? String(localized: "Today") : d.formatted(.dateTime.month(.abbreviated).day())
     }
 
     private func money(_ s: TimeInterval) -> String {

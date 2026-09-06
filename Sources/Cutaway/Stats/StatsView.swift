@@ -109,10 +109,10 @@ struct StatsView: View {
             }
             HStack(spacing: DT.s2) {
                 supportStat(key: "PROJECT TOTAL", value: hours(total),
-                            sub: "\(dayCount) day\(dayCount == 1 ? "" : "s")")
+                            sub: dayCount == 1 ? String(localized: "1 day") : String(localized: "\(dayCount) days"))
                 supportStat(key: "AVG PER DAY", value: hours(avg),
                             sub: avg > 0
-                                ? "\(p.currency.formatWhole(avgEarned)) / day"
+                                ? String(localized: "\(p.currency.formatWhole(avgEarned)) / day")
                                 : "—")
             }
         }
@@ -135,7 +135,7 @@ struct StatsView: View {
     }
 
     /// Supporting figure — stacked, half width, one step down in type.
-    private func supportStat(key: String, value: String, sub: String) -> some View {
+    private func supportStat(key: LocalizedStringKey, value: String, sub: String) -> some View {
         VStack(alignment: .leading, spacing: DT.s1) {
             Text(key).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
             Text(value).font(DT.statValue).foregroundStyle(DT.text).monospacedDigit()
@@ -257,7 +257,7 @@ struct StatsView: View {
         } label: {
         HStack(spacing: DT.s3) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(isToday ? "Today" : d.day.formatted(.dateTime.month(.abbreviated).day()))
+                (isToday ? Text("Today") : Text(verbatim: d.day.formatted(.dateTime.month(.abbreviated).day())))
                     .font(DT.small)
                     .foregroundStyle(isToday ? DT.signal : DT.textPrimary)
                 Text(d.day.formatted(.dateTime.weekday(.abbreviated)))

@@ -35,6 +35,7 @@ PATTERNS = [
     rf'\bDisclosureGroup\({LIT}',
     rf'prompt:\s*Text\({LIT}',
     rf'String\(localized:\s*{LIT}',
+    rf'\bsupportStat\(key:\s*{LIT}',
 ]
 SKIP = {"", " · ", "＋", "▼", "h:mm", "com.example.app", "%d:%02d", "0.00", "4500", "85"}
 
@@ -97,6 +98,25 @@ DE = {
 }
 
 
+# Keys with interpolation — the scan skips "\\(" on purpose; these are the
+# catalog keys Swift derives from String(localized:) with an interpolation.
+EXTRA = {
+ "Research time · %lld min left": "Recherchezeit · noch %lld Min.",
+ "Research time · under a minute left": "Recherchezeit · unter einer Minute",
+ "Are you working? Cutaway is paused, but you're editing.": "Arbeitest du gerade? Cutaway ist pausiert, aber du schneidest.",
+ "Still working? %@": "Noch dabei? %@",
+ "Still working? The timer pauses in %lld seconds.": "Noch dabei? Der Timer pausiert in %lld Sekunden.",
+ "Last session: %@ · %@": "Letzte Sitzung: %@ · %@",
+ "%lld min": "%lld Min.",
+ "%@ / day": "%@ / Tag",
+ "@ %@ / h": "@ %@ / h",
+ "%lld days": "%lld Tage",
+ "1 day": "1 Tag",
+ "Total  %@": "Gesamt  %@",
+}
+DE.update(EXTRA)
+
+
 def collect() -> set[str]:
     keys: set[str] = set()
     for f in SRC.rglob("*.swift"):
@@ -106,7 +126,7 @@ def collect() -> set[str]:
                 for g in m.groups():
                     if g is not None:
                         keys.add(g.replace('\\"', '"'))
-    return {k for k in keys if k.strip() and k not in SKIP and "\\(" not in k and not k.startswith("%")}
+    return {k for k in keys if k.strip() and k not in SKIP and "\\(" not in k and not k.startswith("%")} | set(EXTRA)
 
 
 def main() -> None:

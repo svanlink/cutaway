@@ -20,8 +20,8 @@ enum PromptArbiter {
 struct PromptCard<Actions: View>: View {
     let symbol: String
     let tint: Color
-    let title: String
-    let line: String
+    let title: LocalizedStringKey
+    let line: LocalizedStringKey
     let spoken: String
     @ViewBuilder let actions: () -> Actions
 
@@ -55,7 +55,7 @@ struct ResumePromptView: View {
     var body: some View {
         PromptCard(symbol: "play.circle", tint: DT.signal, title: "Are you working?",
                    line: "Cutaway is paused, but you're editing.",
-                   spoken: "Are you working? Cutaway is paused, but you're editing.") {
+                   spoken: String(localized: "Are you working? Cutaway is paused, but you're editing.")) {
             Button("No, stay paused", action: stay)
                 .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
             Button("Yes, resume", action: resume)
@@ -99,8 +99,8 @@ final class PromptPanel {
             // Announced once at appearance — per-second would be the
             // pill-spam bug all over again.
             switch next {
-            case .idle: model.announce("Still working? The timer pauses in \(Int(IdleWarning.lead)) seconds.")
-            case .resume: model.announce("Are you working? Cutaway is paused, but you're editing.")
+            case .idle: model.announce(String(localized: "Still working? The timer pauses in \(Int(IdleWarning.lead)) seconds."))
+            case .resume: model.announce(String(localized: "Are you working? Cutaway is paused, but you're editing."))
             }
         }
     }

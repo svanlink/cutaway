@@ -15,7 +15,7 @@ struct IdleWarningView: View {
     var body: some View {
         PromptCard(symbol: "hourglass", tint: DT.held, title: "Still working?",
                    line: "\(Self.countdownText(secondsLeft)) — any input keeps recording",
-                   spoken: "Still working? \(Self.countdownText(secondsLeft))") {
+                   spoken: String(localized: "Still working? \(Self.countdownText(secondsLeft))")) {
             Button("I'm still working", action: confirm)
                 .buttonStyle(.borderedProminent).tint(DT.signal)
         }

@@ -158,8 +158,8 @@ extension RecordingSource {
         guard case .satellite(let secondsLeft) = self else { return nil }
         let minutes = Int(secondsLeft / 60)
         return minutes >= 1
-            ? "Research time · \(minutes) min left"
-            : "Research time · under a minute left"
+            ? String(localized: "Research time · \(minutes) min left")
+            : String(localized: "Research time · under a minute left")
     }
 }
 

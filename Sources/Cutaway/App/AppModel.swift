@@ -316,11 +316,11 @@ final class AppModel {
     static func lastSessionText(activeSeconds: TimeInterval, end: Date,
                                 now: Date = Date(), calendar: Calendar = .current) -> String {
         let m = max(1, Int((activeSeconds / 60).rounded()))
-        let duration = m >= 60 ? String(format: "%d:%02d h", m / 60, m % 60) : "\(m) min"
+        let duration = m >= 60 ? String(format: "%d:%02d h", m / 60, m % 60) : String(localized: "\(m) min")
         let when = calendar.isDate(end, inSameDayAs: now)
             ? end.formatted(.dateTime.hour().minute())
             : end.formatted(.dateTime.month(.abbreviated).day().hour().minute())
-        return "Last session: \(duration) · \(when)"
+        return String(localized: "Last session: \(duration) · \(when)")
     }
 
     /// A session's wall-clock span, as the detail rows print it.
