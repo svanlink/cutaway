@@ -25,9 +25,36 @@ extension SystemProbing {
     func frontmostWindowIsFullScreen() -> Bool { false }
 }
 
-struct SystemProbes: SystemProbing {
+protocol FrontmostApplication { var bundleIdentifier: String? { get } }
+extension NSRunningApplication: FrontmostApplication {}
+
+/// The frontmost app, kept current by NSWorkspace's own notification
+/// instead of asked for every tick — Apple's "subscribe, don't poll".
+@MainActor
+final class FrontmostTracker {
+    private(set) var bundleID: String?
+    private var token: NSObjectProtocol?
+
+    init(initial: String?, center: NotificationCenter = NSWorkspace.shared.notificationCenter) {
+        bundleID = initial
+        token = center.addObserver(forName: NSWorkspace.didActivateApplicationNotification,
+                                   object: nil, queue: .main) { [weak self] n in
+            // Read the id here; only the String (Sendable) crosses into the actor.
+            let id = (n.userInfo?[NSWorkspace.applicationUserInfoKey] as? FrontmostApplication)?.bundleIdentifier
+            MainActor.assumeIsolated { self?.bundleID = id }
+        }
+    }
+}
+
+/// A class, not a struct: it owns the tracker's subscription. The engine
+/// ticks on the main actor, so the nonisolated protocol read is safe.
+final class SystemProbes: SystemProbing {
+    private let frontmost = MainActor.assumeIsolated {
+        FrontmostTracker(initial: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
+    }
+
     func frontmostBundleID() -> String? {
-        NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        MainActor.assumeIsolated { frontmost.bundleID }
     }
 
     func secondsSinceLastInput() -> TimeInterval {
