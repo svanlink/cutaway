@@ -8,6 +8,16 @@ final class AppPickerTests: XCTestCase {
         InstalledApp(name: "Spotify", bundleID: "com.spotify.client", url: URL(fileURLWithPath: "/c")),
     ]
 
+    /// Only apps on this Mac get a tile: a placeholder for Final Cut on a
+    /// Mac without Final Cut is noise, and its icon is not ours to ship.
+    func testOnlyInstalledCatalogAppsAreShown() {
+        let installed = [InstalledApp(name: "Adobe Premiere Pro 2026", bundleID: "com.adobe.PremierePro", url: URL(fileURLWithPath: "/A/Pr.app"))]
+        let groups = AppPickerModel(selected: []).visibleGroups(catalog: AppCatalog.groups, installed: installed)
+        XCTAssertEqual(groups.map(\.name), ["Adobe"], "groups without an installed app disappear")
+        XCTAssertEqual(groups.first?.entries.map(\.name), ["Premiere Pro"])
+        XCTAssertTrue(AppPickerModel(selected: []).visibleGroups(catalog: AppCatalog.groups, installed: []).isEmpty)
+    }
+
     func testSearchFiltersAcrossGroupsAndDropsEmptyGroups() {
         var m = AppPickerModel(selected: [])
         m.query = "prem"

@@ -7,10 +7,14 @@ struct AppPickerModel {
 
     private var q: String { query.trimmingCharacters(in: .whitespaces).lowercased() }
 
+    /// Tiles only for apps on this Mac, with their real icons. An app that is
+    /// not installed is not a choice here — "Choose app…" covers the rest.
     func visibleGroups(catalog: [AppCatalog.Group], installed: [InstalledApp]) -> [AppCatalog.Group] {
-        guard !q.isEmpty else { return catalog }
-        return catalog.compactMap { g in
-            let hits = g.entries.filter { $0.name.lowercased().contains(q) || $0.prefix.lowercased().contains(q) }
+        catalog.compactMap { g in
+            let hits = g.entries.filter { e in
+                InstalledApps.installed(matching: e.prefix, in: installed) != nil
+                    && (q.isEmpty || e.name.lowercased().contains(q) || e.prefix.lowercased().contains(q))
+            }
             return hits.isEmpty ? nil : AppCatalog.Group(name: g.name, entries: hits)
         }
     }
@@ -54,6 +58,10 @@ struct AppPickerView: View {
                                      app: InstalledApps.installed(matching: entry.prefix, in: installed))
                             }
                         }
+                    }
+                    if model.visibleGroups(catalog: AppCatalog.groups, installed: installed).isEmpty, query.isEmpty {
+                        Text("No editing apps found in /Applications — choose one below.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                     DisclosureGroup("Other…", isExpanded: $showOthers) {
                         let others = model.otherApps(installed: installed)

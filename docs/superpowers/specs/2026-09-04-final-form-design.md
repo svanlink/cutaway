@@ -84,8 +84,13 @@ Test: no two catalog prefixes are equal or prefix one another.
 
 `NSWorkspace.shared.urlForApplication(withBundleIdentifier:)` →
 `NSWorkspace.shared.icon(forFile:)`. Cached per bundle id in a small
-`AppIconCache` (NSCache). Not installed → SF Symbol `app.dashed` at 50 %
-opacity, tooltip "Not installed". No third-party artwork is shipped.
+`AppIconCache` (NSCache). No third-party artwork is shipped.
+
+Amended 2026-09-06 (owner decision): a catalog app gets a tile ONLY when it
+is installed on the Mac — no placeholders. The dashed `app.dashed` tile is
+gone from the picker and from icon rows; "Choose app…" (NSOpenPanel) adds
+any bundle the scan does not reach. One Resolve entry: its prefix covers
+the free, Lite and Studio editions.
 
 ### UI
 

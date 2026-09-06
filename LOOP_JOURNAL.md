@@ -7,6 +7,24 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-06 ~12:00 — [keep] the picker shows only what is installed; one Resolve tile
+Sebastian saw three DaVinci Resolve tiles (free / Lite / Studio — the catalog
+listed each edition; one prefix already covers all three) and dashed
+placeholders for Final Cut, Motion, Compressor and the rest of the catalog
+he does not own. He asked for the originals. Icons come from installed
+bundles by decision (the vendors' artwork is not ours to ship, and the
+App Store is a network away), so the choice put to him was: installed-only
+tiles, a nicer placeholder, or bundled vendor icons with the trademark
+risk. He chose installed-only. The picker now lists a catalog app only
+when it is on the Mac (real icon, always); "Choose app…" adds anything
+else; icon rows draw nothing for an app that is not installed. Verified
+by a live capture on his Mac: one Resolve tile, Pr/Ae/Ps/Ai with icons.
+CI: the runner's default Xcode 16.4 could not compile MetricKit's macOS
+26 API — pinned to Xcode 26.3; the billing tests model a Zurich day, so
+the job runs with TZ=Europe/Zurich.
+
+---
+
 ## 2026-09-06 ~11:45 — [ship] v1.3.0 released on request
 Sebastian asked for it after the hardening pass. release.sh 1.3.0 ran end
 to end: 343 unit tests, smoke ×3 ALL PASS, project.yml stamped and the plist
