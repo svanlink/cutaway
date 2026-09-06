@@ -63,7 +63,7 @@ Effort: S = a day or less, M = 2–5 days, L = more. Every item cites the report
 | 17 | **Day rate + minimum units as "booked, not worked" lines**; manual lines (deposit, revision round, kill fee) | What editors actually bill — billing #6–7 | M |
 | 18 | **Adobe project names via Automation** (After Effects, Photoshop, Illustrator, InDesign on app-activation only). Premiere explicitly excluded (no dictionary, title hidden) | Attribution for the Adobe half of the owner's day; one Automation prompt per app — detection #2–3 | M |
 | 19 | **Display-sleep-assertion presence rule** (frontmost anchor holds `PreventUserIdleDisplaySleep` → present), cap kept; replaces the CPU heuristic | Timing's rule; covers playback/review, cheaper — detection #4 | S |
-| 20 | **String Catalog + German** | Owner's market; premium apps ship ≥2 languages — audit | M |
+| 20 | ~~String Catalog + German~~ — **moved into v1.3** by decision 6 | Owner's market; premium apps ship ≥2 languages — audit | M |
 | 21 | **`CutawayCore` package** (no AppKit) with its own tests; `VersionedSchema` + no-op migration plan for SwiftData | The one structural win at this size; migration safety — engineering #6–7 | M |
 | 22 | **Desktop widget** (today + money + pause) | Tyme, Timery, Hours, Rize ship one — competitors #9 | M |
 
@@ -103,6 +103,8 @@ Named here so nothing is changed by stealth.
 | 2 | Pricing: **free / open source** | No licensing, no trial, no Setapp. "Trust" is polish for reputation, not conversion. |
 | 3 | Appearance: **dark-only, done properly** | Plan #5 as written: one app-level decision, documented exception, verified under Increase Contrast × Reduce Transparency and macOS 26.1 variants. No light token set. |
 | 4 | Quarter order: **Invoice first** | v1.4 = #12–#17 (PDF, client + tax mode, QR-bill, billing status, rounding, day rates). v1.5 = #11 timeline. |
+| 5 | Adobe project names via Automation: **yes, in the Invoice quarter** | Plan #18 confirmed for v1.4: After Effects, Photoshop, Illustrator, InDesign read on app-activation only, one Automation prompt per app, explained in the primer. Premiere Pro stays excluded (needs Screen Recording — refused). |
+| 6 | German localization: **v1.3, with the String Catalog** | Plan #20 moves from "next quarter" into v1.3. Every string born localizable from now on; the 66 hard-coded literals migrate in that pass. |
 
 ## Part E — Your prompt, optimized
 
