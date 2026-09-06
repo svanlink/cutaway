@@ -56,7 +56,7 @@ struct CSVExportButton: View {
             } catch {
                 // A silent export failure in a billing app is unacceptable.
                 let alert = NSAlert()
-                alert.messageText = "Export failed"
+                alert.messageText = String(localized: "Export failed")
                 alert.informativeText = error.localizedDescription
                 alert.alertStyle = .warning
                 alert.runModal()

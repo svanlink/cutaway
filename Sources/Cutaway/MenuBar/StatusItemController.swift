@@ -113,16 +113,16 @@ final class StatusItemController: NSObject {
     private func showMenu() {
         guard let button = statusItem.button else { return }
         let menu = NSMenu()
-        menu.addItem(withTitle: "Open Cutaway", action: #selector(openMain), keyEquivalent: "")
+        menu.addItem(withTitle: String(localized: "Open Cutaway"), action: #selector(openMain), keyEquivalent: "")
             .target = self
-        menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        menu.addItem(withTitle: String(localized: "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
             .target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: model.engine.manuallyPaused ? "Resume" : "Pause",
+        menu.addItem(withTitle: model.engine.manuallyPaused ? String(localized: "Resume") : String(localized: "Pause"),
                      action: #selector(togglePause), keyEquivalent: "")
             .target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Cutaway", action: #selector(quit), keyEquivalent: "q")
+        menu.addItem(withTitle: String(localized: "Quit Cutaway"), action: #selector(quit), keyEquivalent: "q")
             .target = self
         menu.popUp(positioning: nil,
                    at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)

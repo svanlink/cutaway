@@ -107,7 +107,7 @@ struct SettingsView: View {
         .onChange(of: idleThreshold) { _, new in model.engine.idleThreshold = new }
     }
 
-    private func labelled(_ title: String, _ subtitle: String) -> some View {
+    private func labelled(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
             Text(subtitle).font(.caption).foregroundStyle(.secondary)

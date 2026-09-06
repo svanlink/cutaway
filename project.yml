@@ -1,6 +1,7 @@
 name: Cutaway
 options:
   bundleIdPrefix: com.vaneickelen
+  developmentLanguage: en
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
