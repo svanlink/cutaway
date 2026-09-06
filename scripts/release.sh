@@ -55,6 +55,9 @@ ditto -c -k --keepParent "$REL" "$ZIP"
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 
 echo "── publish"
+# The tag lands on the STAMPED commit: fast-forward main and push first,
+# so the release points at a tree whose bundle says $V.
+git branch -f main HEAD && git push -q origin main HEAD
 gh release create "v$V" "$ZIP" --title "Cutaway $V" --generate-notes
 
 echo "── bump cask"

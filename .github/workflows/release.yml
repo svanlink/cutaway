@@ -32,7 +32,8 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
+        # A tag made by scripts/release.sh already has its release; then this run is a second verification build.
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
       - name: Bump cask
         if: ${{ env.TAP_TOKEN != '' }}
         run: |
