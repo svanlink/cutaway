@@ -106,6 +106,10 @@ struct CutawayApp: App {
             SettingsView(model: model)
         }
         .windowResizability(.contentMinSize)
+        Window("Welcome to Cutaway", id: "permissions") {
+            PermissionsView(model: model)
+        }
+        .windowResizability(.contentSize)
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { model.openSettingsWindow?() }
@@ -154,15 +158,26 @@ struct MainWindowView: View {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "settings")
             }
+            model.openPermissionsWindow = {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: "permissions")
+            }
             // Zero-state: only ask for a manual project when Resolve isn't
             // running — otherwise auto-detection creates it within seconds.
             if model.projects.isEmpty && model.detector.resolveEdition() == nil
                 && !ScenarioMode.isActive {
                 model.showNewProjectSheet = true
             }
-            // Harness hook: deterministic Settings capture.
-            if ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] == "settings" {
-                model.openSettingsWindow?()
+            if PermissionsPrimerPolicy.shouldShow(alreadyShown: Prefs.bool(forKey: "didShowPermissionsPrimer"),
+                                                  scenario: ScenarioMode.isActive) {
+                model.openPermissionsWindow?()
+            }
+            // Harness hooks: deterministic window capture / audit.
+            switch ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] {
+            case "settings": model.openSettingsWindow?()
+            case "permissions": model.openPermissionsWindow?()
+            default: break
             }
         }
     }

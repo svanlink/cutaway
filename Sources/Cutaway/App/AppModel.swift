@@ -48,6 +48,7 @@ final class AppModel {
     /// (status-item panel) can reopen it.
     var openMainWindow: (() -> Void)?
     var openSettingsWindow: (() -> Void)?
+    var openPermissionsWindow: (() -> Void)?
     /// True when SwiftData refused to open and we fell back to memory —
     /// the user must be TOLD their time won't survive a restart.
     var storeIsEphemeral = false

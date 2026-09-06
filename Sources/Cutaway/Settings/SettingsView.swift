@@ -100,6 +100,11 @@ struct SettingsView: View {
                 } label: {
                     labelled("Accessibility", "Lets Cutaway follow Resolve's project switches instantly")
                 }
+                LabeledContent {
+                    Button("Permissions…") { model.openPermissionsWindow?() }
+                } label: {
+                    labelled("Permissions", "What Cutaway asks for, and what it never does")
+                }
             }
         }
         .formStyle(.grouped)

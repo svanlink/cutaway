@@ -6,13 +6,28 @@ final class AccessibilityAuditTests: XCTestCase {
 
     @MainActor
     func testMainWindowPassesAccessibilityAudit() throws {
+        try audit(show: nil)
+    }
+
+    /// The first-run primer is a second window; it must pass the same audit.
+    @MainActor
+    func testPermissionsWindowPassesAccessibilityAudit() throws {
+        try audit(show: "permissions")
+    }
+
+    @MainActor
+    private func audit(show: String?) throws {
         let app = XCUIApplication()
         app.launchEnvironment["CUTAWAY_DEMO"] = "1"
+        if let show { app.launchEnvironment["CUTAWAY_SHOW"] = show }
         // Quarantine: without CUTAWAY_DATA_DIR the launched app opens the real
         // billing store — these tests were recording test-run seconds into
         // the store a user invoices from.
         app.launchEnvironment["CUTAWAY_DATA_DIR"] = NSTemporaryDirectory() + "cutaway-uitests"
         app.launch()
+        if show == "permissions" {
+            XCTAssertTrue(app.windows["What Cutaway needs, and why"].waitForExistence(timeout: 5))
+        }
 
         // Audit the Stats window. Contrast is validated by hand-measured WCAG
         // ratios in the design system (dark theme trips the automated
@@ -40,8 +55,8 @@ final class AccessibilityAuditTests: XCTestCase {
                   + "frame=\(issue.element?.frame ?? .zero) — \(issue.detailedDescription)")
             guard let element = issue.element else { return false }
             if element.elementType == .touchBar { return true }
-            let windowFrame = app.windows.firstMatch.frame
-            return element.elementType == .group && element.frame == windowFrame
+            let windowFrames = app.windows.allElementsBoundByIndex.map(\.frame)
+            return element.elementType == .group && windowFrames.contains(element.frame)
         }
     }
 }

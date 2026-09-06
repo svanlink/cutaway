@@ -291,6 +291,16 @@
         }
       }
     },
+    "Continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
     "Create a project to see stats": {
       "localizations": {
         "de": {
@@ -711,6 +721,16 @@
         }
       }
     },
+    "Not needed yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht nötig"
+          }
+        }
+      }
+    },
     "Not now": {
       "localizations": {
         "de": {
@@ -777,6 +797,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pause-Kurzbefehl"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berechtigungen"
+          }
+        }
+      }
+    },
+    "Permissions…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berechtigungen …"
           }
         }
       }
@@ -1047,6 +1087,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versuche 1:30, 1.5 oder 90m"
+          }
+        }
+      }
+    },
+    "What Cutaway asks for, and what it never does": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wofür Cutaway fragt — und was es nie tut"
           }
         }
       }
