@@ -11,9 +11,6 @@ jobs:
     env:
       # Job-level: a step's own env is not in scope for its `if`.
       TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
-      # The billing tests model a Swiss editor's day (midnight splits, month
-      # labels); a UTC runner moves those boundaries. Same clock as the author.
-      TZ: Europe/Zurich
     steps:
       - uses: actions/checkout@v4
       # The image's default is Xcode 16.4 (Swift 6.0, macOS 15 SDK); the app is

@@ -35,6 +35,7 @@ enum InvoicePeriod: String, CaseIterable, Sendable {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.calendar = calendar
+        f.timeZone = calendar.timeZone   // .calendar alone keeps the machine's zone
         f.dateFormat = self == .thisYear ? "yyyy" : "yyyy-MM"
         return f.string(from: i.start)
     }
@@ -74,14 +75,17 @@ enum CSVExporter {
         dateF.locale = posix
         dateF.dateFormat = "yyyy-MM-dd"
         dateF.calendar = calendar
+        dateF.timeZone = calendar.timeZone   // .calendar alone keeps the machine's zone
         let weekdayF = DateFormatter()
         weekdayF.locale = posix
         weekdayF.dateFormat = "EEE"
         weekdayF.calendar = calendar
+        weekdayF.timeZone = calendar.timeZone   // .calendar alone keeps the machine's zone
         let timeF = DateFormatter()
         timeF.locale = posix
         timeF.dateFormat = "HH:mm"
         timeF.calendar = calendar
+        timeF.timeZone = calendar.timeZone
 
         for d in ordered {
             // Round to the PRINTED precision before summing. Printing rounded
