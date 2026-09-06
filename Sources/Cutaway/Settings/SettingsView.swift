@@ -105,6 +105,22 @@ struct SettingsView: View {
                 } label: {
                     labelled("Permissions", "What Cutaway asks for, and what it never does")
                 }
+                LabeledContent {
+                    HStack {
+                        Button("Copy report") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(
+                                (try? DiagnosticsStore.default.combinedReport()).flatMap { $0.isEmpty ? nil : $0 }
+                                    ?? String(localized: "No reports"),
+                                forType: .string)
+                        }
+                        Button("Reveal…") {
+                            NSWorkspace.shared.activateFileViewerSelecting([DiagnosticsStore.default.directory])
+                        }
+                    }
+                } label: {
+                    labelled("Diagnostics", "Crash and hang reports stay on this Mac; copy one into a bug report if you want to")
+                }
             }
         }
         .formStyle(.grouped)

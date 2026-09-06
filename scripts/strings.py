@@ -94,7 +94,7 @@ DE = {
  "Not needed yet": "Noch nicht nötig", "Continue": "Weiter",
  "Cutaway never asks for Screen Recording, never reads keystrokes, and nothing leaves your Mac.": "Cutaway fragt nie nach Bildschirmaufnahme, liest nie Tastatureingaben, und nichts verlässt deinen Mac.",
  "Diagnostics": "Diagnose", "Crash and hang reports stay on this Mac; copy one into a bug report if you want to": "Absturz- und Hänger-Berichte bleiben auf diesem Mac; kopiere einen in einen Fehlerbericht, wenn du möchtest",
- "Copy report": "Bericht kopieren", "Reveal…": "Anzeigen …",
+ "No reports": "Keine Berichte", "Copy report": "Bericht kopieren", "Reveal…": "Anzeigen …",
 }
 
 

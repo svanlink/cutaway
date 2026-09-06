@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor static var model: AppModel?
     private var statusController: StatusItemController?
     private var pauseHotKey: GlobalHotKey?
+    private var diagnostics: DiagnosticsSubscriber?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Dark-only, decided once. Cutaway sits beside a grading suite; a
@@ -13,6 +14,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // cases"); Increase Contrast and Reduce Transparency are still honoured
         // by the tokens (SystemSettingsTests).
         NSApp.appearance = NSAppearance(named: .darkAqua)
+        // Crash/hang reports land on disk, never leave the Mac; not during
+        // verification runs, which crash on purpose.
+        if !ScenarioMode.isActive { diagnostics = DiagnosticsSubscriber() }
         Task { @MainActor in
             if let model = AppDelegate.model {
                 statusController = StatusItemController(model: model)

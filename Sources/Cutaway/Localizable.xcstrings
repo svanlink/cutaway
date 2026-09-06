@@ -311,6 +311,26 @@
         }
       }
     },
+    "Copy report": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht kopieren"
+          }
+        }
+      }
+    },
+    "Crash and hang reports stay on this Mac; copy one into a bug report if you want to": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturz- und Hänger-Berichte bleiben auf diesem Mac; kopiere einen in einen Fehlerbericht, wenn du möchtest"
+          }
+        }
+      }
+    },
     "Create a project to see stats": {
       "localizations": {
         "de": {
@@ -437,6 +457,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Löschen …"
+          }
+        }
+      }
+    },
+    "Diagnostics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
           }
         }
       }
@@ -731,6 +761,16 @@
         }
       }
     },
+    "No reports": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Berichte"
+          }
+        }
+      }
+    },
     "No, stay paused": {
       "localizations": {
         "de": {
@@ -937,6 +977,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erfassung fortsetzen"
+          }
+        }
+      }
+    },
+    "Reveal…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzeigen …"
           }
         }
       }
