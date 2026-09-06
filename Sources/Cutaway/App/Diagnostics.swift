@@ -54,5 +54,9 @@ final class DiagnosticsSubscriber: NSObject, MXMetricManagerSubscriber {
             }
         }
     }
+    // Metric (not diagnostic) payloads reached macOS with the macOS 26 SDK;
+    // older SDKs mark the type unavailable and refuse the override.
+    #if compiler(>=6.2)
     func didReceive(_ payloads: [MXMetricPayload]) {}
+    #endif
 }

@@ -2,6 +2,7 @@ name: release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:   # a verification build on any ref; publishes nothing
 jobs:
   build:
     runs-on: macos-15
@@ -15,7 +16,7 @@ jobs:
       - run: brew install xcodegen
       - name: Version (project.yml is the source; xcodegen writes the plist)
         run: |
-          V="${GITHUB_REF_NAME#v}"
+          V="${GITHUB_REF_NAME#v}"; [ "$GITHUB_REF_TYPE" = tag ] || V="0.0.0"
           sed -i '' -E "s/^( *CFBundle(ShortVersionString|Version): ).*/\1\"$V\"/" project.yml
           xcodegen generate
           [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/Cutaway/Info.plist)" = "$V" ]
@@ -30,12 +31,13 @@ jobs:
           ditto -c -k --keepParent "$APP" "Cutaway-$V.zip"
           shasum -a 256 "Cutaway-$V.zip" | cut -d' ' -f1 > sha256.txt
       - name: Release
+        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         # A tag made by scripts/release.sh already has its release; then this run is a second verification build.
         run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
       - name: Bump cask
-        if: ${{ env.TAP_TOKEN != '' }}
+        if: github.ref_type == 'tag' && env.TAP_TOKEN != ''
         run: |
           SHA=$(cat sha256.txt)
           git clone -q "https://x-access-token:${TAP_TOKEN}@github.com/svanlink/homebrew-tap" tap
