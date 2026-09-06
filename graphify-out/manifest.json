@@ -30,15 +30,15 @@
     "semantic_hash": "e1b877060be94a804b216e22493f9087"
   },
   "GOALS.md": {
-    "mtime": 1788601923.555921,
-    "seen": 1788683326.576612,
-    "ast_hash": "18b5c7a76a9dce2cbe824adb7b26342a",
-    "semantic_hash": "18b5c7a76a9dce2cbe824adb7b26342a"
+    "mtime": 1788685558.0821807,
+    "seen": 1788686869.5178611,
+    "ast_hash": "0ce273712fd94f9517c93143031707ae",
+    "semantic_hash": ""
   },
   "LOOP_JOURNAL.md": {
-    "mtime": 1788684135.4730182,
-    "seen": 1788685531.536664,
-    "ast_hash": "9a3954ffeb8fcbbaf397c79141997ad8",
+    "mtime": 1788685637.1674213,
+    "seen": 1788686869.5178611,
+    "ast_hash": "f953a30eba33f6d73dcd4e89331a642c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -174,15 +174,15 @@
     "semantic_hash": "b411753ecb63bd736917b1adf8a4c460"
   },
   "Sources/Cutaway/App/AppModel.swift": {
-    "mtime": 1788684869.6809127,
-    "seen": 1788685531.536573,
-    "ast_hash": "474b8458af678db1df74104daba409e9",
+    "mtime": 1788686534.5105746,
+    "seen": 1788686869.517764,
+    "ast_hash": "5ec65338604f579506d03c04d7c9152a",
     "semantic_hash": ""
   },
   "Sources/Cutaway/App/CutawayApp.swift": {
-    "mtime": 1788685489.413763,
-    "seen": 1788685531.536577,
-    "ast_hash": "e98f1be1cb71e8de818dfcf938ef09bf",
+    "mtime": 1788686652.3806074,
+    "seen": 1788686869.517768,
+    "ast_hash": "029b7ddd7e1ccac5e349c8b7f9fd5947",
     "semantic_hash": ""
   },
   "Sources/Cutaway/App/HotKey.swift": {
@@ -204,9 +204,9 @@
     "semantic_hash": "1a12a46a3ea0ddf2d84d1c16b7ae52ab"
   },
   "Sources/Cutaway/App/UserFacingPolicy.swift": {
-    "mtime": 1788684869.680657,
-    "seen": 1788685531.536586,
-    "ast_hash": "22a1efc8ed830e94c084f982088a0272",
+    "mtime": 1788686744.7182045,
+    "seen": 1788686869.5177758,
+    "ast_hash": "973143bd18cebbd577878de57b14c402",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Billing/BillingEngine.swift": {
@@ -216,9 +216,9 @@
     "semantic_hash": "79c2a22e4dafec1e03a2df4c759a95ff"
   },
   "Sources/Cutaway/Billing/CSVExportButton.swift": {
-    "mtime": 1788684244.6901562,
-    "seen": 1788685531.536587,
-    "ast_hash": "18c77b32e630998d88f068ec13254c5f",
+    "mtime": 1788686287.1664734,
+    "seen": 1788686869.517778,
+    "ast_hash": "216c8997fe56e7b24ad492281404ec59",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Billing/CSVExporter.swift": {
@@ -246,10 +246,10 @@
     "semantic_hash": "cf94943ecd898ff5abe520fd58bcfdda"
   },
   "Sources/Cutaway/Detection/DetectionEngine.swift": {
-    "mtime": 1788598011.6368976,
-    "seen": 1788683326.576555,
-    "ast_hash": "787d4e4fdf2cce57e5f7cc9a0231bc26",
-    "semantic_hash": "787d4e4fdf2cce57e5f7cc9a0231bc26"
+    "mtime": 1788686534.510235,
+    "seen": 1788686869.517782,
+    "ast_hash": "9d9c4bd7e8666925f7d82fe93ca3f3a1",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Detection/DetectionFollower.swift": {
     "mtime": 1787245594.5057552,
@@ -264,10 +264,10 @@
     "semantic_hash": ""
   },
   "Sources/Cutaway/Detection/ProjectDetector.swift": {
-    "mtime": 1787480866.898983,
-    "seen": 1788683326.5765572,
-    "ast_hash": "fd1f9559af0c9ccb5fea5ea09ff54d5b",
-    "semantic_hash": "fd1f9559af0c9ccb5fea5ea09ff54d5b"
+    "mtime": 1788686565.225429,
+    "seen": 1788686869.517785,
+    "ast_hash": "522b6daabb5f14fd5ea446d0ca600fb7",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Detection/SessionLogger.swift": {
     "mtime": 1787258916.870304,
@@ -276,9 +276,9 @@
     "semantic_hash": "56fe0359e6b8d7d5a2106ba8b1c89608"
   },
   "Sources/Cutaway/Detection/SystemProbes.swift": {
-    "mtime": 1788685329.11823,
-    "seen": 1788685531.5365949,
-    "ast_hash": "ae5bf64dc2492ac664e3ce9564db7fa3",
+    "mtime": 1788686652.381387,
+    "seen": 1788686869.517786,
+    "ast_hash": "606950692c667dd1a39baf5e6f22ffda",
     "semantic_hash": ""
   },
   "Sources/Cutaway/MenuBar/IdleWarningPanel.swift": {
@@ -288,9 +288,9 @@
     "semantic_hash": ""
   },
   "Sources/Cutaway/MenuBar/MenuBarPanel.swift": {
-    "mtime": 1788684417.686078,
-    "seen": 1788685531.536597,
-    "ast_hash": "169bf4490c60fcdb4e933139baee7940",
+    "mtime": 1788686744.717072,
+    "seen": 1788686869.517788,
+    "ast_hash": "97e0453b078a341aee9594b3c0c809a3",
     "semantic_hash": ""
   },
   "Sources/Cutaway/MenuBar/PanelCards.swift": {
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "Sources/Cutaway/MenuBar/StatusItemController.swift": {
-    "mtime": 1788684525.3209052,
-    "seen": 1788685531.536599,
-    "ast_hash": "b9e13268d3fa4667a4ae4e5b9d09b4d3",
+    "mtime": 1788686287.1659398,
+    "seen": 1788686869.5177898,
+    "ast_hash": "0c8ad0e3aeea0ac645eab18ca47cb275",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/AppCatalog.swift": {
@@ -330,10 +330,10 @@
     "semantic_hash": "233d5aae6c2c01d69fedeb80007dfa9d"
   },
   "Sources/Cutaway/Projects/AppPickerView.swift": {
-    "mtime": 1788598983.2869568,
-    "seen": 1788683326.576565,
-    "ast_hash": "3533636e90b2c747ae9fe574bcbd0502",
-    "semantic_hash": "3533636e90b2c747ae9fe574bcbd0502"
+    "mtime": 1788686744.7175856,
+    "seen": 1788686869.517793,
+    "ast_hash": "b5aa1767978c15e25bfeca090eefa2c7",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/DaySplitter.swift": {
     "mtime": 1787235644.7464883,
@@ -342,10 +342,10 @@
     "semantic_hash": "731c7359d4492e613912e8cda38fc3a4"
   },
   "Sources/Cutaway/Projects/InstalledApps.swift": {
-    "mtime": 1788601406.740688,
-    "seen": 1788683326.576566,
-    "ast_hash": "5ee1be97929ebee22543e49bd5fc2839",
-    "semantic_hash": "5ee1be97929ebee22543e49bd5fc2839"
+    "mtime": 1788686677.8303385,
+    "seen": 1788686869.5177941,
+    "ast_hash": "30d111515c234f6e11b41c3cad64bb0e",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/Models.swift": {
     "mtime": 1788599428.1570365,
@@ -360,28 +360,28 @@
     "semantic_hash": "8e609a8500f2dc85b807aa6355a46361"
   },
   "Sources/Cutaway/Projects/ProjectSheet.swift": {
-    "mtime": 1788599428.1538196,
-    "seen": 1788683326.5765681,
-    "ast_hash": "88d4caa794d3c4a698fd8984669ebbbf",
-    "semantic_hash": "88d4caa794d3c4a698fd8984669ebbbf"
+    "mtime": 1788686744.7172961,
+    "seen": 1788686869.5177972,
+    "ast_hash": "ea4c1453df0a8647ec549e8651f8dbeb",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/ProjectsModel.swift": {
-    "mtime": 1788683788.4560494,
-    "seen": 1788685531.536607,
-    "ast_hash": "cd4d02c308abc8df0cadf16de0c5b54a",
+    "mtime": 1788686652.380216,
+    "seen": 1788686869.517801,
+    "ast_hash": "2445d30730a63ffed54c62ce1320317c",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/SessionStore.swift": {
-    "mtime": 1788599428.1567113,
-    "seen": 1788683326.57657,
-    "ast_hash": "3d8c3968ac30420132cdebfcd3c91da8",
-    "semantic_hash": "3d8c3968ac30420132cdebfcd3c91da8"
+    "mtime": 1788686534.5107715,
+    "seen": 1788686869.517802,
+    "ast_hash": "d8eb01afdae27baec3818322acd39710",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/StoreBackup.swift": {
-    "mtime": 1787481295.9926097,
-    "seen": 1788683326.57657,
-    "ast_hash": "1d10d3c1558c453872387b3508fa3d3a",
-    "semantic_hash": "1d10d3c1558c453872387b3508fa3d3a"
+    "mtime": 1788686257.877341,
+    "seen": 1788686869.517803,
+    "ast_hash": "79e04f95c64941f2cd69453f456a57fd",
+    "semantic_hash": ""
   },
   "Sources/Cutaway/Settings/AppListEditor.swift": {
     "mtime": 1788684417.6853182,
@@ -390,15 +390,15 @@
     "semantic_hash": ""
   },
   "Sources/Cutaway/Settings/SettingsView.swift": {
-    "mtime": 1788685489.4139822,
-    "seen": 1788685531.536611,
-    "ast_hash": "2db0bfb91f568f7c0c649209e97963a6",
+    "mtime": 1788686744.717728,
+    "seen": 1788686869.517807,
+    "ast_hash": "c3ba383d941bd7f2daf96e2823ab609a",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Stats/EditDaySheet.swift": {
-    "mtime": 1788684591.6081896,
-    "seen": 1788685531.536612,
-    "ast_hash": "0c32dfae575f402c00bdc1829839cca3",
+    "mtime": 1788686744.717448,
+    "seen": 1788686869.5178082,
+    "ast_hash": "f88d5e1a092ea562cdec24ffb5977e37",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Stats/StatsView.swift": {
@@ -516,10 +516,10 @@
     "semantic_hash": "bce70eda48e788feb68d3e30897cef2b"
   },
   "Tests/CutawayTests/EditAndAutoResumeTests.swift": {
-    "mtime": 1788536839.966595,
-    "seen": 1788683326.576586,
-    "ast_hash": "7cd2194100899887e00b05341f0b34ec",
-    "semantic_hash": "7cd2194100899887e00b05341f0b34ec"
+    "mtime": 1788686484.8949983,
+    "seen": 1788686869.517826,
+    "ast_hash": "32d439fd100cfdaf8042c99bc66bed1d",
+    "semantic_hash": ""
   },
   "Tests/CutawayTests/EngineClockTests.swift": {
     "mtime": 1787246437.122558,
@@ -564,10 +564,10 @@
     "semantic_hash": "424ed7e9b9d8e06169e3b26686b8a421"
   },
   "Tests/CutawayTests/ManualIntentTests.swift": {
-    "mtime": 1787244120.7391262,
-    "seen": 1788683326.576591,
-    "ast_hash": "61f6506c1b27d6db6bfb3d22f9a164bb",
-    "semantic_hash": "61f6506c1b27d6db6bfb3d22f9a164bb"
+    "mtime": 1788685948.9783173,
+    "seen": 1788686869.517835,
+    "ast_hash": "05a2bf7306787d529bc3e5b499086cee",
+    "semantic_hash": ""
   },
   "Tests/CutawayTests/MenuBarContrastTests.swift": {
     "mtime": 1787258889.559747,
@@ -624,10 +624,10 @@
     "semantic_hash": "9a665b3e9161a2faefaeee8f22032c50"
   },
   "Tests/CutawayTests/RenderExemptionTests.swift": {
-    "mtime": 1787245710.3692572,
-    "seen": 1788683326.576598,
-    "ast_hash": "a53e22c34d44849a91101b1019d8de62",
-    "semantic_hash": "a53e22c34d44849a91101b1019d8de62"
+    "mtime": 1788686484.8943167,
+    "seen": 1788686869.517843,
+    "ast_hash": "b6160d5c677b6b14a5ad595d9ca24682",
+    "semantic_hash": ""
   },
   "Tests/CutawayTests/SessionDetailTests.swift": {
     "mtime": 1787236591.1863072,
@@ -690,10 +690,10 @@
     "semantic_hash": ""
   },
   "Tests/CutawayUITests/MenuBarKeyboardTests.swift": {
-    "mtime": 1788599428.1630838,
-    "seen": 1788683326.576606,
-    "ast_hash": "12f8d44b904d63172c626017df434674",
-    "semantic_hash": "12f8d44b904d63172c626017df434674"
+    "mtime": 1788685948.9820108,
+    "seen": 1788686869.517853,
+    "ast_hash": "2eff27ff60b638d8b16a6da1282645f4",
+    "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-09-05-04-reorganize-rename.md": {
     "mtime": 1788599322.630676,
@@ -750,33 +750,33 @@
     "semantic_hash": ""
   },
   "Sources/Cutaway/App/Diagnostics.swift": {
-    "mtime": 1788685499.6088812,
-    "seen": 1788685531.5365791,
-    "ast_hash": "8a79b0ab85c9101e7be2c12f7c3a0197",
+    "mtime": 1788686652.3807447,
+    "seen": 1788686869.51777,
+    "ast_hash": "9f8302cec5457ab9987c5b7c81b78ecc",
     "semantic_hash": ""
   },
   "Sources/Cutaway/App/Intents.swift": {
-    "mtime": 1788685191.5103164,
-    "seen": 1788685531.536582,
-    "ast_hash": "ece1fed01cf4a8fb846498d04656b5f3",
+    "mtime": 1788686287.1663368,
+    "seen": 1788686869.5177732,
+    "ast_hash": "a7da4eece8572a49f03e8bad22e1c6aa",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Projects/StoreErrorReporter.swift": {
-    "mtime": 1788683788.4324565,
-    "seen": 1788685531.536609,
-    "ast_hash": "610e3941900da6b6523d8be727c6259e",
+    "mtime": 1788686652.379936,
+    "seen": 1788686869.517803,
+    "ast_hash": "6a31307e5c66dd1833d6d0d0d51b7e80",
     "semantic_hash": ""
   },
   "Sources/Cutaway/Settings/PermissionsView.swift": {
-    "mtime": 1788684912.8960543,
-    "seen": 1788685531.5366101,
-    "ast_hash": "8c2e1f04d14c41b342af6973601346c9",
+    "mtime": 1788686652.3812215,
+    "seen": 1788686869.517806,
+    "ast_hash": "d1258a02f115ed97e1daf2ee0fc35f05",
     "semantic_hash": ""
   },
   "Tests/CutawayTests/AppearanceGuardTests.swift": {
-    "mtime": 1788684020.0726826,
-    "seen": 1788685531.536618,
-    "ast_hash": "7cf5888824ba64cc790ae48c570d00c4",
+    "mtime": 1788686652.3816864,
+    "seen": 1788686869.517814,
+    "ast_hash": "b3432916f2ff72097075157b327a8a45",
     "semantic_hash": ""
   },
   "Tests/CutawayTests/DiagnosticsTests.swift": {
@@ -798,9 +798,9 @@
     "semantic_hash": ""
   },
   "Tests/CutawayTests/LocalizationTests.swift": {
-    "mtime": 1788684218.4347272,
-    "seen": 1788685531.5366368,
-    "ast_hash": "3bca3263b6ae14cca24cc7101fd27c70",
+    "mtime": 1788686677.8311932,
+    "seen": 1788686869.517834,
+    "ast_hash": "28e5d0ebf2815ce4ddbfe8a2ccbae705",
     "semantic_hash": ""
   },
   "Tests/CutawayTests/PermissionsPrimerTests.swift": {
@@ -816,15 +816,15 @@
     "semantic_hash": ""
   },
   "scripts/strings.py": {
-    "mtime": 1788685489.4141526,
-    "seen": 1788685531.536662,
-    "ast_hash": "20521ebf232389a7a3e38ec62bcd4c58",
+    "mtime": 1788686755.785991,
+    "seen": 1788686869.517859,
+    "ast_hash": "44ffc25f2861006400f958abfd4c591b",
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1788684125.2656753,
-    "seen": 1788685531.536663,
-    "ast_hash": "27488c22c9c613941a07f5f424598131",
+    "mtime": 1788686652.3818836,
+    "seen": 1788686869.5178602,
+    "ast_hash": "7e232573f59ed7a84536a3d38e7931c7",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-09-06-05-v1-3-trust.md": {
@@ -837,6 +837,18 @@
     "mtime": 1788601519.2825074,
     "seen": 1788685531.5366871,
     "ast_hash": "c0cfb5ea6645d64090470a2d0370dde8",
+    "semantic_hash": ""
+  },
+  "Sources/Cutaway/Settings/LabelledRow.swift": {
+    "mtime": 1788686652.3808985,
+    "seen": 1788686869.517806,
+    "ast_hash": "2b9ce1a676056ac4a38313332492da07",
+    "semantic_hash": ""
+  },
+  "Tests/CutawayTests/CrashSnapshotTests.swift": {
+    "mtime": 1788686484.8951592,
+    "seen": 1788686869.517819,
+    "ast_hash": "c4f50700bdc8d40b6e1a738ebaaf7ab6",
     "semantic_hash": ""
   }
 }

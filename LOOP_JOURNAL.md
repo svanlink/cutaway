@@ -7,6 +7,42 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-06 — [keep] hardening pass: three reviewers, seventeen fixes, zero warnings
+Sebastian asked for everything to be cleaned up and every bug found. Three
+reviewer agents ran in parallel against the working tree (an engine/billing
+bug hunt, a silent-failure hunt, and a review of the v1.3 diff); CodeRabbit
+CLI was tried four times and its service closed the WebSocket every time,
+so it contributed nothing. The agents found what 337 tests had not:
+
+Money and time (e17915c, each with a test): the render exemption's cap
+re-armed on a one-tick CPU dip — an unattended overnight export could bill
+the night; a day edit on a day ending exactly at midnight landed on the next
+day and compounded on retry; editing today below the running session
+clamped to zero and deleted every banked session; the crash snapshot was
+cleared before the close's save, so a failed save at quit lost the session;
+the "＋ Add" sheet prefilled 0:00 and SET — adding to a day with six hours
+deleted them. Also: day edits land on the sheet's project, not whatever
+detection selected meanwhile; the snapshot names its project and recovery
+defers instead of dropping; fuscript's wait no longer parks a pool thread.
+
+Silent failures (b4f1889): a mid-copy backup looked complete (staged and
+renamed now); the store refusing to open was invisible to a menu-bar user
+(fatal banner in the panel, never cleared by in-memory writes); the panel's
+Escape monitor outlived a click-away close and ate Escape in every sheet;
+Launch at login lied when registration failed; MetricKit payloads in one
+second overwrote each other; intents reported success with no app;
+"Choose app…" in the picker for bundles the scan cannot see. The catalog
+had gaps the German pass did not catch — ternaries of literals are
+verbatim, PermissionsView duplicated labelled() so four primer strings never
+reached German; the generator now fails on German without a source and a
+test regenerates and diffs. CI: TAP_TOKEN hoisted to the job (a step env is
+not in scope for its `if`), the tap clone carries the token, no `grep -q`
+under pipefail.
+
+Gate on HEAD: 343 unit tests (2 skipped), smoke ×3 ALL PASS, 8 UI tests (1 skipped) at b4f1889; graph 1,910 nodes / 4,186 edges / 107 communities. Compiler warnings: 0 (were 15).
+
+---
+
 ## 2026-09-06 — [keep] v1.3 "Trust" built on the branch; not tagged
 Plan 5 (`docs/superpowers/plans/2026-09-06-05-v1-3-trust.md`), eight
 tasks, each behind the full gate (unit → smoke ×3 → UI) and its own commit:
