@@ -18,10 +18,10 @@
     "semantic_hash": "38c923380bd349f7724ff07af99dd3dd"
   },
   "scripts/release.sh": {
-    "mtime": 1788684125.2653935,
-    "seen": 1788685531.53666,
-    "ast_hash": "a21d1e8975f402227198220e0832c221",
-    "semantic_hash": ""
+    "mtime": 1788601923.4731715,
+    "seen": 1788683326.57661,
+    "ast_hash": "2e24851ad298d640ee60e3c7fac5db90",
+    "semantic_hash": "2e24851ad298d640ee60e3c7fac5db90"
   },
   "scripts/smoke.sh": {
     "mtime": 1788600785.0345132,
@@ -36,16 +36,16 @@
     "semantic_hash": "18b5c7a76a9dce2cbe824adb7b26342a"
   },
   "LOOP_JOURNAL.md": {
-    "mtime": 1788684135.4730182,
-    "seen": 1788685531.536664,
-    "ast_hash": "9a3954ffeb8fcbbaf397c79141997ad8",
+    "mtime": 1788599842.6877725,
+    "seen": 1788599844.393286,
+    "ast_hash": "c6d4cee316ff7ed97db0a75eb86e4632",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1788683882.7662072,
-    "seen": 1788685531.5366652,
-    "ast_hash": "1de0c151a3a414b418b376dff1b2b432",
-    "semantic_hash": ""
+    "mtime": 1788601248.558211,
+    "seen": 1788683326.576612,
+    "ast_hash": "89555bdcb9aa7c54ab460d4da16261b7",
+    "semantic_hash": "89555bdcb9aa7c54ab460d4da16261b7"
   },
   "design/slice-1-dashboard.html": {
     "mtime": 1787235644.7505622,
@@ -60,10 +60,10 @@
     "semantic_hash": ""
   },
   "docs/ACCESSIBILITY-MANUAL.md": {
-    "mtime": 1788684055.2551844,
-    "seen": 1788685531.5366669,
-    "ast_hash": "f5f2f054c4d202a09c4348cd88308295",
-    "semantic_hash": ""
+    "mtime": 1787301569.5339465,
+    "seen": 1788683326.5766132,
+    "ast_hash": "75331ebfa23e1f09817dc14f78438f25",
+    "semantic_hash": "75331ebfa23e1f09817dc14f78438f25"
   },
   "docs/superpowers/plans/2026-09-04-01-merge-worktree.md": {
     "mtime": 1788536204.9858007,
@@ -78,9 +78,9 @@
     "semantic_hash": "63bfb331c9f236ef987ec0afab76b523"
   },
   "project.yml": {
-    "mtime": 1788684244.6904087,
-    "seen": 1788685531.5366771,
-    "ast_hash": "8ff2db933cb1e19b201d56fa7a7ae48b",
+    "mtime": 1788599352.7079904,
+    "seen": 1788599844.393294,
+    "ast_hash": "47f28c4c21abc13d4688a0f59ca84749",
     "semantic_hash": ""
   },
   "scenarios/s1-zerostate-detect.txt": {
@@ -150,15 +150,15 @@
     "semantic_hash": ""
   },
   "docs/assets/pill.png": {
-    "mtime": 1788601519.1969717,
-    "seen": 1788685531.5366871,
-    "ast_hash": "50bf0559090ec6d0f58b9510e4f82660",
+    "mtime": 1787235644.7544682,
+    "seen": 1788536916.2658591,
+    "ast_hash": "ff4eef750b02d428bfecf7047e0fb34c",
     "semantic_hash": ""
   },
   "docs/assets/stats.png": {
-    "mtime": 1788601519.1454756,
-    "seen": 1788685531.536688,
-    "ast_hash": "2f134ca767b51808ae8a173f31cfe377",
+    "mtime": 1787235644.755685,
+    "seen": 1788536916.26586,
+    "ast_hash": "877bb57f9a2d4a92bca53a1788d0f6e7",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-09-04-02-per-project-apps.md": {
@@ -174,16 +174,16 @@
     "semantic_hash": "b411753ecb63bd736917b1adf8a4c460"
   },
   "Sources/Cutaway/App/AppModel.swift": {
-    "mtime": 1788684869.6809127,
-    "seen": 1788685531.536573,
-    "ast_hash": "474b8458af678db1df74104daba409e9",
-    "semantic_hash": ""
+    "mtime": 1788599724.8243332,
+    "seen": 1788683326.576542,
+    "ast_hash": "59b71c881eb094a8bab5f02ae19111cd",
+    "semantic_hash": "59b71c881eb094a8bab5f02ae19111cd"
   },
   "Sources/Cutaway/App/CutawayApp.swift": {
-    "mtime": 1788685489.413763,
-    "seen": 1788685531.536577,
-    "ast_hash": "e98f1be1cb71e8de818dfcf938ef09bf",
-    "semantic_hash": ""
+    "mtime": 1788599428.1528034,
+    "seen": 1788683326.576546,
+    "ast_hash": "ef66ed78650c1481128dfe8a87a0f526",
+    "semantic_hash": "ef66ed78650c1481128dfe8a87a0f526"
   },
   "Sources/Cutaway/App/HotKey.swift": {
     "mtime": 1787235644.7459583,
@@ -204,10 +204,10 @@
     "semantic_hash": "1a12a46a3ea0ddf2d84d1c16b7ae52ab"
   },
   "Sources/Cutaway/App/UserFacingPolicy.swift": {
-    "mtime": 1788684869.680657,
-    "seen": 1788685531.536586,
-    "ast_hash": "22a1efc8ed830e94c084f982088a0272",
-    "semantic_hash": ""
+    "mtime": 1787258512.7276216,
+    "seen": 1788683326.57655,
+    "ast_hash": "37008633743da8914b801c243e07530b",
+    "semantic_hash": "37008633743da8914b801c243e07530b"
   },
   "Sources/Cutaway/Billing/BillingEngine.swift": {
     "mtime": 1788599428.1562607,
@@ -216,10 +216,10 @@
     "semantic_hash": "79c2a22e4dafec1e03a2df4c759a95ff"
   },
   "Sources/Cutaway/Billing/CSVExportButton.swift": {
-    "mtime": 1788684244.6901562,
-    "seen": 1788685531.536587,
-    "ast_hash": "18c77b32e630998d88f068ec13254c5f",
-    "semantic_hash": ""
+    "mtime": 1788598568.3233209,
+    "seen": 1788683326.576551,
+    "ast_hash": "e5a0491387f9a41a382466373a9ad33b",
+    "semantic_hash": "e5a0491387f9a41a382466373a9ad33b"
   },
   "Sources/Cutaway/Billing/CSVExporter.swift": {
     "mtime": 1788599428.155507,
@@ -258,10 +258,10 @@
     "semantic_hash": "eedd0a513d707be239551149d64ffa12"
   },
   "Sources/Cutaway/Detection/DetectionState.swift": {
-    "mtime": 1788684417.6864605,
-    "seen": 1788685531.536593,
-    "ast_hash": "261ddd6c46b8cd0e676edf5d86e92178",
-    "semantic_hash": ""
+    "mtime": 1788598011.636286,
+    "seen": 1788683326.576556,
+    "ast_hash": "f693337e20b9c4b06297936dedb729fc",
+    "semantic_hash": "f693337e20b9c4b06297936dedb729fc"
   },
   "Sources/Cutaway/Detection/ProjectDetector.swift": {
     "mtime": 1787480866.898983,
@@ -276,22 +276,22 @@
     "semantic_hash": "56fe0359e6b8d7d5a2106ba8b1c89608"
   },
   "Sources/Cutaway/Detection/SystemProbes.swift": {
-    "mtime": 1788685329.11823,
-    "seen": 1788685531.5365949,
-    "ast_hash": "ae5bf64dc2492ac664e3ce9564db7fa3",
-    "semantic_hash": ""
+    "mtime": 1787480284.302448,
+    "seen": 1788683326.576558,
+    "ast_hash": "70be9673d035cee9cc6045168dd32785",
+    "semantic_hash": "70be9673d035cee9cc6045168dd32785"
   },
   "Sources/Cutaway/MenuBar/IdleWarningPanel.swift": {
-    "mtime": 1788684417.6858802,
-    "seen": 1788685531.536596,
-    "ast_hash": "1f1bbc484c1d1160df53839ed99a6c69",
-    "semantic_hash": ""
+    "mtime": 1788598758.315381,
+    "seen": 1788683326.576559,
+    "ast_hash": "18b0af85b4298e8c062814f75aafa18a",
+    "semantic_hash": "18b0af85b4298e8c062814f75aafa18a"
   },
   "Sources/Cutaway/MenuBar/MenuBarPanel.swift": {
-    "mtime": 1788684417.686078,
-    "seen": 1788685531.536597,
-    "ast_hash": "169bf4490c60fcdb4e933139baee7940",
-    "semantic_hash": ""
+    "mtime": 1788598758.3540115,
+    "seen": 1788683326.57656,
+    "ast_hash": "2b16ffc4dfc8f738520b0dd8a7f2bd11",
+    "semantic_hash": "2b16ffc4dfc8f738520b0dd8a7f2bd11"
   },
   "Sources/Cutaway/MenuBar/PanelCards.swift": {
     "mtime": 1788598326.3038895,
@@ -300,16 +300,16 @@
     "semantic_hash": "e4c8964d2c45ef9358c86317fa41da60"
   },
   "Sources/Cutaway/MenuBar/PromptPanel.swift": {
-    "mtime": 1788684525.32139,
-    "seen": 1788685531.536598,
-    "ast_hash": "cf4a65f7c2cd73c3fa060e401b041904",
-    "semantic_hash": ""
+    "mtime": 1788599428.1548138,
+    "seen": 1788683326.576561,
+    "ast_hash": "8af856c2580c68452c443929e2954c5b",
+    "semantic_hash": "8af856c2580c68452c443929e2954c5b"
   },
   "Sources/Cutaway/MenuBar/StatusItemController.swift": {
-    "mtime": 1788684525.3209052,
-    "seen": 1788685531.536599,
-    "ast_hash": "b9e13268d3fa4667a4ae4e5b9d09b4d3",
-    "semantic_hash": ""
+    "mtime": 1788598758.3538246,
+    "seen": 1788683326.576562,
+    "ast_hash": "c1b520af04f49ace9de1474045da11e0",
+    "semantic_hash": "c1b520af04f49ace9de1474045da11e0"
   },
   "Sources/Cutaway/Projects/AppCatalog.swift": {
     "mtime": 1788544109.8860486,
@@ -366,10 +366,10 @@
     "semantic_hash": "88d4caa794d3c4a698fd8984669ebbbf"
   },
   "Sources/Cutaway/Projects/ProjectsModel.swift": {
-    "mtime": 1788683788.4560494,
-    "seen": 1788685531.536607,
-    "ast_hash": "cd4d02c308abc8df0cadf16de0c5b54a",
-    "semantic_hash": ""
+    "mtime": 1788601406.7409797,
+    "seen": 1788683326.576569,
+    "ast_hash": "24f9aba9bd84f5b56bce255b4a21f304",
+    "semantic_hash": "24f9aba9bd84f5b56bce255b4a21f304"
   },
   "Sources/Cutaway/Projects/SessionStore.swift": {
     "mtime": 1788599428.1567113,
@@ -384,28 +384,28 @@
     "semantic_hash": "1d10d3c1558c453872387b3508fa3d3a"
   },
   "Sources/Cutaway/Settings/AppListEditor.swift": {
-    "mtime": 1788684417.6853182,
-    "seen": 1788685531.5366101,
-    "ast_hash": "0734e2e120e1261bf50a48adf8f2fa57",
-    "semantic_hash": ""
+    "mtime": 1788598890.303339,
+    "seen": 1788683326.576571,
+    "ast_hash": "5dc0651516739b2db2dc570b926955d9",
+    "semantic_hash": "5dc0651516739b2db2dc570b926955d9"
   },
   "Sources/Cutaway/Settings/SettingsView.swift": {
-    "mtime": 1788685489.4139822,
-    "seen": 1788685531.536611,
-    "ast_hash": "2db0bfb91f568f7c0c649209e97963a6",
-    "semantic_hash": ""
+    "mtime": 1788599428.1536536,
+    "seen": 1788683326.576572,
+    "ast_hash": "58fcb9c34f5a812f3724a6dcba2f24a3",
+    "semantic_hash": "58fcb9c34f5a812f3724a6dcba2f24a3"
   },
   "Sources/Cutaway/Stats/EditDaySheet.swift": {
-    "mtime": 1788684591.6081896,
-    "seen": 1788685531.536612,
-    "ast_hash": "0c32dfae575f402c00bdc1829839cca3",
-    "semantic_hash": ""
+    "mtime": 1788598983.2598746,
+    "seen": 1788683326.576573,
+    "ast_hash": "952bb2189ac9e0a19e8d8e2928775105",
+    "semantic_hash": "952bb2189ac9e0a19e8d8e2928775105"
   },
   "Sources/Cutaway/Stats/StatsView.swift": {
-    "mtime": 1788684671.0794876,
-    "seen": 1788685531.536612,
-    "ast_hash": "4c8f7917230b308daec4f36c81c0b3b9",
-    "semantic_hash": ""
+    "mtime": 1788601497.818453,
+    "seen": 1788683326.576573,
+    "ast_hash": "cb94bd79aa960cfe1a756d37ed395989",
+    "semantic_hash": "cb94bd79aa960cfe1a756d37ed395989"
   },
   "Tests/CutawayTests/AccessibilityOfferTests.swift": {
     "mtime": 1787258527.4089725,
@@ -582,10 +582,10 @@
     "semantic_hash": "67409f9c7ab2817d6cd71126e76f5d62"
   },
   "Tests/CutawayTests/PanelLayoutTests.swift": {
-    "mtime": 1788683788.457338,
-    "seen": 1788685531.53664,
-    "ast_hash": "def965a14f29b636315849f610f61c69",
-    "semantic_hash": ""
+    "mtime": 1788598162.8911068,
+    "seen": 1788683326.576593,
+    "ast_hash": "b5b28b2fa224d20d62907f398e784f69",
+    "semantic_hash": "b5b28b2fa224d20d62907f398e784f69"
   },
   "Tests/CutawayTests/PausePersistenceTests.swift": {
     "mtime": 1787245730.3348465,
@@ -684,10 +684,10 @@
     "semantic_hash": "e47ce5ba6e9666565f02325c47e993a8"
   },
   "Tests/CutawayUITests/AccessibilityAuditTests.swift": {
-    "mtime": 1788685062.365817,
-    "seen": 1788685531.5366552,
-    "ast_hash": "2b01a0ede5010197cf464c68125b1fc4",
-    "semantic_hash": ""
+    "mtime": 1788599428.1632385,
+    "seen": 1788683326.5766048,
+    "ast_hash": "9e448c2d5a95c5096de09da815bed22d",
+    "semantic_hash": "9e448c2d5a95c5096de09da815bed22d"
   },
   "Tests/CutawayUITests/MenuBarKeyboardTests.swift": {
     "mtime": 1788599428.1630838,
@@ -744,99 +744,9 @@
     "semantic_hash": "892967ea1660eb832d1d3cb90a2947d0"
   },
   "docs/research/2026-09-05-premium-audit.md": {
-    "mtime": 1788683386.1887143,
-    "seen": 1788685531.536672,
-    "ast_hash": "fa61078c2a882b03af2ff9fdbcfcbd0c",
-    "semantic_hash": ""
-  },
-  "Sources/Cutaway/App/Diagnostics.swift": {
-    "mtime": 1788685499.6088812,
-    "seen": 1788685531.5365791,
-    "ast_hash": "8a79b0ab85c9101e7be2c12f7c3a0197",
-    "semantic_hash": ""
-  },
-  "Sources/Cutaway/App/Intents.swift": {
-    "mtime": 1788685191.5103164,
-    "seen": 1788685531.536582,
-    "ast_hash": "ece1fed01cf4a8fb846498d04656b5f3",
-    "semantic_hash": ""
-  },
-  "Sources/Cutaway/Projects/StoreErrorReporter.swift": {
-    "mtime": 1788683788.4324565,
-    "seen": 1788685531.536609,
-    "ast_hash": "610e3941900da6b6523d8be727c6259e",
-    "semantic_hash": ""
-  },
-  "Sources/Cutaway/Settings/PermissionsView.swift": {
-    "mtime": 1788684912.8960543,
-    "seen": 1788685531.5366101,
-    "ast_hash": "8c2e1f04d14c41b342af6973601346c9",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/AppearanceGuardTests.swift": {
-    "mtime": 1788684020.0726826,
-    "seen": 1788685531.536618,
-    "ast_hash": "7cf5888824ba64cc790ae48c570d00c4",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/DiagnosticsTests.swift": {
-    "mtime": 1788685481.619687,
-    "seen": 1788685531.536627,
-    "ast_hash": "0995bd19524b10672d3fcb400df2c637",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/FrontmostTrackerTests.swift": {
-    "mtime": 1788685312.2137566,
-    "seen": 1788685531.536632,
-    "ast_hash": "3931a6f3e79329f0a844faccbefb8298",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/IntentsTests.swift": {
-    "mtime": 1788685182.5731466,
-    "seen": 1788685531.5366342,
-    "ast_hash": "87102c77ad188aab5c5f65075d244dff",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/LocalizationTests.swift": {
-    "mtime": 1788684218.4347272,
-    "seen": 1788685531.5366368,
-    "ast_hash": "3bca3263b6ae14cca24cc7101fd27c70",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/PermissionsPrimerTests.swift": {
-    "mtime": 1788684370.551485,
-    "seen": 1788685531.536642,
-    "ast_hash": "35f6f22d93b1f0a8f618408abff96af0",
-    "semantic_hash": ""
-  },
-  "Tests/CutawayTests/StoreErrorReporterTests.swift": {
-    "mtime": 1788683740.5365465,
-    "seen": 1788685531.536651,
-    "ast_hash": "4c54f0b86c84d707095aea644d379906",
-    "semantic_hash": ""
-  },
-  "scripts/strings.py": {
-    "mtime": 1788685489.4141526,
-    "seen": 1788685531.536662,
-    "ast_hash": "20521ebf232389a7a3e38ec62bcd4c58",
-    "semantic_hash": ""
-  },
-  ".github/workflows/release.yml": {
-    "mtime": 1788684125.2656753,
-    "seen": 1788685531.536663,
-    "ast_hash": "27488c22c9c613941a07f5f424598131",
-    "semantic_hash": ""
-  },
-  "docs/superpowers/plans/2026-09-06-05-v1-3-trust.md": {
-    "mtime": 1788683719.8656807,
-    "seen": 1788685531.5366762,
-    "ast_hash": "9058a93748bd7366988c8aaf467ac0e8",
-    "semantic_hash": ""
-  },
-  "docs/assets/panel.png": {
-    "mtime": 1788601519.2825074,
-    "seen": 1788685531.5366871,
-    "ast_hash": "c0cfb5ea6645d64090470a2d0370dde8",
-    "semantic_hash": ""
+    "mtime": 1788629980.1435199,
+    "seen": 1788683326.576617,
+    "ast_hash": "72ff332ddb44ff995131d5878310615f",
+    "semantic_hash": "72ff332ddb44ff995131d5878310615f"
   }
 }

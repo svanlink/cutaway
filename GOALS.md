@@ -39,6 +39,8 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [trust] v1.3 on the branch: visible save failures, one appearance decision, honest bundle metadata, String Catalog + German, permissions primer, Shortcuts actions, notification-driven frontmost, local diagnostics, CI release — plan 5, not tagged
+
 - [ship] v1.2.0 released; tap recreated; release.sh stamps the bundle version — v1.2.0
 
 - [structure] Cutaway everywhere; feature folders; ProjectsModel split — b7078bd
