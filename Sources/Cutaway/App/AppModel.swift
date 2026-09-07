@@ -7,6 +7,10 @@ struct DayEditTarget: Identifiable {
     let id = UUID()
     /// nil = "Add time" for a day the app never saw.
     var day: Date?
+    /// The project being corrected, captured when the sheet opens. Reading
+    /// `selectedProject` instead let a Resolve project switch mid-edit save
+    /// one project's figures onto another, silently.
+    let project: Project
 }
 
 /// Glue between detection, persistence, and UI. One instance per app.
@@ -49,6 +53,15 @@ final class AppModel {
     var openMainWindow: (() -> Void)?
     var openSettingsWindow: (() -> Void)?
     var openPermissionsWindow: (() -> Void)?
+    /// Last successful backup of the live store — launch, daily, quit or by hand.
+    private(set) var lastBackup: Date? = Prefs.object(forKey: "lastBackupAt") as? Date
+    private var backupTimer: Timer?
+    /// Beside whatever store is actually open — NOT a hard path. A hard path
+    /// meant a UI-test run (quarantined by CUTAWAY_DATA_DIR, but backed up by
+    /// the real rule) wrote its throwaway store into the owner's real backups
+    /// folder, where it competed with genuine backups for the rotation.
+    static let backupsDir = StorePath.url().deletingLastPathComponent()
+        .appendingPathComponent("Backups", isDirectory: true)
     /// True when SwiftData refused to open and we fell back to memory —
     /// the user must be TOLD their time won't survive a restart.
     var storeIsEphemeral = false
@@ -69,17 +82,29 @@ final class AppModel {
             : DetectionEngine()
         // Back up the real billing store before it opens (quiescent files).
         // Scenario/demo stores are disposable — never backed up.
+        var launchBackupMade = false
         if !ScenarioMode.isActive {
             // First launch after 1.3.1: bring the work over from the shared
             // default.store into Cutaway's own file (copied, never removed).
             do { if try StorePath.adoptLegacyIfNeeded() { NSLog("Cutaway: adopted the legacy default.store") } }
             catch { NSLog("Cutaway: legacy store adoption failed — %@", String(describing: error)) }
             let storeURL = StorePath.url()
-            let backupsDir = FileManager.default
-                .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("Cutaway/Backups")
-            do { try StoreBackup.backUp(storeURL: storeURL, backupsDir: backupsDir) }
-            catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
+            // A restore chosen in Settings is applied here, before anything opens.
+            do { if try StorePath.applyPendingRestore(target: storeURL) { storeErrors.notice(String(localized: "The backup you chose has been restored.")) } }
+            catch { NSLog("Cutaway: pending restore failed — %@", String(describing: error)) }
+            // A damaged store is set aside and the newest backup takes its
+            // place — said out loud in the panel, never silently.
+            if FileManager.default.fileExists(atPath: storeURL.path), !StorePath.quickCheckOK(storeURL),
+               let newest = StoreBackup.newest(in: Self.backupsDir) {
+                do {
+                    try StorePath.stagePendingRestore(from: newest, target: storeURL)
+                    try StorePath.applyPendingRestore(target: storeURL)
+                    storeErrors.notice(String(localized: "The billing store was damaged; the backup \(newest.lastPathComponent) was restored. The damaged file is kept beside it."))
+                } catch { NSLog("Cutaway: automatic restore failed — %@", String(describing: error)) }
+            }
+            do {
+                if try StoreBackup.backUp(storeURL: storeURL, backupsDir: Self.backupsDir) != nil { launchBackupMade = true }
+            } catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
         }
         do {
             store = try SessionStore()
@@ -97,6 +122,7 @@ final class AppModel {
         // After the last stored property: a closure over self before that is
         // a compile error, not a style choice.
         storeErrors.log = { [weak self] in self?.engine.logDetection("store", detail: $0) }
+        if launchBackupMade { recordBackup() }
         // CUTAWAY_DEMO seeds sample data for screenshots and dev runs — but
         // ONLY into a quarantined store. On 2026-08-23 this guard did not
         // exist, `open` turned out to propagate the caller's environment
@@ -211,7 +237,49 @@ final class AppModel {
             ScenarioDriver.run(model: self)
         } else {
             engine.start()
+            startBackupSchedule()
         }
+    }
+
+    // MARK: - Backups of the running store
+
+    private func startBackupSchedule() {
+        let t = Timer(timeInterval: BackupPolicy.checkEvery, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, BackupPolicy.isDue(last: self.lastBackup, now: Date()) else { return }
+                self.backUpNow(reason: "daily")
+            }
+        }
+        t.tolerance = 60
+        RunLoop.main.add(t, forMode: .common)
+        backupTimer = t
+    }
+
+    /// A consistent snapshot of the live store. Returns whether one was written
+    /// (nil from the snapshot means nothing changed since the last one).
+    @discardableResult
+    func backUpNow(reason: String) -> Bool {
+        guard !ScenarioMode.isActive else { return false }
+        do {
+            let made = try StoreBackup.snapshot(storeURL: StorePath.url(), backupsDir: Self.backupsDir) != nil
+            recordBackup()
+            engine.logDetection("backup", detail: "reason=\(reason) wrote=\(made)")
+            return made
+        } catch {
+            engine.logDetection("backup-failed", detail: "reason=\(reason) error=\(error)")
+            return false
+        }
+    }
+
+    private func recordBackup() {
+        lastBackup = Date()
+        Prefs.set(lastBackup, forKey: "lastBackupAt")
+    }
+
+    /// Quit: the engine flushes the open session, then the store is snapshotted.
+    func prepareForTermination() {
+        engine.stop()
+        backUpNow(reason: "quit")
     }
 
     /// Scenario hook: same path as a Tier-1 detection.

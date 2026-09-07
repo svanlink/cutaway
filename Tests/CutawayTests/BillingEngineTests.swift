@@ -160,4 +160,21 @@ final class CurrencyLocaleInvarianceTests: XCTestCase {
         XCTAssertEqual(BillingCurrency.eur.format(-42.5), "€ -42.50")
         XCTAssertEqual(BillingCurrency.cop.format(999), "COP 999")
     }
+
+    /// Europe/Zurich, the night the clocks jump (2026-03-29 02:00 → 03:00):
+    /// a session across midnight AND the jump still bills whole seconds to
+    /// the right days — no hour lost, none invented.
+    func testSplitAcrossDSTJumpKeepsEverySecond() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Zurich")!
+        let start = cal.date(from: DateComponents(year: 2026, month: 3, day: 28, hour: 23))!
+        let end = cal.date(from: DateComponents(year: 2026, month: 3, day: 29, hour: 4))!   // 4 real hours
+        XCTAssertEqual(end.timeIntervalSince(start), 4 * 3600, "the wall clock skipped an hour")
+        let parts = DaySplitter.split(SessionRecord(start: start, end: end, activeSeconds: 4 * 3600), calendar: cal)
+        XCTAssertEqual(parts.count, 2)
+        XCTAssertEqual(parts.reduce(0) { $0 + $1.activeSeconds }, 4 * 3600, accuracy: 0.001)
+        XCTAssertEqual(parts[0].activeSeconds, 3600, accuracy: 0.001, "one real hour on the 28th")
+        XCTAssertEqual(cal.startOfDay(for: parts[1].start), cal.date(from: DateComponents(year: 2026, month: 3, day: 29))!)
+    }
+
 }

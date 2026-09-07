@@ -97,7 +97,9 @@ struct StatsView: View {
         let total = model.store.totalActiveSeconds(for: p) + model.engine.accumulator.activeSeconds
         let days = model.dayTotalsIncludingLive(for: p)
         let dayCount = max(days.count, days.isEmpty && total > 0 ? 1 : days.count)
-        let earned = days.reduce(0) { $0 + $1.earned }
+        // Round each day, then sum — the same order the CSV uses, so the
+        // headline figure and the exported total are the same number.
+        let earned = days.reduce(0) { $0 + Money.round2($1.earned) }
         let avg = model.store.avgDailySeconds(for: p)
         let avgEarned = days.isEmpty ? 0 : earned / Double(days.count)
 
@@ -201,7 +203,7 @@ struct StatsView: View {
                 Text("Daily Breakdown").font(DT.smallSemibold).foregroundStyle(DT.text)
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
-                Button { model.editDay = DayEditTarget(day: nil) } label: {
+                Button { model.editDay = DayEditTarget(day: nil, project: p) } label: {
                     Text("＋ Add").font(DT.captionMedium).foregroundStyle(DT.text2)
                         .padding(.horizontal, 7).padding(.vertical, 3)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
@@ -310,7 +312,7 @@ struct StatsView: View {
         .accessibilityLabel(Self.dayRowLabel(d, project: p, isToday: isToday))
         .accessibilityHint(expandedDay == d.day ? "Hide sessions" : "Show sessions")
         .contextMenu {
-            Button("Edit day…") { model.editDay = DayEditTarget(day: d.day) }
+            Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
         }
         .accessibilityAddTraits(.isButton)
     }
@@ -339,7 +341,7 @@ struct StatsView: View {
             }
             HStack {
                 Spacer()
-                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day) }
+                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
                     .font(DT.captionMedium)
                     .buttonStyle(.plain)
                     .foregroundStyle(DT.signal)

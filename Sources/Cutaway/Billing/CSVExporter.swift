@@ -148,7 +148,7 @@ enum CSVExporter {
     /// The precision every money and hours column prints at. Rounding once,
     /// here, is what keeps rows and totals in agreement.
     static func round2(_ value: Double) -> Double {
-        (value * 100).rounded() / 100
+        Money.round2(value)
     }
 
     static func csvEscape(_ field: String) -> String {

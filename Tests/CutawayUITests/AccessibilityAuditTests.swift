@@ -15,6 +15,18 @@ final class AccessibilityAuditTests: XCTestCase {
         try audit(show: "permissions")
     }
 
+    /// Settings is native, but native is not audited for free.
+    @MainActor
+    func testSettingsWindowPassesAccessibilityAudit() throws {
+        try audit(show: "settings")
+    }
+
+    /// The project sheet — the one form a new user meets first.
+    @MainActor
+    func testProjectSheetPassesAccessibilityAudit() throws {
+        try audit(show: "newproject")
+    }
+
     @MainActor
     private func audit(show: String?) throws {
         let app = XCUIApplication()
@@ -25,8 +37,11 @@ final class AccessibilityAuditTests: XCTestCase {
         // the store a user invoices from.
         app.launchEnvironment["CUTAWAY_DATA_DIR"] = NSTemporaryDirectory() + "cutaway-uitests"
         app.launch()
-        if show == "permissions" {
-            XCTAssertTrue(app.windows["What Cutaway needs, and why"].waitForExistence(timeout: 5))
+        switch show {
+        case "permissions": XCTAssertTrue(app.windows["What Cutaway needs, and why"].waitForExistence(timeout: 5))
+        case "settings": XCTAssertTrue(app.windows["Cutaway Settings"].waitForExistence(timeout: 5))
+        case "newproject": XCTAssertTrue(app.sheets.firstMatch.waitForExistence(timeout: 5))
+        default: break
         }
 
         // Audit the Stats window. Contrast is validated by hand-measured WCAG

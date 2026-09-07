@@ -150,7 +150,7 @@ final class AutoResumeTests: XCTestCase {
         probes = DetectionEngineTests.FakeProbes()
         // Isolated defaults: togglePause() persists the manual pause, and a
         // test must never leave a real pause behind in the app's Prefs.
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         engine = DetectionEngine(probes: probes, defaults: scratch)
         clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { [weak self] in self!.clock }

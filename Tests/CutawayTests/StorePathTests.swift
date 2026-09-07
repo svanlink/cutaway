@@ -51,4 +51,37 @@ final class StorePathTests: XCTestCase {
         XCTAssertFalse(try StorePath.adoptLegacyIfNeeded(legacy: legacy, target: target))
         XCTAssertFalse(FileManager.default.fileExists(atPath: target.path))
     }
+
+    func testQuickCheckRejectsGarbage() throws {
+        let junk = dir.appendingPathComponent("junk.store")
+        try Data(repeating: 0x41, count: 4096).write(to: junk)
+        XCTAssertFalse(StorePath.quickCheckOK(junk))
+        let good = dir.appendingPathComponent("good.store")
+        makeStore(at: good, table: "ZPROJECT")
+        XCTAssertTrue(StorePath.quickCheckOK(good))
+    }
+
+    func testAPendingRestoreIsAppliedOnceAndKeepsTheReplacedStore() throws {
+        let target = dir.appendingPathComponent("Cutaway/billing.store")
+        try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        makeStore(at: target, table: "ZPROJECT")                       // the live one
+        let backup = dir.appendingPathComponent("Backups/billing-20260906-120000")
+        try FileManager.default.createDirectory(at: backup, withIntermediateDirectories: true)
+        makeStore(at: backup.appendingPathComponent("billing.store"), table: "ZPROJECT")
+        try StorePath.stagePendingRestore(from: backup, target: target)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: StorePath.pendingRestoreURL(for: target).path))
+        XCTAssertTrue(try StorePath.applyPendingRestore(target: target, now: Date(timeIntervalSince1970: 0)))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: StorePath.pendingRestoreURL(for: target).path))
+        let kept = try FileManager.default.contentsOfDirectory(atPath: target.deletingLastPathComponent().path)
+        XCTAssertTrue(kept.contains { $0.hasPrefix("billing.store.replaced-") }, "the replaced store is kept: \(kept)")
+        XCTAssertFalse(try StorePath.applyPendingRestore(target: target), "applied once")
+    }
+
+    func testAForeignFolderCannotBeStagedAsARestore() throws {
+        let target = dir.appendingPathComponent("Cutaway/billing.store")
+        let backup = dir.appendingPathComponent("Backups/billing-20260906-120000")
+        try FileManager.default.createDirectory(at: backup, withIntermediateDirectories: true)
+        makeStore(at: backup.appendingPathComponent("billing.store"), table: "ZAPIREQUESTMODEL")
+        XCTAssertThrowsError(try StorePath.stagePendingRestore(from: backup, target: target))
+    }
 }

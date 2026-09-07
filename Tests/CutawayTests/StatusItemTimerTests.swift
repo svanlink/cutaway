@@ -41,7 +41,7 @@ final class EngineTickFanoutTests: XCTestCase {
     }
 
     func testEveryTickReachesTheObserver() {
-        let store = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let store = scratchDefaults()
         let engine = DetectionEngine(probes: FakeProbes(), defaults: store)
         var ticks = 0
         engine.onTick = { ticks += 1 }

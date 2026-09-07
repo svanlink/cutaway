@@ -23,7 +23,7 @@ final class DetectionEngineTests: XCTestCase {
         probes = FakeProbes()
         // Isolated defaults: the engine persists manual pause, and these
         // tests are about detection, not about what another test left behind.
-        scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        scratch = scratchDefaults()
         engine = DetectionEngine(probes: probes, defaults: scratch)
         engine.bridgeGrace = 180
         clock = Date(timeIntervalSince1970: 1_800_000_000)
@@ -138,7 +138,7 @@ final class DetectionEngineTests: XCTestCase {
         let clean = DetectionInput.sanitizedPrefixes(dirty)
         XCTAssertEqual(clean, ["com.adobe.PremierePro", "com.figma.Desktop"])
         // Round-trip through a scratch defaults suite (never the real domain).
-        let suite = UserDefaults(suiteName: "cutaway.tests.applist")!
+        let suite = scratchDefaults("cutaway.tests.applist")
         suite.removePersistentDomain(forName: "cutaway.tests.applist")
         suite.set(clean, forKey: "workApps")
         XCTAssertEqual(suite.stringArray(forKey: "workApps"), clean)
@@ -257,7 +257,7 @@ final class LongPauseHintTests: XCTestCase {
 
     func testLongPauseFlagsAfterThreshold() {
         let probes = DetectionEngineTests.FakeProbes()
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         let engine = DetectionEngine(probes: probes, defaults: scratch)
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { clock }

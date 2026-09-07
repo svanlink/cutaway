@@ -24,7 +24,7 @@ Requires macOS 14+. Works with [DaVinci Resolve](https://www.blackmagicdesign.co
 
 **First invoice in two minutes:** open Cutaway → it detects your open Resolve project (or you create one) → set your hourly rate or budget → edit as usual → menu-bar pill shows the day building up → *Stats → Export CSV* when it's invoice time.
 
-**Where your data lives:** `~/Library/Application Support/Cutaway/billing.store` (since 1.3.2; earlier versions used the shared `default.store`, which other SwiftData apps also write to — Cutaway adopts it once and never deletes it). Daily backups in `Cutaway/Backups/`; to restore, quit Cutaway and copy the newest `billing-*` folder's files over `billing.store`.
+**Where your data lives:** `~/Library/Application Support/Cutaway/billing.store` (since 1.3.2; earlier versions used the shared `default.store`, which other SwiftData apps also write to — Cutaway adopts it once and never deletes it). Backups in `Cutaway/Backups/`: at launch, once a day while running, at quit, and from Settings › Data › Back up now (a consistent SQLite snapshot; 7 generations plus each day's newest for 30 days). To restore: Settings › Data › Restore…, pick a `billing-*` folder, and Cutaway relaunches with it — the replaced store is kept beside it. A damaged store is set aside and the newest backup restored automatically, with a notice in the panel.
 
 **Releasing** (maintainer): push a tag `vX.Y.Z`. CI tests, builds, ad-hoc signs, publishes the GitHub release and bumps the cask — the cask step needs a `TAP_TOKEN` repository secret with write access to `svanlink/homebrew-tap`. `scripts/release.sh` remains the local fallback and is the only path that also runs the smoke harness (it needs a GUI session).
 

@@ -14,7 +14,7 @@ final class CrashSnapshotTests: XCTestCase {
 
     /// The snapshot is the retry: it survives a close whose save failed.
     func testAFailedSaveAtCloseKeepsTheSnapshot() {
-        let store = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let store = scratchDefaults()
         let engine = DetectionEngine(probes: FakeProbes(), defaults: store)
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { clock }
@@ -25,7 +25,7 @@ final class CrashSnapshotTests: XCTestCase {
     }
 
     func testTheSnapshotCarriesTheProjectAndClearingRemovesIt() {
-        let store = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let store = scratchDefaults()
         let engine = DetectionEngine(probes: FakeProbes(), defaults: store)
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { clock }

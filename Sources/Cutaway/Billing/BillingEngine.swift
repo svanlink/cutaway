@@ -145,6 +145,10 @@ enum BillingCurrency: String, CaseIterable, Codable, Sendable {
         f.groupingSeparator = groupingSeparator
         f.decimalSeparator = "."
         f.usesGroupingSeparator = true
+        // Match Money.round2 exactly. The formatter's default is half-EVEN;
+        // the exporter rounds ties down. One of them printing 45.13 while the
+        // other printed 45.12 for the same day is the bug this closes.
+        f.roundingMode = .halfDown
         return f.string(from: NSNumber(value: decimals == 0 ? amount.rounded(.down) : amount)) ?? "\(amount)"
     }
 }

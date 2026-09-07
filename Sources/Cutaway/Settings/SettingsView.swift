@@ -74,6 +74,25 @@ struct SettingsView: View {
                     labelled("Default currency", "New projects start with this currency")
                 }
             }
+            Section("Data") {
+                LabeledContent {
+                    Button("Back up now") { model.backUpNow(reason: "manual") }
+                } label: {
+                    labelled("Backups", "Daily, at launch and at quit — kept for 30 days on this Mac")
+                }
+                LabeledContent {
+                    HStack {
+                        Button("Reveal backups…") {
+                            NSWorkspace.shared.activateFileViewerSelecting([AppModel.backupsDir])
+                        }
+                        Button("Restore…") { restoreFromBackup() }
+                    }
+                } label: {
+                    (model.lastBackup.map { Text("Last backup \($0, format: .dateTime.day().month().hour().minute())") }
+                        ?? Text("No backup yet"))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Section("Menu bar & system") {
                 Picker(selection: $pillDisplay) {
                     Text("Today").tag("today")
@@ -146,5 +165,35 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 540)
         .onChange(of: idleThreshold) { _, new in model.engine.idleThreshold = new }
+    }
+
+    /// Pick a `billing-…` folder; the swap happens on relaunch, before the
+    /// store opens — a live database is never overwritten underneath itself.
+    private func restoreFromBackup() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.directoryURL = AppModel.backupsDir
+        panel.message = String(localized: "Choose a backup folder. Cutaway will relaunch with it.")
+        guard panel.runModal() == .OK, let folder = panel.url else { return }
+        do {
+            try StorePath.stagePendingRestore(from: folder)
+        } catch {
+            let alert = NSAlert(); alert.messageText = String(localized: "Couldn't stage that backup")
+            alert.informativeText = error.localizedDescription; alert.runModal(); return
+        }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Restore and relaunch?")
+        alert.informativeText = String(localized: "The current store is kept beside the restored one. Time tracked since that backup is not in it.")
+        alert.addButton(withTitle: String(localized: "Restore and Relaunch"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            try? FileManager.default.removeItem(at: StorePath.pendingRestoreURL()); return
+        }
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: config) { _, _ in
+            DispatchQueue.main.async { NSApp.terminate(nil) }
+        }
     }
 }

@@ -20,7 +20,7 @@ final class PausePersistenceTests: XCTestCase {
     private var store: UserDefaults!
 
     override func setUp() async throws {
-        store = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        store = scratchDefaults()
     }
 
     /// A fresh engine over the same store — what a relaunch actually is.

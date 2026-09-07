@@ -45,6 +45,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The red X must NEVER quit — the timer lives in the menu bar.
     /// (SwiftUI's default for status-item apps without MenuBarExtra is to
     /// terminate on last window close — that was the "app closes" bug.)
+    func applicationWillTerminate(_ notification: Notification) {
+        MainActor.assumeIsolated { AppDelegate.model?.prepareForTermination() }
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
@@ -90,9 +94,7 @@ struct CutawayApp: App {
                     ProjectSheet(model: model, editing: p)
                 }
                 .sheet(item: Bindable(model).editDay) { t in
-                    if let p = model.selectedProject {
-                        EditDaySheet(model: model, project: p, target: t)
-                    }
+                    EditDaySheet(model: model, project: t.project, target: t)
                 }
                 .sheet(item: Bindable(model).deleteTarget) { p in
                     DeleteProjectSheet(model: model, project: p)

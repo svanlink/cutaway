@@ -271,6 +271,26 @@
         }
       }
     },
+    "Back up now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt sichern"
+          }
+        }
+      }
+    },
+    "Backups": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherungen"
+          }
+        }
+      }
+    },
     "Billing": {
       "localizations": {
         "de": {
@@ -331,6 +351,16 @@
         }
       }
     },
+    "Choose a backup folder. Cutaway will relaunch with it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Sicherungsordner. Cutaway startet damit neu."
+          }
+        }
+      }
+    },
     "Choose app…": {
       "localizations": {
         "de": {
@@ -387,6 +417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "„Beim Anmelden starten“ konnte nicht geändert werden"
+          }
+        }
+      }
+    },
+    "Couldn't stage that backup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Sicherung konnte nicht vorbereitet werden"
           }
         }
       }
@@ -527,6 +567,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tagesübersicht"
+          }
+        }
+      }
+    },
+    "Daily, at launch and at quit — kept for 30 days on this Mac": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Täglich, beim Start und beim Beenden — 30 Tage auf diesem Mac aufbewahrt"
+          }
+        }
+      }
+    },
+    "Data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten"
           }
         }
       }
@@ -811,6 +871,16 @@
         }
       }
     },
+    "Last backup %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Sicherung %@"
+          }
+        }
+      }
+    },
     "Last session: %@ · %@": {
       "localizations": {
         "de": {
@@ -907,6 +977,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neue Projekte starten mit dieser Währung"
+          }
+        }
+      }
+    },
+    "No backup yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Sicherung"
           }
         }
       }
@@ -1201,6 +1281,36 @@
         }
       }
     },
+    "Restore and Relaunch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen und neu starten"
+          }
+        }
+      }
+    },
+    "Restore and relaunch?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen und neu starten?"
+          }
+        }
+      }
+    },
+    "Restore…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen …"
+          }
+        }
+      }
+    },
     "Resume": {
       "localizations": {
         "de": {
@@ -1247,6 +1357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erfassung fortsetzen"
+          }
+        }
+      }
+    },
+    "Reveal backups…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherungen anzeigen …"
           }
         }
       }
@@ -1397,6 +1517,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway-Projekt wechseln"
+          }
+        }
+      }
+    },
+    "That folder does not hold a Cutaway backup.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Ordner enthält keine Cutaway-Sicherung."
+          }
+        }
+      }
+    },
+    "The backup you chose has been restored.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gewählte Sicherung wurde wiederhergestellt."
+          }
+        }
+      }
+    },
+    "The billing store was damaged; the backup %@ was restored. The damaged file is kept beside it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Abrechnungsspeicher war beschädigt; die Sicherung %@ wurde wiederhergestellt. Die beschädigte Datei bleibt daneben erhalten."
+          }
+        }
+      }
+    },
+    "The current store is kept beside the restored one. Time tracked since that backup is not in it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der aktuelle Speicher bleibt neben dem wiederhergestellten erhalten. Seit dieser Sicherung erfasste Zeit ist nicht enthalten."
           }
         }
       }

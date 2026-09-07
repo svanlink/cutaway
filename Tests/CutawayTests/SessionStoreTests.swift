@@ -18,6 +18,34 @@ final class SessionStoreTests: XCTestCase {
         cal.date(from: DateComponents(year: y, month: mo, day: d, hour: h, minute: mi))!
     }
 
+    /// A spring-forward day is 23 hours long. The old clamp was
+    /// `dayStart + 86_400 - 1`, which lands PAST the next midnight, so the
+    /// clamp did not clamp: an adjustment to 29 March was written onto the
+    /// 30th, and every retry added another one.
+    func testAnAdjustmentOnASpringForwardDayStaysOnThatDay() throws {
+        let p = try store.createProject(name: "Nyx", client: "", mode: .hourly,
+                                        hourlyRate: 90, currency: .chf)
+        // 2026-03-29 is the Zurich spring-forward day: 02:00 becomes 03:00.
+        let rec = SessionRecord(start: date(2026, 3, 29, 22), end: date(2026, 3, 30, 1),
+                                activeSeconds: 7200)
+        try store.record(rec, to: p, calendar: cal)
+        let before = store.dayTotals(for: p, calendar: cal)
+        let thirtiethBefore = before.first { cal.startOfDay(for: $0.day) == date(2026, 3, 30, 0) }?.activeSeconds ?? 0
+
+        let dayOf29 = date(2026, 3, 29, 12)
+        let twentyNinth = before.first { cal.startOfDay(for: $0.day) == cal.startOfDay(for: dayOf29) }
+        try store.setActiveSeconds((twentyNinth?.activeSeconds ?? 0) + 3600,
+                                   on: dayOf29, for: p, calendar: cal, now: date(2026, 4, 2, 10))
+
+        let after = store.dayTotals(for: p, calendar: cal)
+        let twentyNinthAfter = after.first { cal.startOfDay(for: $0.day) == cal.startOfDay(for: dayOf29) }?.activeSeconds ?? 0
+        let thirtiethAfter = after.first { cal.startOfDay(for: $0.day) == date(2026, 3, 30, 0) }?.activeSeconds ?? 0
+        XCTAssertEqual(twentyNinthAfter, (twentyNinth?.activeSeconds ?? 0) + 3600, accuracy: 0.5,
+                       "the hour was added to the day that was edited")
+        XCTAssertEqual(thirtiethAfter, thirtiethBefore, accuracy: 0.5,
+                       "the next day must not have grown")
+    }
+
     func testCreateAndFetchProject() throws {
         try store.createProject(name: "Nyx", client: "Nyx Studios", mode: .hourly,
                                 hourlyRate: 85, currency: .chf)

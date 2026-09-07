@@ -58,7 +58,7 @@ final class AnchorSetTests: XCTestCase {
     @MainActor
     func testAnExcelOnlyListRecordsInExcelAndNotInResolve() {
         let probes = DetectionEngineTests.FakeProbes()
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         let engine = DetectionEngine(probes: probes, defaults: scratch)
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { clock }

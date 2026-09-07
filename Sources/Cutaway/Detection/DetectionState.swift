@@ -79,6 +79,12 @@ struct DetectionInput: Sendable {
         "com.adobe.PremierePro",
         "com.adobe.illustrator",
         "com.adobe.Audition",
+        // In the picker catalog since per-project apps shipped, but missing
+        // here until 2026-09-07 — so it was never pre-ticked on a new project
+        // and every InDesign hour was tracked as nothing. Media Encoder and
+        // Lightroom Classic stay out on purpose: AME renders unattended, and
+        // Lightroom is not part of this editor's delivery chain.
+        "com.adobe.InDesign",
     ]
 
     /// Research & comms: browsers, LLM assistants, mail, file transfer.

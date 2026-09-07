@@ -23,7 +23,7 @@ final class IdleWarningTests: XCTestCase {
 
     override func setUp() async throws {
         probes = FakeProbes()
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         engine = DetectionEngine(probes: probes, defaults: scratch)
         engine.idleThreshold = 120
         clock = Date(timeIntervalSince1970: 1_800_000_000)
@@ -138,7 +138,7 @@ final class IdleWarningTests: XCTestCase {
             func workAppCPUNanos(matching prefixes: [String]) -> UInt64 { cpuNanos }
         }
         let busy = BusyProbes()
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         let e = DetectionEngine(probes: busy, defaults: scratch)
         e.idleThreshold = 120
         e.renderExemption = true

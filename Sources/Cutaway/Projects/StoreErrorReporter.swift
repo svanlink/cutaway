@@ -39,6 +39,8 @@ final class StoreErrorReporter {
 
     /// For failures outside a single write — the store refusing to open.
     func flag(_ what: String) { fatal = Self.message(for: what) }
+    /// A fatal notice in the reporter's own words (a restore, not a failure).
+    func notice(_ message: String) { fatal = message }
 
     func clear() { problem = nil }
 }

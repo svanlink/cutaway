@@ -17,3 +17,6 @@ xcuserdata/
 LOOP_RESULTS.tsv
 loop.log
 STOP
+
+# coverage droppings from a local test run
+default.profraw

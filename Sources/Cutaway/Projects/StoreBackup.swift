@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 import Darwin
 
 /// Launch-time billing-data backup: copies the SwiftData store trio
@@ -63,16 +64,78 @@ enum StoreBackup {
             throw error
         }
 
-        // Rotate. Two buckets survive: the newest `keep` generations, and
-        // each calendar day's newest generation for `dailyDays` days.
+        rotate(backupsDir: backupsDir, keep: keep, dailyDays: dailyDays, now: now)
+        return dest
+    }
+
+    /// A backup of a store that is OPEN — the app runs for weeks, and the
+    /// launch backup alone left the newest work uncovered. SQLite's online
+    /// backup API produces a consistent single-file snapshot (WAL folded
+    /// in) without touching the live connection. Same skip, same rotation.
+    @discardableResult
+    static func snapshot(storeURL: URL, backupsDir: URL, now: Date = Date(),
+                         keep: Int = defaultKeep,
+                         dailyDays: Int = defaultDailyRetentionDays) throws -> URL? {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: storeURL.path) else { return nil }
+        try fm.createDirectory(at: backupsDir, withIntermediateDirectories: true)
+        if let newest = existingBackups(in: backupsDir).last,
+           isUnchanged(storeURL: storeURL, since: newest) {
+            return nil
+        }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "yyyyMMdd-HHmmss"
+        let dest = backupsDir.appendingPathComponent("billing-\(fmt.string(from: now))")
+        let staging = backupsDir.appendingPathComponent(".staging-\(fmt.string(from: now))")
+        try? fm.removeItem(at: staging)
+        try fm.createDirectory(at: staging, withIntermediateDirectories: true)
+        do {
+            try sqliteCopy(from: storeURL, to: staging.appendingPathComponent(storeURL.lastPathComponent))
+            writeManifest(facts(for: storeURL), to: staging)
+            try fm.moveItem(at: staging, to: dest)
+        } catch {
+            try? fm.removeItem(at: staging)
+            throw error
+        }
+        rotate(backupsDir: backupsDir, keep: keep, dailyDays: dailyDays, now: now)
+        return dest
+    }
+
+    struct SnapshotError: Error, CustomStringConvertible { let description: String }
+
+    private static func sqliteCopy(from src: URL, to dst: URL) throws {
+        // VACUUM INTO reads the logical database — WAL frames included — and
+        // writes one consistent file. (The online-backup API copied the main
+        // file's pages without the WAL from a second connection here.)
+        var source: OpaquePointer?
+        guard sqlite3_open_v2(src.path, &source, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK else {
+            throw SnapshotError(description: "open source: \(String(cString: sqlite3_errmsg(source)))")
+        }
+        defer { sqlite3_close(source) }
+        let escaped = dst.path.replacingOccurrences(of: "'", with: "''")
+        var err: UnsafeMutablePointer<CChar>?
+        guard sqlite3_exec(source, "VACUUM INTO '\(escaped)'", nil, nil, &err) == SQLITE_OK else {
+            let msg = err.map { String(cString: $0) } ?? "unknown"
+            sqlite3_free(err)
+            throw SnapshotError(description: "vacuum into: \(msg)")
+        }
+    }
+
+    /// Rotate. Two buckets survive: the newest `keep` generations, and
+    /// each calendar day's newest generation for `dailyDays` days.
+    private static func rotate(backupsDir: URL, keep: Int, dailyDays: Int, now: Date) {
+        let fm = FileManager.default
         let all = existingBackups(in: backupsDir)
         let keepers = survivors(of: all.map(\.lastPathComponent),
                                 keep: keep, dailyDays: dailyDays, now: now)
         for candidate in all where !keepers.contains(candidate.lastPathComponent) {
             try? fm.removeItem(at: candidate)
         }
-        return dest
     }
+
+    /// The newest complete backup folder, if any.
+    static func newest(in backupsDir: URL) -> URL? { existingBackups(in: backupsDir).last }
 
     /// `-shm` is a derived index, rebuilt from the other two — copied for
     /// completeness, never consulted when deciding whether anything changed.

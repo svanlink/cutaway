@@ -222,7 +222,7 @@ final class SessionAccumulatorTests: XCTestCase {
 
 final class PrefsMigrationTests: XCTestCase {
     func testMigratesOnlyMissingKeys() {
-        let suite = UserDefaults(suiteName: "cutaway.migration.test")!
+        let suite = scratchDefaults()
         suite.removePersistentDomain(forName: "cutaway.migration.test")
         suite.set("keepme", forKey: "existing")
         PrefsMigration.migrate(from: ["existing": "overwrite", "fresh": 42.0], into: suite)
@@ -232,7 +232,7 @@ final class PrefsMigrationTests: XCTestCase {
     }
 
     func testNilDomainIsNoop() {
-        let suite = UserDefaults(suiteName: "cutaway.migration.test2")!
+        let suite = scratchDefaults()
         suite.removePersistentDomain(forName: "cutaway.migration.test2")
         PrefsMigration.migrate(from: nil, into: suite)
         XCTAssertNil(suite.object(forKey: "anything"))

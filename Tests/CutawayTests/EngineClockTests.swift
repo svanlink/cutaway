@@ -25,7 +25,7 @@ final class EngineClockTests: XCTestCase {
 
     override func setUp() async throws {
         probes = FakeProbes()
-        store = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        store = scratchDefaults()
         engine = DetectionEngine(probes: probes, defaults: store)
         cal = Calendar(identifier: .gregorian)
         clock = Date(timeIntervalSince1970: 1_800_000_000)

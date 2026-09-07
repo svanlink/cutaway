@@ -22,7 +22,7 @@ final class RenderExemptionTests: XCTestCase {
 
     override func setUp() async throws {
         probes = FakeProbes()
-        let scratch = UserDefaults(suiteName: "cutaway.tests.\(UUID().uuidString)")!
+        let scratch = scratchDefaults()
         engine = DetectionEngine(probes: probes, defaults: scratch)
         clock = Date(timeIntervalSince1970: 1_800_000_000)
         engine.now = { [weak self] in self!.clock }

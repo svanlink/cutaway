@@ -108,7 +108,8 @@ final class SessionStore {
             // Clamped inside the day: an overnight split's last part ends at
             // exactly the next midnight, and a zero-span session there would
             // be grouped onto the following day — every retry adding again.
-            let dayEnd = dayStart.addingTimeInterval(86_400 - 1)
+            let dayEnd = (calendar.date(byAdding: .day, value: 1, to: dayStart)
+                          ?? dayStart.addingTimeInterval(86_400)).addingTimeInterval(-1)
             let anchor = min(sessions.last?.end ?? min(noon, now), dayEnd)
             context.insert(WorkSession(start: anchor, end: anchor, activeSeconds: delta,
                                        hourlyRate: project.hourlyRate, project: project,
