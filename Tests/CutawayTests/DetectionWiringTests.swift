@@ -7,15 +7,24 @@ import XCTest
 /// but not installed passes every test it has. These read the source, the
 /// same way DesignTokenGuardTests does, because no unit test can reach a
 /// closure inside AppModel.init.
+///
+/// The Tier-1 loop moved out of `AppModel.init` into `ProjectAutoSwitcher`
+/// on 2026-09-08; this test went red on the move, which is the behaviour it
+/// was written for. The schedule itself is now a pure struct with real unit
+/// tests (`DetectionScheduleTests`) — these source checks remain for the
+/// parts that are still wiring rather than logic.
 final class DetectionWiringTests: XCTestCase {
 
-    /// The detection path spans two files now: AppModel runs the Tier-1
-    /// loop, ProjectsModel owns the intent counter it reads.
+    /// The detection path spans three files: ProjectAutoSwitcher runs the
+    /// Tier-1 loop, ProjectsModel owns the intent counter it reads, AppModel
+    /// wires them together.
     private var appModelSource: String {
         get throws {
             var root = URL(fileURLWithPath: #filePath)
             for _ in 0..<3 { root.deleteLastPathComponent() }
-            return try ["Sources/Cutaway/App/AppModel.swift", "Sources/Cutaway/Projects/ProjectsModel.swift"]
+            return try ["Sources/Cutaway/App/AppModel.swift",
+                        "Sources/Cutaway/Detection/ProjectAutoSwitcher.swift",
+                        "Sources/Cutaway/Projects/ProjectsModel.swift"]
                 .map { try String(contentsOf: root.appendingPathComponent($0), encoding: .utf8) }
                 .joined(separator: "\n")
         }
@@ -23,7 +32,7 @@ final class DetectionWiringTests: XCTestCase {
 
     func testTheStaleTier1GuardIsActuallyWired() throws {
         let source = try appModelSource
-        XCTAssertTrue(source.contains("let startedAt = self.projectsModel.intent.token"),
+        XCTAssertTrue(source.contains("let startedAt = intent().token"),
                       "the Tier-1 request no longer stamps the intent token before starting")
         XCTAssertTrue(source.contains("hasMovedSince(startedAt)"),
                       "a stale Tier-1 answer can overrule a newer manual choice again")

@@ -64,47 +64,19 @@ final class AppModel {
     /// True when SwiftData refused to open and we fell back to memory —
     /// the user must be TOLD their time won't survive a restart.
     var storeIsEphemeral = false
-    enum StoreHeldBack: Error { case damaged }
+    /// Asks the owner what to do about a damaged store. Replaceable so the
+    /// decision can be driven in a test or a scenario run; the default is in
+    /// DamagedStoreAlert.
+    nonisolated(unsafe) static var askAboutDamagedStore = DamagedStoreAlert.ask
 
-    enum DamagedStoreChoice { case restore, revealBackups, continueWithout }
+    /// One undo stack for the app's edits. Not the environment's: the panel
+    /// and the Stats window are different scenes, and a correction made in
+    /// one has to be undoable from the other.
+    let undoManager = UndoManager()
 
-    /// Replaceable so the decision can be driven in a test or a scenario run.
-    /// The default asks the owner, at launch, before anything is opened.
-    nonisolated(unsafe) static var askAboutDamagedStore: (String, StoreBootstrap.Candidate?) -> DamagedStoreChoice = { reason, candidate in
-        MainActor.assumeIsolated {
-            let alert = NSAlert()
-            alert.alertStyle = .critical
-            alert.messageText = String(localized: "Cutaway's billing data could not be read")
-            if let candidate {
-                let sessions = candidate.sessions.map { String($0) } ?? String(localized: "an unknown number of")
-                alert.informativeText = String(localized: """
-                    \(reason)
-
-                    The newest backup Cutaway can read is \(candidate.stamp), holding \(sessions) work sessions.
-
-                    Nothing has been changed yet. Restoring keeps the damaged file beside the restored one.
-                    """)
-                alert.addButton(withTitle: String(localized: "Restore That Backup"))
-            } else {
-                alert.informativeText = String(localized: """
-                    \(reason)
-
-                    Cutaway found no backup it can read. Nothing has been changed.
-                    """)
-            }
-            alert.addButton(withTitle: String(localized: "Open Backups Folder"))
-            alert.addButton(withTitle: String(localized: "Continue Without Restoring"))
-            let clicked = alert.runModal()
-            guard candidate != nil else {
-                return clicked == .alertFirstButtonReturn ? .revealBackups : .continueWithout
-            }
-            switch clicked {
-            case .alertFirstButtonReturn: return .restore
-            case .alertSecondButtonReturn: return .revealBackups
-            default: return .continueWithout
-            }
-        }
-    }
+    /// Follows Resolve on the engine's tick. Built in `init`, after the
+    /// stored properties it reads.
+    private var autoSwitcher: ProjectAutoSwitcher?
     /// Installed apps, scanned once per launch for the icon rows. The
     /// picker scans again when opened, so a freshly installed app shows up
     /// there without a relaunch.
@@ -120,84 +92,22 @@ final class AppModel {
         engine = ScenarioMode.isActive
             ? DetectionEngine(probes: ScenarioDriver.probes)
             : DetectionEngine()
-        // Back up the real billing store before it opens (quiescent files).
-        // Scenario/demo stores are disposable — never backed up.
-        var launchBackupMade = false
-        var holdBackStore = false
-        if !ScenarioMode.isActive {
-            // First launch after 1.3.1: bring the work over from the shared
-            // default.store into Cutaway's own file (copied, never removed).
-            do { if try StorePath.adoptLegacyIfNeeded() { NSLog("Cutaway: adopted the legacy default.store") } }
-            catch { NSLog("Cutaway: legacy store adoption failed — %@", String(describing: error)) }
-            let storeURL = StorePath.url()
-            // A restore chosen in Settings is applied here, before anything opens.
-            do { if try StorePath.applyPendingRestore(target: storeURL) { storeErrors.notice(String(localized: "The backup you chose has been restored.")) } }
-            catch { NSLog("Cutaway: pending restore failed — %@", String(describing: error)) }
-            // Litter from earlier restores and interrupted backups.
-            StoreBackup.reapLitter(storeURL: storeURL, backupsDir: Self.backupsDir)
-
-            // The page scan is O(file). After a clean quit there is nothing it
-            // can find that the schema probe will not.
-            let cleanShutdown = Prefs.bool(forKey: "cleanShutdown")
-            Prefs.set(false, forKey: "cleanShutdown")
-            switch StoreBootstrap.plan(storeURL: storeURL, backupsDir: Self.backupsDir,
-                                       deepCheck: !cleanShutdown) {
-            case .open:
-                do {
-                    if try StoreBackup.backUp(storeURL: storeURL, backupsDir: Self.backupsDir) != nil { launchBackupMade = true }
-                } catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
-            case .openButWarn(let reason):
-                // The disk, not the file. Back up nothing (a backup of an
-                // unreadable store would only push good generations out of
-                // rotation) and let SwiftData try — it usually succeeds, and
-                // when it does not the in-memory fallback below says so.
-                NSLog("Cutaway: store not readable right now — %@", reason)
-                storeErrors.flag(String(localized: "read the billing store — \(reason). Nothing has been changed; try again after a restart."))
-            case .askBeforeRestoring(let reason, let candidate):
-                switch Self.askAboutDamagedStore(reason, candidate) {
-                case .restore:
-                    if let candidate {
-                        do {
-                            try StorePath.stagePendingRestore(from: candidate.folder, target: storeURL)
-                            try StorePath.applyPendingRestore(target: storeURL)
-                            storeErrors.notice(String(localized: "The backup \(candidate.stamp) has been restored. The damaged file is kept beside it."))
-                        } catch {
-                            NSLog("Cutaway: restore failed — %@", String(describing: error))
-                            holdBackStore = true
-                        }
-                    }
-                case .revealBackups:
-                    NSWorkspace.shared.activateFileViewerSelecting([Self.backupsDir])
-                    holdBackStore = true
-                case .continueWithout:
-                    // Never write over a damaged file: SwiftData would open it
-                    // and recreate its tables, and the evidence would be gone.
-                    holdBackStore = true
-                }
-            }
-        }
-        do {
-            if holdBackStore { throw StoreHeldBack.damaged }
-            store = try SessionStore()
-        } catch {
-            // SwiftData refusing to open is unrecoverable at runtime; an
-            // in-memory store keeps the app alive for this run. Say why in
-            // the log, and say so in the PANEL — a menu-bar user may never
-            // open the Stats window where the ephemeral banner lives.
-            store = try! SessionStore(inMemory: true)
-            storeIsEphemeral = true
-            if case StoreHeldBack.damaged = error {
-                storeErrors.flag(String(localized: "use the billing store — it is damaged and was left untouched. Nothing tracked this run will be kept."))
-            } else {
-                NSLog("Cutaway: store failed to open, running in memory — %@", String(describing: error))
-                storeErrors.flag("open the billing store — nothing tracked this run will be kept")
-            }
-        }
+        // Opening the billing store is its own subject, in its own file:
+        // it is the only code in the app that irreversibly touches the
+        // owner's money, and inside an initialiser it could not be tested.
+        let opened = StoreBootstrap.open(
+            backupsDir: Self.backupsDir,
+            ask: { Self.askAboutDamagedStore($0, $1) },
+            reveal: { NSWorkspace.shared.activateFileViewerSelecting([$0]) })
+        store = opened.store
+        storeIsEphemeral = opened.isEphemeral
         projectsModel = ProjectsModel(store: store, engine: engine, errors: storeErrors)
         // After the last stored property: a closure over self before that is
         // a compile error, not a style choice.
         storeErrors.log = { [weak self] in self?.engine.logDetection("store", detail: $0) }
-        if launchBackupMade { recordBackup() }
+        for notice in opened.notices { storeErrors.notice(notice) }
+        for flag in opened.flags { storeErrors.flag(flag) }
+        if opened.backupMade { recordBackup() }
         // CUTAWAY_DEMO seeds sample data for screenshots and dev runs — but
         // ONLY into a quarantined store. On 2026-08-23 this guard did not
         // exist, `open` turned out to propagate the caller's environment
@@ -222,31 +132,12 @@ final class AppModel {
             return saved
         }
         engine.onManualPauseLifted = { [weak self] in self?.resumePromptOpen = false }
-        // Crash recovery: persist the last checkpoint of a session that never
-        // closed. The snapshot is cleared ONLY after a successful persist —
-        // otherwise it survives for the next launch to retry.
-        if let crashed = DetectionEngine.peekCrashedSession() {
-            // Snapshots written before the project name was recorded fall
-            // back to the selection; a named snapshot only ever lands on
-            // that project — a phantom session on a new client is worse
-            // than a dropped one, so an unmatched name is discarded, logged.
-            let target: Project? = crashed.project.map { name in projects.first { ProjectName.matches($0.name, name) } }
-                ?? selectedProject
-            if let p = target {
-                if storeErrors.attempt("recover the last session", { try store.record(crashed.record, to: p) }) != nil {
-                    DetectionEngine.clearCrashedSessionSnapshot()
-                }
-            } else {
-                // Kept, not cleared: the project may come back (rename, restore).
-                engine.logDetection("recovery-deferred", detail: "project=\(crashed.project ?? "nil") not found")
-            }
-        }
+        recoverCrashedSession()
         engine.projectNameForSnapshot = { [weak self] in self?.selectedProject?.name }
-        // Project auto-switch while recording:
-        // Tier 2 (window title) every 5s — cheap AX read.
-        // Tier 1 (Studio scripting API) every 30s — spawns fuscript, exact name.
-        var tickCount = 0
-        var tier1InFlight = false
+        autoSwitcher = ProjectAutoSwitcher(
+            detector: detector, engine: engine,
+            intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },
+            onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) })
         engine.onTick = { [weak self] in
             guard let self else { return }
             // Before the scenario guard: the pill is live during verification
@@ -258,47 +149,7 @@ final class AppModel {
             // count — a counter is meaningless under a variable cadence and
             // keeps counting across a sleep that wall time notices.
             if BackupPolicy.isDue(last: self.lastBackup, now: Date()) { self.backUpNow(reason: "daily") }
-            // Detection runs while recording AND while paused for lack of a
-            // project — that's how a zero-state install bootstraps itself
-            // from whatever is open in Resolve.
-            let active = self.engine.state == .recording || self.engine.state == .paused(.noProject)
-            guard active else { return }
-            tickCount += 1
-            if tickCount % 5 == 0, let detected = self.detector.detectProjectName() {
-                // Tier 2 (window title) may only SELECT — titles can carry
-                // suffixes/case drift; letting it create would spawn duplicate
-                // projects that silently split billing.
-                self.autoDetected(detected, canCreate: false)
-            }
-            // Tier 1 fires fast the first time (tick 3) so a fresh install
-            // picks up the open project within seconds. Steady-state interval:
-            // spawning fuscript is the app's heaviest periodic cost, so when
-            // the cheap Tier 2 (AX) is available it drops to every 120s.
-            let tier1Interval = self.detector.accessibilityGranted ? 120 : 30
-            if (tickCount == 3 || tickCount % tier1Interval == 0), !tier1InFlight {
-                tier1InFlight = true
-                // Stamped BEFORE the request: fuscript takes seconds, and an
-                // answer about the world as it was must not overrule a choice
-                // the user made since. (This guard was silently lost once in
-                // an edit collision — the ManualIntent unit tests kept
-                // passing because they test the struct, not the wiring. The
-                // wiring is now pinned by DetectionWiringTests.)
-                let startedAt = self.projectsModel.intent.token
-                let requestStarted = Date()
-                Task { [weak self] in
-                    let name = await self?.detector.detectViaScriptingAPI()
-                    await MainActor.run {
-                        tier1InFlight = false
-                        guard let self else { return }
-                        self.engine.logDetection("tier1",
-                            detail: "name=\(name ?? "nil") took="
-                                  + String(format: "%.2f", Date().timeIntervalSince(requestStarted)) + "s")
-                        guard !self.projectsModel.intent.hasMovedSince(startedAt) else { return }
-                        // Tier 1 is the exact API name — it may create.
-                        if let name { self.autoDetected(name, canCreate: true) }
-                    }
-                }
-            }
+            self.autoSwitcher?.tick()
         }
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
@@ -383,41 +234,6 @@ final class AppModel {
         return ok
     }
 
-    // MARK: - Undo
-
-    /// One undo stack for the app's edits. Not the environment's: the panel
-    /// and the Stats window are different scenes, and a correction made in
-    /// one has to be undoable from the other.
-    let undoManager = UndoManager()
-
-    static func dayEditName(_ day: Date) -> String {
-        String(localized: "Edit \(day.formatted(.dateTime.day().month(.wide)))")
-    }
-
-    private func registerUndo(of before: DayEdit, for project: Project) {
-        undoManager.setActionName(before.name)
-        undoManager.registerUndo(withTarget: self) { model in
-            MainActor.assumeIsolated {
-                // Snapshot the CURRENT state first so undo can be redone.
-                let after = model.store.dayEdit(before.day, for: project, named: before.name)
-                model.storeErrors.attempt("undo the day edit") {
-                    try model.store.restore(before, for: project)
-                }
-                model.registerUndo(of: after, for: project)
-                model.announce(String(localized: "Undid \(before.name)"))
-            }
-        }
-    }
-
-    var canUndo: Bool { undoManager.canUndo }
-    var canRedo: Bool { undoManager.canRedo }
-
-    func undoLastEdit() { undoManager.undo() }
-    func redoLastEdit() { undoManager.redo() }
-
-    /// What the persisted part of today must become for the day to total
-    /// `requested` with `live` seconds still running. Nil when impossible:
-    /// clamping to zero used to delete every banked session of the day.
     nonisolated static func persistedTarget(requested: TimeInterval, live: TimeInterval) -> TimeInterval? {
         let t = requested - live
         return t < 0 ? nil : t

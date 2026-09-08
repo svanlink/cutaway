@@ -22,3 +22,37 @@ struct DayEdit: Sendable {
     /// What the user did, in their words — "Edit 4 September", for the menu.
     let name: String
 }
+
+@MainActor
+extension AppModel {
+    // MARK: - Undo
+
+    static func dayEditName(_ day: Date) -> String {
+        String(localized: "Edit \(day.formatted(.dateTime.day().month(.wide)))")
+    }
+
+    func registerUndo(of before: DayEdit, for project: Project) {
+        undoManager.setActionName(before.name)
+        undoManager.registerUndo(withTarget: self) { model in
+            MainActor.assumeIsolated {
+                // Snapshot the CURRENT state first so undo can be redone.
+                let after = model.store.dayEdit(before.day, for: project, named: before.name)
+                model.storeErrors.attempt("undo the day edit") {
+                    try model.store.restore(before, for: project)
+                }
+                model.registerUndo(of: after, for: project)
+                model.announce(String(localized: "Undid \(before.name)"))
+            }
+        }
+    }
+
+    var canUndo: Bool { undoManager.canUndo }
+    var canRedo: Bool { undoManager.canRedo }
+
+    func undoLastEdit() { undoManager.undo() }
+    func redoLastEdit() { undoManager.redo() }
+
+    /// What the persisted part of today must become for the day to total
+    /// `requested` with `live` seconds still running. Nil when impossible:
+    /// clamping to zero used to delete every banked session of the day.
+}
