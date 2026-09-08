@@ -375,8 +375,45 @@ final class AppModel {
         let live = Calendar.current.isDateInToday(day) && p.persistentModelID == selectedProject?.persistentModelID
             ? engine.accumulator.activeSeconds : 0
         guard let target = Self.persistedTarget(requested: seconds, live: live) else { return false }
-        return storeErrors.attempt("save the day edit") { try store.setActiveSeconds(target, on: day, for: p) } != nil
+        // Snapshot BEFORE the edit: shrinking a day deletes real sessions,
+        // and this is the only thing that can bring them back.
+        let before = store.dayEdit(day, for: p, named: Self.dayEditName(day))
+        let ok = storeErrors.attempt("save the day edit") { try store.setActiveSeconds(target, on: day, for: p) } != nil
+        if ok { registerUndo(of: before, for: p) }
+        return ok
     }
+
+    // MARK: - Undo
+
+    /// One undo stack for the app's edits. Not the environment's: the panel
+    /// and the Stats window are different scenes, and a correction made in
+    /// one has to be undoable from the other.
+    let undoManager = UndoManager()
+
+    static func dayEditName(_ day: Date) -> String {
+        String(localized: "Edit \(day.formatted(.dateTime.day().month(.wide)))")
+    }
+
+    private func registerUndo(of before: DayEdit, for project: Project) {
+        undoManager.setActionName(before.name)
+        undoManager.registerUndo(withTarget: self) { model in
+            MainActor.assumeIsolated {
+                // Snapshot the CURRENT state first so undo can be redone.
+                let after = model.store.dayEdit(before.day, for: project, named: before.name)
+                model.storeErrors.attempt("undo the day edit") {
+                    try model.store.restore(before, for: project)
+                }
+                model.registerUndo(of: after, for: project)
+                model.announce(String(localized: "Undid \(before.name)"))
+            }
+        }
+    }
+
+    var canUndo: Bool { undoManager.canUndo }
+    var canRedo: Bool { undoManager.canRedo }
+
+    func undoLastEdit() { undoManager.undo() }
+    func redoLastEdit() { undoManager.redo() }
 
     /// What the persisted part of today must become for the day to total
     /// `requested` with `live` seconds still running. Nil when impossible:

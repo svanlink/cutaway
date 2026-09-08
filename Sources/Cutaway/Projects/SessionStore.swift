@@ -94,6 +94,35 @@ final class SessionStore {
     /// trims the newest sessions first and deletes any that reach zero. The
     /// day's first/last activity survives, so the CSV still tells the truth
     /// about WHEN the work happened.
+    // MARK: - Undo support
+
+    /// Every session on one day, as plain values — safe to hold across the
+    /// edit that is about to destroy some of them.
+    func dayEdit(_ day: Date, for project: Project, named name: String,
+                 calendar: Calendar = .current) -> DayEdit {
+        let dayStart = calendar.startOfDay(for: day)
+        let sessions = project.sessions
+            .filter { calendar.startOfDay(for: $0.start) == dayStart }
+            .sorted { $0.start < $1.start }
+            .map { DayEdit.Session(start: $0.start, end: $0.end, activeSeconds: $0.activeSeconds,
+                                   hourlyRate: $0.hourlyRate, isAdjusted: $0.isAdjusted) }
+        return DayEdit(day: dayStart, sessions: sessions, name: name)
+    }
+
+    /// Put a day back exactly as `dayEdit` found it.
+    func restore(_ edit: DayEdit, for project: Project, calendar: Calendar = .current) throws {
+        let dayStart = calendar.startOfDay(for: edit.day)
+        for session in project.sessions where calendar.startOfDay(for: session.start) == dayStart {
+            context.delete(session)
+        }
+        for s in edit.sessions {
+            context.insert(WorkSession(start: s.start, end: s.end, activeSeconds: s.activeSeconds,
+                                       hourlyRate: s.hourlyRate, project: project, isAdjusted: s.isAdjusted))
+        }
+        try context.save()
+        invalidateTodayCache()
+    }
+
     /// ponytail: adjustments count as a session in the CSV's session column.
     func setActiveSeconds(_ target: TimeInterval, on day: Date, for project: Project,
                           calendar: Calendar = .current, now: Date = Date()) throws {

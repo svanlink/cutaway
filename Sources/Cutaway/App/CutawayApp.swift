@@ -121,6 +121,17 @@ struct CutawayApp: App {
                 Button("Settings…") { model.openSettingsWindow?() }
                     .keyboardShortcut(",", modifiers: .command)
             }
+            // The app's own stack, not the focused text field's: a day edit
+            // made in Stats has to be undoable from anywhere, and the panel
+            // is a different scene entirely.
+            CommandGroup(replacing: .undoRedo) {
+                Button("Undo") { model.undoLastEdit() }
+                    .keyboardShortcut("z", modifiers: .command)
+                    .disabled(!model.canUndo)
+                Button("Redo") { model.redoLastEdit() }
+                    .keyboardShortcut("z", modifiers: [.command, .shift])
+                    .disabled(!model.canRedo)
+            }
         }
     }
 }
