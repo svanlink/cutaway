@@ -103,11 +103,16 @@ struct MenuBarPanel: View {
             model.openMainWindow?()
         } label: {
             HStack(spacing: 0) {
-                ZStack {
-                    Color.black
-                    heroRing
-                }
-                .frame(width: 92, height: 92)
+                // A 4 pt bar, not a 92 pt ring. The ring was a plain stroked
+                // circle with no trim — it showed nothing, and a full ring
+                // reads as a progress indicator sitting at 100%. It cost 92
+                // points of a 300-point panel, which is why the project name
+                // beside it truncated. State belongs in the colour, and the
+                // colour is now a rule down the edge: accent while
+                // recording, grey while paused.
+                Rectangle()
+                    .fill(isRecording ? accent : DT.ringPaused)
+                    .frame(width: 4)
 
                 VStack(alignment: .leading, spacing: 1) {
                     elapsedText
@@ -126,7 +131,7 @@ struct MenuBarPanel: View {
                         .font(DT.panelProject)
                         .foregroundStyle(DT.text)
                         .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                        .minimumScaleFactor(0.75)
                         .truncationMode(.tail)
                 }
                 .padding(.horizontal, 16)
@@ -150,12 +155,6 @@ struct MenuBarPanel: View {
         guard let project = model.selectedProject else { return "Today \(worked), no project" }
         let client = project.client.isEmpty ? "" : ", \(project.client)"
         return "Today \(worked), \(model.todayMoney), \(project.name)\(client)"
-    }
-
-    private var heroRing: some View {
-        Circle()
-            .stroke(isRecording ? accent : DT.ringPaused, lineWidth: 7)
-            .frame(width: 52, height: 52)
     }
 
     private var elapsedText: some View {

@@ -63,8 +63,11 @@ final class StoreBootstrapTests: XCTestCase {
         try makeUsableStore(at: storeURL)
         let opened = try open(ask: { _, _ in XCTFail("must not ask about a healthy store"); return .continueWithout })
         XCTAssertFalse(opened.isEphemeral)
-        XCTAssertTrue(opened.notices.isEmpty)
-        XCTAssertTrue(opened.flags.isEmpty)
+        XCTAssertTrue(opened.notices.isEmpty, "said: \(opened.notices)")
+        // Name the flag. "isEmpty failed" told us a healthy store had
+        // complained about something and nothing else, which cost a full-suite
+        // hunt to reproduce.
+        XCTAssertTrue(opened.flags.isEmpty, "flagged: \(opened.flags)")
     }
 
     /// First run: no store yet, nothing to back up, nothing to say.

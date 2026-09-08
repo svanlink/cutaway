@@ -33,28 +33,42 @@ struct StatsView: View {
     private var header: some View {
         HStack(spacing: DT.s2) {
             Button { switcherOpen.toggle() } label: {
-                HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
-                    Text(project?.name ?? "No project")
-                        .font(DT.title)
-                        .foregroundStyle(DT.text)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                        // The name is the header; the client and the icon
-                        // row yield to it when the window is at its minimum.
-                        .layoutPriority(1)
-                    if let c = project?.client, !c.isEmpty {
-                        Text("· \(c)")
-                            .font(DT.captionMedium)
-                            .foregroundStyle(DT.text3)
-                            .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                // Two lines, not one. Name, client, disclosure arrow and the
+                // app-icon row were all competing for a single baseline, and
+                // the loser was the project name — "Nyx Fashion Film" printed
+                // as "Nyx Fash…". The name is the identity of the thing being
+                // billed; it is the last thing that may be abbreviated. The
+                // panel already stacks client-over-name, so this is the
+                // pattern the app has, not a new one.
+                VStack(alignment: .leading, spacing: 1) {
+                    // The client and the app icons share the small line. Both
+                    // are context; neither is the name, and on a 480 pt
+                    // window the icon row plus the arrow was exactly the
+                    // width that pushed "Nyx Fashion Film" into "Nyx Fash…".
+                    HStack(spacing: 6) {
+                        if let c = project?.client, !c.isEmpty {
+                            Text(c.uppercased())
+                                .font(DT.panelClient)
+                                .kerning(0.84)
+                                .foregroundStyle(DT.text3)
+                                .lineLimit(1)
+                        }
+                        if let p = project, !p.appBundleIDs.isEmpty {
+                            AppIconRow(prefixes: p.appBundleIDs, installed: model.installedApps, size: 12)
+                        }
                     }
-                    Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
-                    if let p = project, !p.appBundleIDs.isEmpty {
-                        AppIconRow(prefixes: p.appBundleIDs, installed: model.installedApps, size: 16)
-                            .padding(.leading, 4)
+                    HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
+                        Text(project?.name ?? "No project")
+                            .font(DT.title)
+                            .foregroundStyle(DT.text)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
                     }
                 }
+                // The identity wins the row. Actions are verbs you can find
+                // again; the name is the thing you are billing.
+                .layoutPriority(1)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
             }
@@ -230,6 +244,15 @@ struct StatsView: View {
                             sessionDetail(d, project: p, isToday: isToday)
                         }
                     }
+                }
+            }
+            // Today, already open. The strip is the best thing in the window
+            // and it sat behind a disclosure nobody had a reason to click —
+            // so a third of the Stats window was empty on every launch while
+            // its most useful view stayed hidden.
+            .onAppear {
+                if expandedDay == nil, let today = days.first(where: { cal.isDateInToday($0.day) }) {
+                    expandedDay = today.day
                 }
             }
 
