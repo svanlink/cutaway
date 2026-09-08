@@ -61,6 +61,26 @@
         }
       }
     },
+    ", running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", läuft"
+          }
+        }
+      }
+    },
+    ", tracked": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", erfasst"
+          }
+        }
+      }
+    },
     "1 day": {
       "localizations": {
         "de": {
@@ -811,6 +831,16 @@
         }
       }
     },
+    "Day timeline": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesverlauf"
+          }
+        }
+      }
+    },
     "Default currency": {
       "localizations": {
         "de": {
@@ -907,6 +937,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ergibt"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeiten"
           }
         }
       }
@@ -1337,6 +1377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kein Projekt ausgewählt"
+          }
+        }
+      }
+    },
+    "No sessions on this day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Sitzungen an diesem Tag"
           }
         }
       }
@@ -1917,6 +1967,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Einstellungen …"
+          }
+        }
+      }
+    },
+    "Split at a moment inside the session.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teile an einem Zeitpunkt innerhalb der Sitzung."
+          }
+        }
+      }
+    },
+    "Split in the middle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Mitte teilen"
           }
         }
       }

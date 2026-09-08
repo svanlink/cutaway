@@ -67,6 +67,30 @@ extension AppModel {
         registerUndo(of: before, for: project)
     }
 
+    func splitSession(_ session: WorkSession, at moment: Date, in project: Project) throws {
+        let before = store.dayEdit(session.start, for: project, named: Self.dayEditName(session.start))
+        try store.splitSession(session, at: moment)
+        registerUndo(of: before, for: project)
+    }
+
+    /// Reassignment touches TWO days' worth of history — the source day in
+    /// the old project and the same day in the new one — so both are captured.
+    func reassignSession(_ session: WorkSession, from source: Project, to target: Project) throws {
+        let day = session.start
+        let beforeSource = store.dayEdit(day, for: source, named: Self.dayEditName(day))
+        let beforeTarget = store.dayEdit(day, for: target, named: Self.dayEditName(day))
+        try store.reassign(session, to: target)
+        undoManager.setActionName(beforeSource.name)
+        undoManager.registerUndo(withTarget: self) { model in
+            MainActor.assumeIsolated {
+                model.storeErrors.attempt("undo the move") {
+                    try model.store.restore(beforeTarget, for: target)
+                    try model.store.restore(beforeSource, for: source)
+                }
+            }
+        }
+    }
+
     func deleteSession(_ session: WorkSession, in project: Project) throws {
         let before = store.dayEdit(session.start, for: project, named: Self.dayEditName(session.start))
         try store.deleteSession(session)

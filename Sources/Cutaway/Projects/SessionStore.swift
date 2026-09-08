@@ -169,14 +169,65 @@ final class SessionStore {
         invalidateTodayCache()
     }
 
+    /// Cut one session in two at a moment on the strip.
+    ///
+    /// Active seconds are distributed by wall-clock fraction and the second
+    /// half takes the REMAINDER, so the two together bill exactly what the
+    /// one did. Splitting is how a day gets divided between two clients:
+    /// split, then reassign one half.
+    @discardableResult
+    func splitSession(_ session: WorkSession, at moment: Date,
+                      calendar: Calendar = .current) throws -> WorkSession {
+        guard let project = session.project else { throw SessionEditError.endBeforeStart }
+        if let number = invoiceNumber(coveringDay: session.start, for: project, calendar: calendar) {
+            throw InvoiceError.dayIsInvoiced(number)
+        }
+        let block = DayTimeline.Block(id: "s", start: session.start, end: session.end,
+                                      activeSeconds: session.activeSeconds,
+                                      isAdjusted: session.isAdjusted)
+        guard let halves = DayTimeline.split(block, at: moment) else {
+            throw SessionEditError.splitOutsideSession
+        }
+        session.end = halves.first.end
+        session.activeSeconds = halves.first.activeSeconds
+        let second = WorkSession(start: halves.second.start, end: halves.second.end,
+                                 activeSeconds: halves.second.activeSeconds,
+                                 hourlyRate: session.hourlyRate, project: project,
+                                 isAdjusted: session.isAdjusted)
+        context.insert(second)
+        try context.save()
+        invalidateTodayCache()
+        return second
+    }
+
+    /// Move one session to another project — the other half of splitting a
+    /// day between two clients. The rate travels with the DESTINATION only if
+    /// the session never had one of its own; work already stamped keeps the
+    /// rate it was worked at.
+    func reassign(_ session: WorkSession, to project: Project,
+                  calendar: Calendar = .current) throws {
+        for candidate in [session.project, project].compactMap({ $0 }) {
+            if let number = invoiceNumber(coveringDay: session.start, for: candidate, calendar: calendar) {
+                throw InvoiceError.dayIsInvoiced(number)
+            }
+        }
+        if session.hourlyRate <= 0 { session.hourlyRate = project.hourlyRate }
+        session.project = project
+        try context.save()
+        invalidateTodayCache()
+    }
+
     enum SessionEditError: LocalizedError {
         case endBeforeStart
         case spansMidnight
+        case splitOutsideSession
 
         var errorDescription: String? {
             switch self {
             case .endBeforeStart:
                 return String(localized: "The end has to come after the start.")
+            case .splitOutsideSession:
+                return String(localized: "Split at a moment inside the session.")
             case .spansMidnight:
                 // Splitting on edit would turn one row into two under the
                 // owner's hands. Adding across midnight is fine — that path

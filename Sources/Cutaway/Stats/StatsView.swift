@@ -334,34 +334,22 @@ struct StatsView: View {
         .accessibilityAddTraits(.isButton)
     }
 
-    /// The sessions behind one day. The breakdown row is a claim; this is the
-    /// itemisation that backs it — the same thing the CSV would show a client.
+    /// The day, unfolded into a strip you can grab. The list of rows this
+    /// replaced could say what happened but not WHERE the gaps were, and the
+    /// gap is the thing an editor argues with.
     @ViewBuilder
     private func sessionDetail(_ d: DayTotal, project p: Project, isToday: Bool) -> some View {
         let sessions = model.store.sessions(for: p, on: d.day)
-        let live = isToday ? model.engine.accumulator.activeSeconds : 0
         VStack(spacing: 0) {
-            ForEach(sessions, id: \.persistentModelID) { s in
-                Button {
-                    model.editSessionTarget = SessionEditTarget(session: s, day: d.day, project: p)
-                } label: {
-                    sessionLine(range: AppModel.sessionTimeRange(start: s.start, end: s.end),
-                                seconds: s.activeSeconds,
-                                earned: s.earned(projectRate: p.hourlyRate),
-                                project: p, isLive: false)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Self.sessionRowLabel(s, project: p))
-                .accessibilityHint("Edit this session")
-            }
-            // A day row that includes the running accumulator must itemise it,
-            // or the parts visibly fail to add up to the total above them.
-            if live > 0, let started = model.engine.accumulator.sessionStart {
-                sessionLine(range: AppModel.sessionTimeRange(start: started, end: Date()),
-                            seconds: live,
-                            earned: BillingEngine.earnings(activeSeconds: live,
-                                                           hourlyRate: p.hourlyRate),
-                            project: p, isLive: true)
+            DayTimelineView(
+                model: model, project: p, day: d.day, sessions: sessions,
+                live: isToday && model.engine.accumulator.activeSeconds > 0
+                    ? model.engine.accumulator.sessionStart.map { ($0, model.engine.accumulator.activeSeconds) }
+                    : nil)
+            if sessions.isEmpty {
+                Text("No sessions on this day")
+                    .font(DT.captionMedium).foregroundStyle(DT.text3)
+                    .padding(.bottom, DT.s2)
             }
             HStack {
                 Spacer()
@@ -375,17 +363,11 @@ struct StatsView: View {
                     .font(DT.captionMedium)
                     .buttonStyle(.plain)
                     .foregroundStyle(DT.signal)
-                    .accessibilityLabel("Edit \(isToday ? "today" : d.day.formatted(.dateTime.month(.abbreviated).day()))")
             }
             .padding(.horizontal, 14)
-            .padding(.bottom, 8)
+            .padding(.bottom, DT.s2)
         }
-        .padding(.leading, DT.s5)
-        .padding(.trailing, DT.rowInset)
-        .background(Color.black.opacity(0.18))
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(Color.white.opacity(0.04)).frame(height: 1)
-        }
+        .background(Color.white.opacity(0.02))
     }
 
     private func sessionLine(range: String, seconds: TimeInterval, earned: Double,

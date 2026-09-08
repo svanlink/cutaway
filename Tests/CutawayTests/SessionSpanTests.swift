@@ -123,3 +123,81 @@ final class SessionSpanTests: XCTestCase {
                              "a session must not be moved onto an invoiced day")
     }
 }
+
+/// Splitting and reassigning — the two operations that divide a day between
+/// two clients, and the only ones that can move money between projects.
+@MainActor
+final class SplitAndReassignTests: XCTestCase {
+
+    private var store: SessionStore!
+    private var cal: Calendar!
+
+    override func setUp() async throws {
+        store = try SessionStore(inMemory: true)
+        cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Zurich")!
+    }
+
+    private func at(_ h: Int, _ m: Int = 0) -> Date {
+        cal.date(from: DateComponents(year: 2026, month: 9, day: 4, hour: h, minute: m))!
+    }
+
+    /// The whole point of splitting: two halves bill exactly what the one did.
+    func testSplittingKeepsTheDayTotalExactly() throws {
+        let p = try store.createProject(name: "Maisons", client: "", mode: .hourly,
+                                        hourlyRate: 120, currency: .chf)
+        try store.record(SessionRecord(start: at(9), end: at(11), activeSeconds: 90 * 60),
+                         to: p, calendar: cal)
+        let before = store.dayTotals(for: p, calendar: cal).first?.activeSeconds ?? 0
+
+        let session = store.sessions(for: p, on: at(9), calendar: cal)[0]
+        try store.splitSession(session, at: at(10), calendar: cal)
+
+        let sessions = store.sessions(for: p, on: at(9), calendar: cal)
+        XCTAssertEqual(sessions.count, 2)
+        XCTAssertEqual(sessions.reduce(0) { $0 + $1.activeSeconds }, before, accuracy: 0.5,
+                       "a split may not create or destroy a second")
+        XCTAssertEqual(sessions.map { round($0.activeSeconds) }, [45 * 60, 45 * 60],
+                       "distributed by wall-clock fraction, not halved by count")
+    }
+
+    func testSplittingOutsideTheSessionIsRefused() throws {
+        let p = try store.createProject(name: "M", client: "", mode: .hourly, hourlyRate: 100, currency: .chf)
+        try store.record(SessionRecord(start: at(9), end: at(11), activeSeconds: 7200), to: p, calendar: cal)
+        let session = store.sessions(for: p, on: at(9), calendar: cal)[0]
+        XCTAssertThrowsError(try store.splitSession(session, at: at(12), calendar: cal))
+    }
+
+    /// Moving half a day to another client: the money follows, and the rate
+    /// it was worked at travels with it.
+    func testReassigningMovesTheMoneyAndKeepsTheStampedRate() throws {
+        let a = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+                                        hourlyRate: 120, currency: .chf)
+        let b = try store.createProject(name: "Nyx", client: "", mode: .hourly,
+                                        hourlyRate: 80, currency: .chf)
+        try store.record(SessionRecord(start: at(9), end: at(11), activeSeconds: 7200), to: a, calendar: cal)
+        let session = store.sessions(for: a, on: at(9), calendar: cal)[0]
+
+        try store.reassign(session, to: b, calendar: cal)
+
+        XCTAssertTrue(store.sessions(for: a, on: at(9), calendar: cal).isEmpty)
+        XCTAssertEqual(store.sessions(for: b, on: at(9), calendar: cal).count, 1)
+        XCTAssertEqual(session.hourlyRate, 120,
+                       "work keeps the rate it was worked at, even in another project")
+    }
+
+    func testReassigningRefusesWhenEitherSideIsInvoiced() throws {
+        let a = try store.createProject(name: "A", client: "", mode: .hourly, hourlyRate: 100, currency: .chf)
+        let b = try store.createProject(name: "B", client: "", mode: .hourly, hourlyRate: 100, currency: .chf)
+        try store.record(SessionRecord(start: at(9), end: at(11), activeSeconds: 7200), to: a, calendar: cal)
+        try store.record(SessionRecord(start: at(9), end: at(10), activeSeconds: 3600), to: b, calendar: cal)
+        let invoice = try store.issueInvoice(for: b, from: at(0), to: at(23), taxMode: .notRegistered,
+                                             supplier: "S\nZürich", supplierVATNumber: "",
+                                             clientBlock: "C", now: at(23), calendar: cal)
+        let session = store.sessions(for: a, on: at(9), calendar: cal)[0]
+        XCTAssertThrowsError(try store.reassign(session, to: b, calendar: cal)) { error in
+            XCTAssertTrue(error.localizedDescription.contains(invoice.number),
+                          "moving work INTO an invoiced day is refused, not only out of one")
+        }
+    }
+}
