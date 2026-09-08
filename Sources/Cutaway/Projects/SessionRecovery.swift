@@ -33,6 +33,24 @@ extension AppModel {
     /// A session that never closed, from a launch that never quit. The
     /// snapshot is cleared ONLY after a successful persist — otherwise it
     /// survives for the next launch to retry.
+    /// Replays anything the store refused on an earlier run.
+    ///
+    /// Runs BEFORE crash recovery: both write sessions, and the journal
+    /// holds the older work. A record is dropped only once its own save has
+    /// returned, so a still-full volume simply leaves it for next time.
+    func replayUnsavedSessions() {
+        let pending = unsaved.pending()
+        guard !pending.isEmpty, let project = selectedProject else { return }
+        var stillUnsaved: [SessionRecord] = []
+        for record in pending {
+            let saved = storeErrors.attempt("save session") {
+                try store.record(record, to: project)
+            } != nil
+            if !saved { stillUnsaved.append(record) }
+        }
+        unsaved.replace(with: stillUnsaved)
+    }
+
     func recoverCrashedSession() {
         guard let crashed = DetectionEngine.peekCrashedSession() else { return }
         switch SessionRecovery.target(snapshotProject: crashed.project,

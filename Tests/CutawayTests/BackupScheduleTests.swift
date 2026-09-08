@@ -14,11 +14,23 @@ final class BackupScheduleTests: XCTestCase {
     }
     override func tearDown() async throws { try? FileManager.default.removeItem(at: dir) }
 
-    func testDueOnceADayAndImmediatelyWhenNever() {
+    /// Written against the interval rather than a hard-coded 24 h: the
+    /// number moved from daily to hourly when it turned out a daily tick
+    /// left up to 22 hours of billable work unbacked, and a test that pins
+    /// the constant only proves the constant has not moved.
+    func testDueImmediatelyWhenNeverAndOncePerIntervalAfter() {
         let t0 = Date(timeIntervalSince1970: 1_800_000_000)
-        XCTAssertTrue(BackupPolicy.isDue(last: nil, now: t0))
-        XCTAssertFalse(BackupPolicy.isDue(last: t0, now: t0.addingTimeInterval(23 * 3600)))
-        XCTAssertTrue(BackupPolicy.isDue(last: t0, now: t0.addingTimeInterval(24 * 3600)))
+        let interval = BackupPolicy.interval
+        XCTAssertTrue(BackupPolicy.isDue(last: nil, now: t0), "a Mac with no backup yet is due now")
+        XCTAssertFalse(BackupPolicy.isDue(last: t0, now: t0.addingTimeInterval(interval - 1)))
+        XCTAssertTrue(BackupPolicy.isDue(last: t0, now: t0.addingTimeInterval(interval)))
+    }
+
+    /// The exposure window is a policy decision, not an accident. An app that
+    /// runs for weeks must not leave a working day between generations.
+    func testTheExposureWindowIsAtMostAnHour() {
+        XCTAssertLessThanOrEqual(BackupPolicy.interval, 3600,
+                                 "more than an hour of unbacked work is a day's billing at risk")
     }
 
     private func count(_ url: URL, _ table: String) -> Int {

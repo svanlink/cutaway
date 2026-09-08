@@ -30,6 +30,8 @@ final class AppModel {
     let detector = ProjectDetector()
     /// Every store write reports here; the panel and Stats show its sentence.
     let storeErrors = StoreErrorReporter()
+    /// Where a session goes when the store refuses it. See UnsavedSessions.
+    let unsaved = UnsavedSessions()
 
     /// Bumped when the user changes an accessibility display setting, purely
     /// to make SwiftUI re-render: the tokens are dynamic colours, and a
@@ -138,9 +140,17 @@ final class AppModel {
             guard let self, let project = self.selectedProject else { return false }
             let saved = self.storeErrors.attempt("save session") { try self.store.record(record, to: project) } != nil
             self.flashBankedSession(record.activeSeconds)
-            return saved
+            if saved { return true }
+            // The store said no. Park the work in the journal, which holds
+            // every failure rather than the most recent one, and only then
+            // release the crash snapshot — otherwise the next session's
+            // first checkpoint overwrites the single slot this used to live
+            // in and the hours are gone. If the journal cannot be written
+            // either, keep the snapshot: it is the last copy left.
+            return self.unsaved.append(record)
         }
         engine.onManualPauseLifted = { [weak self] in self?.resumePromptOpen = false }
+        replayUnsavedSessions()
         recoverCrashedSession()
         engine.projectNameForSnapshot = { [weak self] in self?.selectedProject?.name }
         autoSwitcher = ProjectAutoSwitcher(
@@ -202,6 +212,17 @@ final class AppModel {
             return made
         } catch {
             engine.logDetection("backup-failed", detail: "reason=\(reason) error=\(error)")
+            // Stamp the attempt, not just the success. Without this `isDue`
+            // stays true and the next tick tries again — one full copy
+            // attempt and one log line every SECOND, which rolls the
+            // detection log twice a day and destroys the forensics you would
+            // need to reconstruct the lost time by hand.
+            recordBackup()
+            // And say so. A backup system that has been dead for three days
+            // is not a log line; it is the one remaining place where a
+            // durability mechanism can fail silently, which is the failure
+            // this app likes least.
+            storeErrors.flag(String(localized: "back up your billing data"))
             return false
         }
     }

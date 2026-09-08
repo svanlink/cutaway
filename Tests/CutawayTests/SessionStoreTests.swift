@@ -182,21 +182,22 @@ final class StoreBackupTests: XCTestCase {
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: backups.path).count, 1)
     }
 
-    func testRotationKeepsNewestSeven() throws {
-        for i in 0..<9 {
+    func testRotationKeepsTheNewestGenerationsAndPinsTheEldest() throws {
+        let keep = StoreBackup.defaultKeep
+        for i in 0..<(keep + 2) {
             try Data("content-\(i)".utf8).write(to: store)
             XCTAssertNotNil(try StoreBackup.backUp(storeURL: store, backupsDir: backups,
                                                    now: date(TimeInterval(i) * 60)))
         }
         let remaining = try FileManager.default.contentsOfDirectory(atPath: backups.path).sorted()
-        // Seven newest, plus the eldest generation, which is never evicted.
-        XCTAssertEqual(remaining.count, 8)
-        let all = (0..<9).map { "billing-" + stamp(date(TimeInterval($0) * 60)) }.sorted()
+        // `keep` newest, plus the eldest generation, which is never evicted.
+        XCTAssertEqual(remaining.count, keep + 1)
+        let all = (0..<(keep + 2)).map { "billing-" + stamp(date(TimeInterval($0) * 60)) }.sorted()
         XCTAssertEqual(remaining.first, all.first, "the eldest generation is pinned")
         XCTAssertFalse(remaining.contains(all[1]), "the one after it is not")
         // Newest backup holds the latest content.
         let newest = backups.appendingPathComponent(remaining.last!).appendingPathComponent("timex.store")
-        XCTAssertEqual(try Data(contentsOf: newest), Data("content-8".utf8))
+        XCTAssertEqual(try Data(contentsOf: newest), Data("content-\(keep + 1)".utf8))
     }
 
     func testMissingStoreIsNoOp() throws {

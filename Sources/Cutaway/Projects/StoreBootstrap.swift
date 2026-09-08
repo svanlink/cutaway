@@ -97,14 +97,32 @@ enum StoreBootstrap {
                 if try StorePath.applyPendingRestore(target: storeURL) {
                     notices.append(String(localized: "The backup you chose has been restored."))
                 }
-            } catch { NSLog("Cutaway: pending restore failed — %@", String(describing: error)) }
+            } catch {
+                NSLog("Cutaway: pending restore failed — %@", String(describing: error))
+                // applyPendingRestore moves the live store aside first and
+                // the chosen backup into place second. A throw between those
+                // two leaves NO file at billing.store — and `plan` then reads
+                // .absent, which is a legitimate first run, so SwiftData
+                // creates a fresh empty database and the owner tracks a full
+                // day into it believing everything was eaten. Refuse instead:
+                // the damaged path already runs in memory behind a red
+                // banner, which is exactly right for a restore that is
+                // half done.
+                holdBack = true
+                flags.append(String(localized: "finish restoring the backup you chose — the store was left as it is. Nothing tracked this run will be kept."))
+            }
             StoreBackup.reapLitter(storeURL: storeURL, backupsDir: backupsDir)
 
-            // The page scan is O(file). After a clean quit there is nothing
-            // it can find that the schema probe will not.
-            let cleanShutdown = Prefs.bool(forKey: "cleanShutdown")
+            // Always deep. The old comment claimed a clean quit left nothing
+            // for the page scan to find that the schema probe would not —
+            // which is false: quick_check finds page-level corruption, the
+            // schema probe finds a missing table, and page corruption between
+            // a clean quit and the next launch is precisely what a Time
+            // Machine restore or a bad sector produces. Undetected, every
+            // backup generation becomes a copy of the corrupt store. The
+            // justification was cost, on a file that is 94 KB.
             Prefs.set(false, forKey: "cleanShutdown")
-            switch plan(storeURL: storeURL, backupsDir: backupsDir, deepCheck: !cleanShutdown) {
+            switch plan(storeURL: storeURL, backupsDir: backupsDir, deepCheck: true) {
             case .open:
                 do {
                     if try StoreBackup.backUp(storeURL: storeURL, backupsDir: backupsDir) != nil { backupMade = true }

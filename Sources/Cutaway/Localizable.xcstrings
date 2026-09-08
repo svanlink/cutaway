@@ -2631,12 +2631,32 @@
         }
       }
     },
+    "back up your billing data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "deine Abrechnungsdaten zu sichern"
+          }
+        }
+      }
+    },
     "e.g. Nyx Fashion Film": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "z. B. Nyx Fashion Film"
+          }
+        }
+      }
+    },
+    "finish restoring the backup you chose — the store was left as it is. Nothing tracked this run will be kept.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "die gewählte Sicherung fertig wiederherzustellen — der Speicher wurde unverändert gelassen. Nichts aus dieser Sitzung wird gespeichert."
           }
         }
       }

@@ -7,7 +7,11 @@ import Darwin
 /// nothing changed, and keeps only the newest `keep` backups.
 /// Runs BEFORE the container opens, so the files are quiescent.
 enum StoreBackup {
-    static let defaultKeep = 7
+    // 24, not 7. Backups became hourly, so seven generations would be seven
+    // HOURS of history — the daily-for-30-days and eldest-never-evicted rules
+    // still hold above this, so what this number buys is a day of
+    // fine-grained undo. At the observed folder size that is about 2.5 MB.
+    static let defaultKeep = 24
     /// Alongside the newest `keep`, the newest generation of each calendar
     /// day survives this long. Born of the 2026-08-23 incident: the store
     /// was wiped externally, and a burst of same-day launches filled
