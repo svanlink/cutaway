@@ -16,19 +16,39 @@ struct InvoiceDocumentView: View {
     private var currency: BillingCurrency { invoice.currency }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            header
-            parties
-            table
-            totals
-            notes
-            Spacer(minLength: 0)
-            if !invoice.creditorIBAN.isEmpty, let payload = qrPayload {
+        // The invoice half is padded; the payment part is NOT. IG §3.1 puts
+        // the payment part on the lower edge of the sheet at the full 210 mm
+        // width, so it cannot live inside the page's margins — sharing that
+        // padding is what made it 170 mm wide floating 20 mm up.
+        // A4 divided by an exact number, not by a Spacer. ImageRenderer
+        // proposes an UNSPECIFIED size, so `Spacer` and `maxHeight:
+        // .infinity` collapse to zero and the payment part stayed at the top
+        // of the page, printed over the invoice header. Every height here is
+        // stated.
+        //
+        // The invoice occupies whatever is left above the bill; the bill
+        // occupies its own exact block on the lower edge, at the full 210 mm
+        // (§3.1, §3.3).
+        let bill = invoice.creditorIBAN.isEmpty ? nil : qrPayload
+        let billHeight = bill == nil ? 0 : PaymentPartView.totalHeight
+        return VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 24) {
+                header
+                parties
+                table
+                totals
+                notes
+            }
+            .padding(56)
+            .frame(width: Self.pageSize.width,
+                   height: Self.pageSize.height - billHeight,
+                   alignment: .topLeading)
+
+            if let payload = bill {
                 PaymentPartView(invoice: invoice, payload: payload,
                                 iban: formattedIBAN, reference: invoice.qrReference ?? "")
             }
         }
-        .padding(56)
         .frame(width: Self.pageSize.width, height: Self.pageSize.height, alignment: .topLeading)
         .background(Color.white)
         .foregroundStyle(Color.black)
@@ -39,6 +59,7 @@ struct InvoiceDocumentView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(invoice.supplierBlock)
+                    .fixedSize(horizontal: false, vertical: true)
                     .font(DT.Page.meta)
                     .foregroundStyle(Color.black.opacity(0.7))
             }
@@ -66,6 +87,7 @@ struct InvoiceDocumentView: View {
             Text("Billed to").font(DT.Page.columnHeader)
                 .foregroundStyle(Color.black.opacity(0.5))
             Text(invoice.clientBlock).font(DT.Page.party)
+                .fixedSize(horizontal: false, vertical: true)
             if !invoice.projectName.isEmpty {
                 Text(invoice.projectName).font(DT.Page.meta)
                     .foregroundStyle(Color.black.opacity(0.7))

@@ -257,4 +257,24 @@ enum DT {
         static let columnHeader = Font.system(size: 8, weight: .semibold)
         static let note = Font.system(size: 8)
     }
+
+    /// The QR-bill's type is not a design choice — it is specified.
+    ///
+    /// IG v2.3 §3.4: "Only the sans-serif fonts Arial, Frutiger, Helvetica
+    /// and Liberation Sans are permitted in black." SF Pro, which
+    /// `Font.system` resolves to, is not on that list. §3.5.1 and §3.6.1 fix
+    /// the title at 11 pt bold; the payment part's headings are 8 pt bold
+    /// with 10 pt values, and the receipt's are 6 pt bold with 8 pt values.
+    enum QRBill {
+        private static let face = "Helvetica"
+        private static let bold = "Helvetica-Bold"
+
+        static let title = Font.custom(bold, fixedSize: 11)
+        static let paymentHeading = Font.custom(bold, fixedSize: 8)
+        static let paymentValue = Font.custom(face, fixedSize: 10)
+        static let receiptHeading = Font.custom(bold, fixedSize: 6)
+        static let receiptValue = Font.custom(face, fixedSize: 8)
+        /// The instruction above the separation line, outside the bill.
+        static let separationNote = Font.custom(face, fixedSize: 7)
+    }
 }
