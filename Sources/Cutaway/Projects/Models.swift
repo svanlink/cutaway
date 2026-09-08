@@ -18,6 +18,29 @@ final class Project {
     /// Bundle-id prefixes this project is worked in. Empty = use the global
     /// anchor list (legacy projects, and the fallback). See AnchorSet.
     var appBundleIDs: [String] = []
+    /// The client's postal address, as it should appear on an invoice.
+    ///
+    /// `client` stays a String and is NEVER promoted to a `Client?`
+    /// relationship: changing a property's TYPE is not a lightweight
+    /// migration, and this store holds the only record of what the owner is
+    /// owed. A second entity can be added later beside these fields; the
+    /// fields themselves stay put.
+    var clientAddress: String = ""
+    var clientVATNumber: String = ""
+    /// How this client is taxed. A fact about the relationship, not a setting.
+    var taxModeRaw: String = TaxMode.notRegistered.rawValue
+
+    var taxMode: TaxMode {
+        get { TaxMode(rawValue: taxModeRaw) ?? .notRegistered }
+        set { taxModeRaw = newValue.rawValue }
+    }
+
+    /// The block an invoice prints for this client: name, then address.
+    var clientBlock: String {
+        [client, clientAddress, clientVATNumber.isEmpty ? "" : "UID \(clientVATNumber)"]
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .joined(separator: "\n")
+    }
     @Relationship(deleteRule: .cascade, inverse: \WorkSession.project)
     var sessions: [WorkSession] = []
 

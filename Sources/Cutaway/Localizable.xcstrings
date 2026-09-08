@@ -191,6 +191,16 @@
         }
       }
     },
+    "Address": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse"
+          }
+        }
+      }
+    },
     "Always": {
       "localizations": {
         "de": {
@@ -211,12 +221,42 @@
         }
       }
     },
+    "Amount": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betrag"
+          }
+        }
+      }
+    },
     "Amount · %@": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Betrag · %@"
+          }
+        }
+      }
+    },
+    "An invoice needs your name — fill in the From block above.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Rechnung braucht deinen Namen — bitte oben unter „Von“ ausfüllen."
+          }
+        }
+      }
+    },
+    "An invoice needs your postal address — fill in the From block above.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Rechnung braucht deine Postadresse — bitte oben unter „Von“ ausfüllen."
           }
         }
       }
@@ -311,6 +351,26 @@
         }
       }
     },
+    "Bill": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrechnen"
+          }
+        }
+      }
+    },
+    "Billed to": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechnung an"
+          }
+        }
+      }
+    },
     "Billing": {
       "localizations": {
         "de": {
@@ -327,6 +387,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Budget"
+          }
+        }
+      }
+    },
+    "CHE-123.456.789": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CHE-123.456.789"
           }
         }
       }
@@ -371,6 +441,36 @@
         }
       }
     },
+    "Client UID": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UID des Kunden"
+          }
+        }
+      }
+    },
+    "Client VAT number": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehrwertsteuernummer des Kunden"
+          }
+        }
+      }
+    },
+    "Client address": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse des Kunden"
+          }
+        }
+      }
+    },
     "Coming with Adobe project names: asks once per app, reads the document name only.": {
       "localizations": {
         "de": {
@@ -397,6 +497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ohne Wiederherstellen fortfahren"
+          }
+        }
+      }
+    },
+    "Could not create the PDF at that location.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das PDF konnte an diesem Ort nicht erstellt werden."
           }
         }
       }
@@ -447,6 +557,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lege ein Projekt an, um Statistiken zu sehen"
+          }
+        }
+      }
+    },
+    "Create an invoice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechnung erstellen"
           }
         }
       }
@@ -661,6 +781,16 @@
         }
       }
     },
+    "EU reverse charge": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EU-Reverse-Charge"
+          }
+        }
+      }
+    },
     "Edit %@": {
       "localizations": {
         "de": {
@@ -791,6 +921,16 @@
         }
       }
     },
+    "From": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von"
+          }
+        }
+      }
+    },
     "Granted": {
       "localizations": {
         "de": {
@@ -821,6 +961,16 @@
         }
       }
     },
+    "Hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stunden"
+          }
+        }
+      }
+    },
     "I'm still working": {
       "localizations": {
         "de": {
@@ -831,12 +981,42 @@
         }
       }
     },
+    "INVOICE": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECHNUNG"
+          }
+        }
+      }
+    },
     "Includes manual adjustment": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Enthält manuelle Anpassung"
+          }
+        }
+      }
+    },
+    "Invoice…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechnung …"
+          }
+        }
+      }
+    },
+    "Issue & Save PDF…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausstellen & PDF sichern …"
           }
         }
       }
@@ -1021,12 +1201,32 @@
         }
       }
     },
+    "Not registered for VAT": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht mehrwertsteuerpflichtig"
+          }
+        }
+      }
+    },
     "Nothing else installed": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nichts weiter installiert"
+          }
+        }
+      }
+    },
+    "Nothing unbilled": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts Offenes"
           }
         }
       }
@@ -1047,6 +1247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nur diese Apps zählen für dieses Projekt."
+          }
+        }
+      }
+    },
+    "Only work that is not already invoiced": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Arbeit, die noch nicht in Rechnung gestellt ist"
           }
         }
       }
@@ -1087,6 +1297,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Weitere …"
+          }
+        }
+      }
+    },
+    "Outside scope": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht steuerbar"
           }
         }
       }
@@ -1151,6 +1371,26 @@
         }
       }
     },
+    "Period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitraum"
+          }
+        }
+      }
+    },
+    "Period to bill": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abzurechnender Zeitraum"
+          }
+        }
+      }
+    },
     "Permissions": {
       "localizations": {
         "de": {
@@ -1187,6 +1427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Höher setzen, wenn Renders unbeaufsichtigt laufen und berechnet werden"
+          }
+        }
+      }
+    },
+    "Rate": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Satz"
           }
         }
       }
@@ -1361,6 +1611,16 @@
         }
       }
     },
+    "Rounded per day, then added": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro Tag gerundet, dann addiert"
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "de": {
@@ -1481,12 +1741,52 @@
         }
       }
     },
+    "Subtotal": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwischensumme"
+          }
+        }
+      }
+    },
+    "Swiss VAT 8.1 %": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweizer MWST 8,1 %"
+          }
+        }
+      }
+    },
     "Switch Cutaway Project": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway-Projekt wechseln"
+          }
+        }
+      }
+    },
+    "Tax": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuer"
+          }
+        }
+      }
+    },
+    "Tax treatment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerliche Behandlung"
           }
         }
       }
@@ -1531,6 +1831,26 @@
         }
       }
     },
+    "The invoice could not be drawn.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Rechnung konnte nicht gezeichnet werden."
+          }
+        }
+      }
+    },
+    "The invoice was issued, but the PDF could not be written": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Rechnung wurde ausgestellt, aber das PDF konnte nicht geschrieben werden"
+          }
+        }
+      }
+    },
     "The running session alone is longer than that — pause first, then edit.": {
       "localizations": {
         "de": {
@@ -1561,6 +1881,16 @@
         }
       }
     },
+    "This invoice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Rechnung"
+          }
+        }
+      }
+    },
     "Time in these counts toward the project": {
       "localizations": {
         "de": {
@@ -1581,6 +1911,16 @@
         }
       }
     },
+    "To": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An"
+          }
+        }
+      }
+    },
     "Today": {
       "localizations": {
         "de": {
@@ -1597,6 +1937,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heutige Zeit in Cutaway"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesamt"
           }
         }
       }
@@ -1631,12 +1981,32 @@
         }
       }
     },
+    "UID": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UID"
+          }
+        }
+      }
+    },
     "Undo": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Widerrufen"
+          }
+        }
+      }
+    },
+    "VOID": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "STORNIERT"
           }
         }
       }
@@ -1661,12 +2031,52 @@
         }
       }
     },
+    "What this client's invoice must state": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was auf der Rechnung dieses Kunden stehen muss"
+          }
+        }
+      }
+    },
     "Yes, resume": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ja, fortsetzen"
+          }
+        }
+      }
+    },
+    "Your VAT number": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Mehrwertsteuernummer"
+          }
+        }
+      }
+    },
+    "Your address": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Adresse"
+          }
+        }
+      }
+    },
+    "Your name": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Name"
           }
         }
       }
@@ -1737,6 +2147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "die Abrechnungsdatenbank zu verwenden — sie ist beschädigt und wurde unverändert gelassen. Nichts aus dieser Sitzung wird gespeichert."
+          }
+        }
+      }
+    },
+    "†": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "†"
           }
         }
       }

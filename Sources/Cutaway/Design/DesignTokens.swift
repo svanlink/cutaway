@@ -239,4 +239,22 @@ enum DT {
 
     // canvas
     static let windowSize = CGSize(width: 480, height: 660)
+
+    /// The invoice page.
+    ///
+    /// A separate scale on purpose: this is the one surface that leaves the
+    /// Mac, measured in points on A4 and following business-document
+    /// conventions rather than the app's dark instrument styling. It lives
+    /// here anyway, because "sizes are named for the role they play, in one
+    /// place" is the rule — not "the app has exactly one scale".
+    enum Page {
+        static let title = Font.system(size: 20, weight: .semibold)
+        static let number = Font.system(size: 11, weight: .medium)
+        static let totalLead = Font.system(size: 11, weight: .semibold)
+        static let party = Font.system(size: 10)
+        static let row = Font.system(size: 9)
+        static let meta = Font.system(size: 9)
+        static let columnHeader = Font.system(size: 8, weight: .semibold)
+        static let note = Font.system(size: 8)
+    }
 }

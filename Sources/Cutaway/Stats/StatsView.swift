@@ -83,6 +83,7 @@ struct StatsView: View {
                 .help("Edit project: rate, budget, currency…")
                 .accessibilityLabel("Edit project")
             }
+            InvoiceButton(model: model)
             CSVExportButton(model: model)
         }
     }
