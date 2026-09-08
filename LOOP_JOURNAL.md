@@ -3,7 +3,10 @@
 Autoresearch-style state: what was tried, what happened, kept or reverted.
 Newest entries at the top. Readiness score updates with each [ship] entry.
 
-Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE)
+Readiness: 5/6 proven (2026-09-08 re-score) — R-BACKUP, R-DEGRADE, R-LOCALE, R-DOCS, R-RELEASE hold.
+R-INSTALL is NOT proven: macOS 15 removed the right-click bypass and macOS 26
+reports an ad-hoc-signed download as damaged. Homebrew works (the cask strips
+quarantine); a downloaded zip does not. Full mark needs a Developer ID.
 
 ---
 

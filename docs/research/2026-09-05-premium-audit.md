@@ -148,3 +148,64 @@ Quick version: `Use deep-research (5 parallel agents) on: competitors UX, macOS 
 ## Open item carried from earlier today
 
 "The app picker shows Resolve as not installed" (reported after the 1.2.0 upgrade). Verified: the installed binary is the fixed build, the scan finds `/Applications/DaVinci Resolve/DaVinci Resolve.app` when run standalone, no sandbox, no access-denial logs. Not verified: what the sheet actually shows on the owner's screen — my clicks were blocked by a window-manager overlay and the UI-test runner then failed to enable automation mode. Needs one screenshot from the owner, or a retry once the automation daemon recovers.
+
+---
+
+# Re-score, 2026-09-08
+
+Part A measured again against the branch at `be229ef`, three days and two
+releases later. Same signals, same yardstick. Measured, not remembered.
+
+| Signal | 2026-09-05 (v1.2.0) | 2026-09-08 | Verdict |
+|---|---|---|---|
+| Size | 5,566 lines, 8 folders, 0 deps | 8,258 lines, 62 files, 8 folders, **0 deps** | Grew 48 % — invoice, recovery, undo. Still no dependency. |
+| Tests | 325 unit + 7 UI, 8 scenarios | **418 unit + 10 UI**, 8 scenarios | Stronger. The moat held while the app grew. |
+| Swallowed errors | 37 × `try?`, store writes among them | **0 swallowed saves** (48 `try?`, none on a save; 12 are cleanup `removeItem`) | **FIXED** |
+| Force unwraps | 1 × `try!`, 4 × `!` | 1 × `try!` (the guarded in-memory fallback) | Unchanged, still acceptable |
+| Localization | 0 localized, 66 hard-coded strings | **String Catalog, 233 keys, 233 German** | **FIXED** |
+| Appearance | `preferredColorScheme` in 7 views | **0** — one app-level decision | **FIXED** |
+| Signing | ad-hoc, no hardened runtime | ad-hoc, no hardened runtime | **Unchanged — now the only structural gap left** |
+| Bundle metadata | no category, empty copyright, legacy `.icns` | category ✓, copyright ✓, **still `.icns`** | Mostly fixed; Icon Composer icon still owed |
+| Updates | none | none (parked by decision 1) | Unchanged by choice |
+| Diagnostics | none | MetricKit capture + reveal | **FIXED** |
+| Engine | 1 × Timer @1 Hz | **1 repeating timer** — backup folded onto it | Improved |
+| Largest files | 469 / 429 / 426 / 408 | **639** / 453 / 440 / 417 | **REGRESSED.** `AppModel` is the offender; the ruled fix (extract `StoreBootstrap`'s acting half) is half-done. |
+
+## Signals the original audit had no row for
+
+These are where the last three days actually went.
+
+| Signal | Was | Now |
+|---|---|---|
+| Money exactness | `Double` everywhere; CSV and Stats disagreed on ~3 months in 4 | One rounding rule, ties to the client; `Decimal` for everything frozen or printed |
+| Recovery | A lock or a full disk could trigger a restore over good data; a zero-byte store passed as healthy | Four-way verdict; **the store is never replaced without a yes** |
+| Backups openable | **2 of 12** — filename matching locked out every backup that ever saved this Mac | **12 of 12**, matched by content across two renames |
+| Client-facing artefact | CSV only | Invoice PDF, vector text, with the typed-time trace printed on the page |
+| Reversibility | A day edit destroyed sessions permanently | ⌘Z restores spans and adjusted flags exactly |
+| Accessibility | UI audit red; 5 controls with no label | Audit green; every control speaks |
+| Attribution completeness | InDesign hours tracked as nothing | Anchored by default, pinned by test |
+| Swiss payment | none | QR-bill payload exact and tested; layout needs one validation run |
+
+## The scores that are actually claims
+
+**Readiness: 6/6 → 5/6.** `R-INSTALL` was marked PROVEN on 2026-08-20 and is
+no longer true as written: macOS 15 removed the right-click bypass and macOS 26
+reports an ad-hoc-signed download as damaged. Homebrew still works because the
+cask strips quarantine. Corrected in `GOALS.md` rather than left standing.
+
+**Premium bar: the engine was already there; the shell was not.** Of the ten
+"ship next" items, seven are done, two are parked by decision (notarization,
+Sparkle), and one — the Icon Composer icon — is simply owed. Of the next
+quarter's eight, five are done in the last two days.
+
+## What the numbers say to do next
+
+1. **`AppModel` at 639 lines** is the one regression on the original card.
+   The launch sequence it grew is exactly the code Architecture said to
+   extract, and the pure half (`StoreBootstrap.plan`) already exists — moving
+   the acting half is the rest of that ruling.
+2. **The $99 signing decision** is now the sole structural gap. Every other
+   "not professional" tell from 2026-09-05 is closed.
+3. **A slow test remains unexplained**: the suite takes 9 s or 250 s, always
+   attributed to `AppearanceGuardTests`, which runs in 0.017 s alone. Two
+   theories tested and disproved. It costs minutes per gate, not correctness.
