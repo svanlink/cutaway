@@ -31,6 +31,7 @@ struct ProjectSheet: View {
                         Text("Hourly").tag(BillingMode.hourly)
                         Text("Fixed budget").tag(BillingMode.budget)
                     }
+                    .accessibilityLabel("Mode")
                     .pickerStyle(.segmented)
                     TextField("Hourly rate", value: $rate, format: .number.precision(.fractionLength(2)))
                     if mode == .budget {
@@ -39,6 +40,7 @@ struct ProjectSheet: View {
                     Picker("Currency", selection: $currency) {
                         ForEach(BillingCurrency.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                     }
+                    .accessibilityLabel("Currency")
                     if editing != nil {
                         Text("A new rate applies from now on. Work already recorded keeps the rate it was worked at.")
                             .font(.caption).foregroundStyle(.secondary)

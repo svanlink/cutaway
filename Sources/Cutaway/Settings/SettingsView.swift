@@ -27,6 +27,7 @@ struct SettingsView: View {
                     labelled("Pause after no input for",
                              "Raise it if your renders run unattended and you bill them")
                 }
+                .accessibilityLabel("Pause after no input for")
                 LabeledContent {
                     Button("\(model.engine.workAppPrefixes.count) apps…") { editingWorkApps = true }
                         .popover(isPresented: $editingWorkApps, arrowEdge: .bottom) {
@@ -54,11 +55,13 @@ struct SettingsView: View {
                     labelled("Default hourly rate", "Auto-detected projects start with this rate")
                 }
                 .multilineTextAlignment(.trailing)
+                .accessibilityLabel("Default hourly rate")
                 Picker(selection: $defaultCurrency) {
                     ForEach(BillingCurrency.allCases, id: \.rawValue) { Text($0.rawValue).tag($0.rawValue) }
                 } label: {
                     labelled("Default currency", "New projects start with this currency")
                 }
+                .accessibilityLabel("Default currency")
             }
             Section("Data") {
                 LabeledContent {
@@ -95,6 +98,7 @@ struct SettingsView: View {
                 )) {
                     labelled("Launch at login", "Start tracking when the Mac starts")
                 }
+                .accessibilityLabel("Launch at login")
                 if model.hotkeyUnavailable {
                     LabeledContent("Pause shortcut") { Text("⌥⌘P is taken by another app — pause from the panel") }
                 }

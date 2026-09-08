@@ -12,10 +12,10 @@ struct StatsView: View {
 
     var body: some View {
         VStack(spacing: DT.s3) {
-            header
+            header.accessibilityIdentifier("stats.header")
             if let p = project {
-                statRows(p)
-                daysCard(p)
+                statRows(p).accessibilityIdentifier("stats.rows")
+                daysCard(p).accessibilityIdentifier("stats.days")
             } else {
                 Spacer()
                 Text("Create a project to see stats")
@@ -134,6 +134,7 @@ struct StatsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .statCard()
+        .accessibilityIdentifier("stats.earned")
     }
 
     /// Supporting figure — stacked, half width, one step down in type.
@@ -146,6 +147,7 @@ struct StatsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .statCard()
+        .accessibilityIdentifier("stats.support")
     }
 
     @ViewBuilder
@@ -406,5 +408,9 @@ private extension View {
             .padding(.vertical, DT.s3)
             .background(DT.card, in: RoundedRectangle(cornerRadius: DT.rLg))
             .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(DT.strokeSubtle, lineWidth: 1))
+            // A card is one fact — "CHF 1'240 · 14 h this month" — so it
+            // reads as one thing. Unlabelled card containers were the last
+            // real finding of the accessibility audit on 2026-09-08.
+            .accessibilityElement(children: .combine)
     }
 }

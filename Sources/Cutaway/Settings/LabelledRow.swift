@@ -8,4 +8,8 @@ func labelled(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> so
         Text(subtitle).font(.caption).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
+    // A control's label must be ONE element. Two stacked Texts gave the
+    // pop-up buttons in Settings no description at all — the accessibility
+    // audit had been red on exactly this since the native Forms landed.
+    .accessibilityElement(children: .combine)
 }

@@ -1031,6 +1031,16 @@
         }
       }
     },
+    "Other apps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Other apps"
+          }
+        }
+      }
+    },
     "Other…": {
       "localizations": {
         "de": {

@@ -58,6 +58,10 @@ struct AppPickerView: View {
                                      app: InstalledApps.installed(matching: entry.prefix, in: installed))
                             }
                         }
+                        // A container element still has to say what it is, or
+                        // it is a group VoiceOver enters with no idea why.
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(group.name)
                     }
                     if model.visibleGroups(catalog: AppCatalog.groups, installed: installed).isEmpty, query.isEmpty {
                         Text("No editing apps found in /Applications — choose one below.")
@@ -74,6 +78,8 @@ struct AppPickerView: View {
                                     tile(prefix: app.bundleID, name: app.name, app: app)
                                 }
                             }
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel("Other apps")
                         }
                         // The scan looks in /Applications and ~/Applications, one
                         // vendor folder deep. An app anywhere else is still billable.
@@ -122,6 +128,11 @@ struct AppPickerView: View {
         }
         .buttonStyle(.plain)
         .help(app == nil ? "\(name) — not installed" : name)
+        // The icon-and-name stack inside is decoration; the button already
+        // says the name and whether it is selected. Merge rather than ignore:
+        // .ignore strips the button's own click action, which the audit then
+        // reports for every tile in the grid.
+        .accessibilityElement(children: .combine)
         .accessibilityLabel(name)
         .accessibilityValue(on ? "selected" : "not selected")
         .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
