@@ -26,8 +26,6 @@
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
-	<key>NSAppleEventsUsageDescription</key>
-	<string>Cutaway asks Photoshop, Illustrator, InDesign and After Effects for the name of the document you have open, so your time lands on the right project. It reads nothing else and controls nothing.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Sebastian van Eickelen</string>
 </dict>

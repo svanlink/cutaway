@@ -356,13 +356,9 @@ struct StatsView: View {
                 Button("Add session…") {
                     model.editSessionTarget = SessionEditTarget(session: nil, day: d.day, project: p)
                 }
-                    .font(DT.captionMedium)
-                    .buttonStyle(.plain)
-                    .foregroundStyle(DT.signal)
+                .buttonStyle(DayActionButtonStyle())
                 Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
-                    .font(DT.captionMedium)
-                    .buttonStyle(.plain)
-                    .foregroundStyle(DT.signal)
+                    .buttonStyle(DayActionButtonStyle())
             }
             .padding(.horizontal, 14)
             .padding(.bottom, DT.s2)
@@ -417,6 +413,22 @@ struct StatsView: View {
         guard let last = days.last?.day, let first = days.first?.day else { return "—" }
         let f = Date.FormatStyle().month(.abbreviated).day()
         return "\(last.formatted(f)) – \(first.formatted(f)), \(Calendar.current.component(.year, from: first))"
+    }
+}
+
+/// The small actions under an unfolded day. They were bare tinted text,
+/// which reads as a label rather than something to press — the same
+/// complaint that the prompt card's actions drew.
+struct DayActionButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(DT.captionMedium)
+            .foregroundStyle(configuration.isPressed ? DT.text : DT.text2)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(Color.white.opacity(configuration.isPressed ? 0.14 : 0.08),
+                        in: RoundedRectangle(cornerRadius: DT.rSm))
+            .contentShape(RoundedRectangle(cornerRadius: DT.rSm))
     }
 }
 

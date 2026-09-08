@@ -26,6 +26,18 @@ struct InvoiceSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // A sheet with no title is a form someone has to infer. This one
+            // creates a legal document; it can say so.
+            VStack(alignment: .leading, spacing: 2) {
+                Text("New invoice").font(.headline)
+                Text(project.name)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 4)
             Form {
                 Section("Period") {
                     Picker(selection: $period) {
@@ -43,9 +55,12 @@ struct InvoiceSheet: View {
                 Section("From") {
                     TextField("Your name", text: $supplier.name)
                         .accessibilityLabel("Your name")
-                    TextField("Address", text: $supplier.address, axis: .vertical)
-                        .lineLimit(2...4)
-                        .accessibilityLabel("Your address")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Address").font(.caption).foregroundStyle(.secondary)
+                        TextField("Street, postcode and town", text: $supplier.address, axis: .vertical)
+                            .lineLimit(3, reservesSpace: true)
+                            .accessibilityLabel("Your address")
+                    }
                     TextField("UID", text: $supplier.vatNumber, prompt: Text("CHE-123.456.789"))
                         .accessibilityLabel("Your VAT number")
                     TextField("IBAN", text: $supplier.iban, prompt: Text("CH93 0076 2011 6238 5295 7"))
@@ -62,9 +77,12 @@ struct InvoiceSheet: View {
                 }
                 Section("To") {
                     LabeledContent("Client") { Text(project.client.isEmpty ? "—" : project.client) }
-                    TextField("Address", text: $clientAddress, axis: .vertical)
-                        .lineLimit(2...4)
-                        .accessibilityLabel("Client address")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Address").font(.caption).foregroundStyle(.secondary)
+                        TextField("Street, postcode and town", text: $clientAddress, axis: .vertical)
+                            .lineLimit(3, reservesSpace: true)
+                            .accessibilityLabel("Client address")
+                    }
                     TextField("Client UID", text: $clientVAT)
                         .accessibilityLabel("Client VAT number")
                     Picker(selection: $taxMode) {
@@ -94,14 +112,18 @@ struct InvoiceSheet: View {
             .formStyle(.grouped)
             HStack {
                 Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Issue & Save PDF…") { issue() }
+                    .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(preview.map { $0.lines.isEmpty } ?? true)
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(.regularMaterial)
         }
-        .frame(width: 520, height: 620)
+        .frame(width: 560, height: 720)
         .onAppear {
             taxMode = project.taxMode
             clientAddress = project.clientAddress

@@ -22,6 +22,23 @@ struct ModeTag: View {
 
 // MARK: - Switcher popover content (3 visible rows, scrolls, pinned footer)
 
+/// The small pencil/trash on a project row.
+struct SwitcherIconButtonStyle: ButtonStyle {
+    var danger = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(DT.glyph)
+            .foregroundStyle(configuration.isPressed
+                             ? (danger ? DT.red : DT.text)
+                             : DT.text3)
+            .frame(width: 24, height: 24)
+            .background(Color.white.opacity(configuration.isPressed ? 0.12 : 0.06),
+                        in: RoundedRectangle(cornerRadius: DT.rSm))
+            .contentShape(RoundedRectangle(cornerRadius: DT.rSm))
+    }
+}
+
 struct SwitcherList: View {
     let projects: [Project]
     let currentID: PersistentIdentifier?
@@ -35,8 +52,30 @@ struct SwitcherList: View {
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(projects, id: \.persistentModelID) { p in
-                        SwitcherRow(project: p, isCurrent: p.persistentModelID == currentID) {
-                            select(p)
+                        // Edit and delete were a context menu only, which is
+                        // a secret: nothing on screen said a project could be
+                        // changed or removed at all. The buttons are visible
+                        // now, and the menu stays for the right-click habit.
+                        HStack(spacing: 2) {
+                            SwitcherRow(project: p, isCurrent: p.persistentModelID == currentID) {
+                                select(p)
+                            }
+                            if let onEdit {
+                                Button { onEdit(p) } label: {
+                                    Image(systemName: "pencil")
+                                }
+                                .buttonStyle(SwitcherIconButtonStyle())
+                                .help("Edit this project")
+                                .accessibilityLabel("Edit \(p.name)")
+                            }
+                            if let onDelete {
+                                Button { onDelete(p) } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .buttonStyle(SwitcherIconButtonStyle(danger: true))
+                                .help("Delete this project")
+                                .accessibilityLabel("Delete \(p.name)")
+                            }
                         }
                         .contextMenu {
                             if let onEdit {
@@ -67,7 +106,7 @@ struct SwitcherList: View {
             .buttonStyle(.plain)
         }
         .padding(5)
-        .frame(width: 250)
+        .frame(width: 300)
         .background(DT.popover)
     }
 }

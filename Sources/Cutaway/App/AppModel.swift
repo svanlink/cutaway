@@ -147,9 +147,6 @@ final class AppModel {
             detector: detector, engine: engine,
             intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },
             onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) })
-        autoSwitcher?.onAdobeDocument = { [weak self] document, app in
-            self?.detected(document, source: .adobe(app: app))
-        }
         engine.onTick = { [weak self] in
             guard let self else { return }
             // Before the scenario guard: the pill is live during verification
@@ -161,18 +158,15 @@ final class AppModel {
             // count — a counter is meaningless under a variable cadence and
             // keeps counting across a sleep that wall time notices.
             if BackupPolicy.isDue(last: self.lastBackup, now: Date()) { self.backUpNow(reason: "daily") }
+            // Resolve closed: its last project stops being the truth about
+            // anything. Without this, quitting Resolve while on an unplaced
+            // project would hold the clock for the rest of the evening —
+            // the rule is meant to stop the wrong work being billed, not to
+            // stop work being billed at all.
+            if self.detector.resolveEdition() == nil { self.resolveProject = nil }
+            // The engine cannot see Resolve; it is told, every tick.
+            self.engine.projectMismatch = self.projectMismatch
             self.autoSwitcher?.tick()
-        }
-        // Adobe document names are read on ACTIVATION, never polled — one
-        // Automation prompt per app, and only for the four that can answer.
-        NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: nil
-        ) { [weak self] note in
-            let id = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
-            MainActor.assumeIsolated {
-                guard let self, !ScenarioMode.isActive else { return }
-                self.autoSwitcher?.applicationActivated(id)
-            }
         }
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
@@ -252,9 +246,31 @@ final class AppModel {
         set { Prefs.set(newValue, forKey: "ignoredDetectionNames") }
     }
 
+    /// The project DaVinci Resolve currently has open — the source of truth
+    /// for what is being worked on.
+    ///
+    /// Nothing else names a project. An Adobe app being frontmost says the
+    /// owner is working; it never says on WHAT. While Resolve is on project
+    /// A, After Effects is part of A, and that is an assumption the owner
+    /// stated rather than one the app inferred.
+    private(set) var resolveProject: String?
+
+    /// Resolve is showing something other than what is being recorded.
+    ///
+    /// While this is true the engine records NOTHING. Time on the wrong
+    /// invoice is worse than time nowhere: a gap is noticed, a lie is sent.
+    var projectMismatch: Bool {
+        guard let resolveProject else { return false }
+        guard let selected = selectedProject else { return true }
+        return !selected.answersTo(resolveProject)
+    }
+
     /// Detection saw a name. Where it goes is the OWNER's call the first
     /// time, and the app's from then on.
     func detected(_ name: String, source: AttributionPolicy.Source) {
+        if case .resolve = source {
+            resolveProject = name.trimmingCharacters(in: .whitespaces)
+        }
         let known = projects.map { (project: $0.name, names: [$0.name] + $0.detectedNames) }
         switch AttributionPolicy.decide(name: name, source: source, known: known,
                                         current: selectedProject?.name,
@@ -271,12 +287,19 @@ final class AppModel {
             askedNames.insert(n)
             pendingAttribution = (n, src, current)
         }
+        // The card is a question, not a dismissal: while Resolve sits on a
+        // name nobody has placed, it comes back. Asking once and then
+        // silently billing the previous project is the bug this whole
+        // change exists to kill.
+        if projectMismatch, pendingAttribution == nil, let unplaced = resolveProject {
+            pendingAttribution = (unplaced, .resolve, selectedProject?.name)
+        }
     }
 
     /// "Yes" — this name is the project already selected. Remembered, so the
     /// question is asked once per job rather than once per app switch.
     func attachDetectedName(_ name: String) {
-        defer { pendingAttribution = nil }
+        defer { pendingAttribution = nil; engine.projectMismatch = projectMismatch }
         guard let p = selectedProject else { return }
         storeErrors.attempt("remember that name") {
             p.remember(name)
@@ -286,7 +309,7 @@ final class AppModel {
 
     /// "New project" — what the app used to do silently, now on request.
     func createProjectForDetectedName(_ name: String) {
-        defer { pendingAttribution = nil }
+        defer { pendingAttribution = nil; engine.projectMismatch = projectMismatch }
         projectsModel.createProject(name: name, client: "", mode: .hourly,
                                     rate: ProjectsModel.defaultHourlyRate, budget: 0,
                                     currency: ProjectsModel.defaultCurrency,
@@ -296,6 +319,9 @@ final class AppModel {
 
     /// "Not billable" — a personal file, a test comp, someone else's job.
     /// Never asked about again, on any run.
+    /// "Not billable" — and so the clock stays stopped. Resolve is on
+    /// something the owner does not bill; recording it against whatever was
+    /// selected before is exactly the mistake being fixed.
     func ignoreDetectedName(_ name: String) {
         defer { pendingAttribution = nil }
         ignoredNames = ignoredNames + [name]

@@ -891,6 +891,16 @@
         }
       }
     },
+    "Delete this project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Projekt löschen"
+          }
+        }
+      }
+    },
     "Delete…": {
       "localizations": {
         "de": {
@@ -1011,6 +1021,16 @@
         }
       }
     },
+    "Edit this project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Projekt bearbeiten"
+          }
+        }
+      }
+    },
     "Edit this session": {
       "localizations": {
         "de": {
@@ -1037,6 +1057,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aktivieren …"
+          }
+        }
+      }
+    },
+    "Entered by hand, and marked as such on the day, in the CSV and on the invoice.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Hand eingetragen und als solche gekennzeichnet — am Tag, in der CSV und auf der Rechnung."
           }
         }
       }
@@ -1097,6 +1127,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Projektwechseln sofort folgen"
+          }
+        }
+      }
+    },
+    "Follows the span": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folgt dem Zeitraum"
           }
         }
       }
@@ -1321,6 +1361,16 @@
         }
       }
     },
+    "New invoice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Rechnung"
+          }
+        }
+      }
+    },
     "New project": {
       "localizations": {
         "de": {
@@ -1447,6 +1497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jetzt nicht"
+          }
+        }
+      }
+    },
+    "Not recording — Resolve is on another project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aufzeichnung — Resolve ist auf einem anderen Projekt"
           }
         }
       }
@@ -2081,6 +2141,16 @@
         }
       }
     },
+    "Street, postcode and town": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strasse, PLZ und Ort"
+          }
+        }
+      }
+    },
     "Subtotal": {
       "localizations": {
         "de": {
@@ -2197,16 +2267,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Ende muss nach dem Beginn liegen."
-          }
-        }
-      }
-    },
-    "The hours follow the span — they are never a separate number": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Stunden folgen dem Zeitraum — sie sind nie eine eigene Zahl"
           }
         }
       }
@@ -2371,16 +2431,6 @@
         }
       }
     },
-    "Typed time is marked as entered, not tracked — on the day, in the CSV and on the invoice.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Von Hand eingetragene Zeit wird als eingetragen markiert, nicht als erfasst — am Tag, in der CSV und auf der Rechnung."
-          }
-        }
-      }
-    },
     "UID": {
       "localizations": {
         "de": {
@@ -2467,16 +2517,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zu welchem Projekt gehört das?"
-          }
-        }
-      }
-    },
-    "Yes": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ja"
           }
         }
       }

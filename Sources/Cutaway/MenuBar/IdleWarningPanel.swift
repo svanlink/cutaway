@@ -17,7 +17,7 @@ struct IdleWarningView: View {
                    line: "\(Self.countdownText(secondsLeft)) — any input keeps recording",
                    spoken: String(localized: "Still working? \(Self.countdownText(secondsLeft))")) {
             Button("I'm still working", action: confirm)
-                .buttonStyle(.borderedProminent).tint(DT.signal)
+                .buttonStyle(PromptPrimaryButtonStyle(tint: DT.signal))
         }
     }
 }

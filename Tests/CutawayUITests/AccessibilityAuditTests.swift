@@ -118,7 +118,11 @@ final class AccessibilityAuditTests: XCTestCase {
         // and fails the test with a snapshot error, not a finding.
         guard element.exists else { return true }
         if element.elementType == .touchBar { return true }
-        if element.frame.minY < 0 { return true }          // Touch Bar strip items
+        // Anything that does not overlap one of the app's own windows is not
+        // the app's UI: Touch Bar controls, menu-bar extras, system pickers.
+        // (This replaced a `frame.minY < 0` guess about where the Touch Bar
+        // sits, which stopped matching the moment those coordinates moved.)
+        if !containerFrames.contains(where: { $0.intersects(element.frame) }) { return true }
         if issue.auditType == .action, element.elementType == .popUpButton,
            !element.label.isEmpty { return true }
         return element.elementType == .group && containerFrames.contains(element.frame)

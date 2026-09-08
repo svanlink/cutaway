@@ -31,7 +31,38 @@ enum PromptArbiter {
     }
 }
 
-/// The one shape both prompts take: leading glyph, title, one line, actions.
+/// The primary action on a card, drawn rather than requested.
+///
+/// `.borderedProminent` loses its accent fill in a window that is not key —
+/// and these cards live in a NON-ACTIVATING panel on purpose, because
+/// stealing focus from Resolve to ask whether someone is working would
+/// answer its own question. So the fill is painted here, and the primary
+/// action looks primary whether or not the panel has focus.
+struct PromptPrimaryButtonStyle: ButtonStyle {
+    let tint: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(DT.smallSemibold)
+            .foregroundStyle(Color.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(tint.opacity(configuration.isPressed ? 0.75 : 1),
+                        in: RoundedRectangle(cornerRadius: DT.rSm))
+            .contentShape(RoundedRectangle(cornerRadius: DT.rSm))
+    }
+}
+
+/// The one shape the prompts take: a line of text, then its actions beneath.
+///
+/// It used to be a single row — icon, text, buttons — at a fixed 400 pt. With
+/// a real project name in it ("26_08_RichemontEC_HFMaisonsPresentations2026")
+/// the text took the width it wanted, broke four times mid-word, and squeezed
+/// the buttons into grey slivers. Text and controls competing for one row is
+/// a layout that only works for the short strings it was tested with.
+///
+/// Two rows: the text gets the full width and a hard line limit, the actions
+/// get their own row and cannot be compressed by anything.
 struct PromptCard<Actions: View>: View {
     let symbol: String
     let tint: Color
@@ -41,18 +72,36 @@ struct PromptCard<Actions: View>: View {
     @ViewBuilder let actions: () -> Actions
 
     var body: some View {
-        HStack(spacing: DT.s3) {
-            Image(systemName: symbol).font(DT.body).foregroundStyle(tint)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(DT.bodyBold).foregroundStyle(DT.textPrimary)
-                Text(line).font(DT.captionMedium).foregroundStyle(DT.textSecondary).monospacedDigit()
+        VStack(alignment: .leading, spacing: DT.s3) {
+            HStack(alignment: .firstTextBaseline, spacing: DT.s3) {
+                Image(systemName: symbol)
+                    .font(DT.body)
+                    .foregroundStyle(tint)
+                    .frame(width: 18)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(DT.bodyBold)
+                        .foregroundStyle(DT.textPrimary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(line)
+                        .font(DT.captionMedium)
+                        .foregroundStyle(DT.textSecondary)
+                        .monospacedDigit()
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: DT.s2)
-            actions()
+            HStack(spacing: DT.s2) {
+                Spacer(minLength: 0)
+                actions()
+            }
+            .controlSize(.small)
         }
         .padding(.horizontal, DT.s4)
         .padding(.vertical, DT.s3)
-        .frame(width: 400)
+        .frame(width: 400, alignment: .leading)
         .background(DT.overlay, in: RoundedRectangle(cornerRadius: DT.rLg))
         .overlay(RoundedRectangle(cornerRadius: DT.rLg).stroke(tint.opacity(0.5), lineWidth: 1))
         .accessibilityElement(children: .contain)
@@ -77,13 +126,13 @@ struct ResumePromptView: View {
                    line: "Cutaway is paused, but you're editing.",
                    spoken: String(localized: "Are you working? Cutaway is paused, but you're editing.")) {
             Button("No, stay paused", action: stay)
-                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+                .buttonStyle(.bordered)
             Button("Always", action: always)
-                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+                .buttonStyle(.bordered)
                 .accessibilityLabel("Always resume automatically")
                 .help("Resume now, and from now on resume without asking")
             Button("Yes, resume", action: resume)
-                .buttonStyle(.borderedProminent).tint(DT.signal)
+                .buttonStyle(PromptPrimaryButtonStyle(tint: DT.signal))
         }
     }
 }
@@ -98,6 +147,12 @@ struct AttributionPromptView: View {
     let create: () -> Void
     let ignore: () -> Void
 
+    /// A project name can be forty characters of underscores. The button
+    /// says enough of it to be unambiguous and no more.
+    private func shortened(_ name: String) -> String {
+        name.count <= 13 ? name : String(name.prefix(12)) + "…"
+    }
+
     var body: some View {
         let q = AttributionPolicy.question(name: name, source: source, current: current)
         return PromptCard(symbol: source.isDocument ? "doc.badge.plus" : "film.stack",
@@ -106,13 +161,18 @@ struct AttributionPromptView: View {
                           line: LocalizedStringKey(q.line),
                           spoken: "\(q.title). \(q.line)") {
             Button("Not billable", action: ignore)
-                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+                .buttonStyle(.bordered).lineLimit(1).fixedSize()
             Button("New project", action: create)
-                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.text2)
-            if current != nil {
-                // The common answer for an Adobe document: same job, other app.
-                Button("Yes", action: attach)
-                    .buttonStyle(.borderedProminent).tint(DT.signal)
+                .buttonStyle(.bordered).lineLimit(1).fixedSize()
+            if let current {
+                // Named, so the answer reads without going back to the
+                // question above it.
+                Button("Yes, \(shortened(current))", action: attach)
+                    .buttonStyle(PromptPrimaryButtonStyle(tint: DT.signal))
+                    // Without this the label wraps INSIDE the button, which
+                    // is the same defect as the card, one level down.
+                    .lineLimit(1)
+                    .fixedSize()
             }
         }
     }
@@ -135,6 +195,13 @@ final class PromptPanel {
         switch ProcessInfo.processInfo.environment["CUTAWAY_SHOW"] {
         case "idlewarning": pinned = .idle(secondsLeft: IdleWarning.lead)
         case "resume": pinned = .resume
+        // Design work needs the card on screen without waiting for Resolve
+        // to open something unknown. A real project name, because the long ones
+        // are what break the layout.
+        case "attribution":
+            pinned = .attribution(name: "Maisons_v03",
+                                  source: .adobe(app: "After Effects"),
+                                  current: "26_08_RichemontEC_HFMaisonsPresentations2026")
         default: pinned = nil
         }
         if let pinned { show(pinned) }

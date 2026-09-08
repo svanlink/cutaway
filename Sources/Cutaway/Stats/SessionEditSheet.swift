@@ -32,7 +32,7 @@ struct SessionEditSheet: View {
                 LabeledContent {
                     Text(lengthText).monospacedDigit()
                 } label: {
-                    labelled("Length", "The hours follow the span — they are never a separate number")
+                    labelled("Length", "Follows the span")
                 }
                 if project.hourlyRate > 0 {
                     LabeledContent("Earns") {
@@ -44,23 +44,28 @@ struct SessionEditSheet: View {
                 if let refusal {
                     Text(refusal).font(.caption).foregroundStyle(.orange)
                 }
-                Text("Typed time is marked as entered, not tracked — on the day, in the CSV and on the invoice.")
+                Text("Entered by hand, and marked as such on the day, in the CSV and on the invoice.")
                     .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .formStyle(.grouped)
             HStack {
                 if let editing {
                     Button("Delete", role: .destructive) { delete(editing) }
                 }
-                Button("Cancel") { dismiss() }
                 Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
                 Button("Save") { save() }
+                    .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(seconds <= 0)
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(.regularMaterial)
         }
-        .frame(width: 420)
+        .frame(width: 460)
         .onAppear(perform: load)
     }
 

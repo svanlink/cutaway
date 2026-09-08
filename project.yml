@@ -28,9 +28,6 @@ targets:
         CFBundleVersion: "1.5.0"
         LSApplicationCategoryType: public.app-category.productivity
         NSHumanReadableCopyright: "© 2026 Sebastian van Eickelen"
-        # The sentence macOS shows in the Automation prompt. It is the whole
-        # permission ask, so it says exactly what is read and what is not.
-        NSAppleEventsUsageDescription: "Cutaway asks Photoshop, Illustrator, InDesign and After Effects for the name of the document you have open, so your time lands on the right project. It reads nothing else and controls nothing."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.vaneickelen.cutaway

@@ -25,7 +25,8 @@ struct MenuBarPanel: View {
     /// nothing to list, so the zero state takes the list's place.
     static func blocks(zeroState: Bool, offersAccessibility: Bool,
                        workDetectedWhilePaused: Bool, researchLabel: Bool,
-                       receipt: Bool, storeProblem: Bool = false) -> [PanelBlock] {
+                       receipt: Bool, storeProblem: Bool = false,
+                       projectMismatch: Bool = false) -> [PanelBlock] {
         var b: [PanelBlock] = [.hero]
         // A failed save outranks everything: it is the one line that can
         // save the user money if they read it.
@@ -33,7 +34,9 @@ struct MenuBarPanel: View {
         if zeroState { return b + [.zeroState, .footer] }
         if offersAccessibility { b.append(.accessibilityOffer) }
         b.append(.projects)
-        if workDetectedWhilePaused { b.append(.resumeBanner) }
+        // A held clock outranks the research line: while it is true, the
+        // only question worth answering is why nothing is counting.
+        if workDetectedWhilePaused || projectMismatch { b.append(.resumeBanner) }
         if researchLabel { b.append(.researchWindow) }
         if receipt { b.append(.receipt) }
         b.append(.footer)
@@ -46,7 +49,8 @@ struct MenuBarPanel: View {
                                  workDetectedWhilePaused: model.engine.workDetectedWhilePaused,
                                  researchLabel: model.engine.recordingSource?.label != nil,
                                  receipt: model.lastSessionLine != nil || model.unbilledLine != nil,
-                                 storeProblem: model.storeErrors.banner != nil)
+                                 storeProblem: model.storeErrors.banner != nil,
+                                 projectMismatch: model.projectMismatch)
         VStack(spacing: 0) {
             ForEach(blocks, id: \.self) { block in
                 switch block {
@@ -71,7 +75,9 @@ struct MenuBarPanel: View {
                     AccessibilityOfferCard(enable: { model.detector.requestAccessibility() },
                                            dismiss: { model.accessibilityOfferDismissed = true })
                 case .projects: projectList
-                case .resumeBanner: resumeBanner
+                case .resumeBanner:
+                    resumeBanner
+                    mismatchBanner
                 case .researchWindow: researchWindow
                 case .receipt: receipt
                 case .footer: footer
@@ -192,6 +198,35 @@ struct MenuBarPanel: View {
     }
 
     // MARK: - Research window
+
+    /// The clock is held because Resolve is on something else. A stopped
+    /// timer with no explanation is indistinguishable from a broken one.
+    @ViewBuilder
+    private var mismatchBanner: some View {
+        if model.projectMismatch, let onScreen = model.resolveProject {
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(DT.glyph)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Not recording — Resolve is on another project")
+                        .font(DT.smallSemibold)
+                    Text(onScreen)
+                        .font(DT.captionMedium)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(DT.held)
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(DT.held.opacity(0.12))
+            .overlay(alignment: .top) { Rectangle().fill(DT.strokeSubtle).frame(height: 1) }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Not recording. Resolve is on \(onScreen), which is not the selected project.")
+        }
+    }
 
     /// Only shown while a satellite app is holding the clock up. Recording
     /// from Resolve needs no explanation — it stops when the work does. This

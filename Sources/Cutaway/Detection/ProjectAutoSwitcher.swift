@@ -37,14 +37,9 @@ final class ProjectAutoSwitcher {
     private let intent: () -> ManualIntent
     /// (name, mayCreateProject)
     private let onDetected: (String, Bool) -> Void
-    /// (document stem, app display name) — asked about, never auto-created.
-    var onAdobeDocument: (String, String) -> Void = { _, _ in }
 
     private var schedule = DetectionSchedule()
     private var tier1InFlight = false
-    private let adobe: AdobeDetector
-    /// Ask each Adobe app once per activation, not once per tick.
-    private var lastAdobeApp: String?
 
     init(detector: ProjectDetector, engine: DetectionEngine,
          intent: @escaping () -> ManualIntent,
@@ -53,28 +48,17 @@ final class ProjectAutoSwitcher {
         self.engine = engine
         self.intent = intent
         self.onDetected = onDetected
-        self.adobe = AdobeDetector(log: { [weak engine] kind, detail in
-            engine?.logDetection(kind, detail: detail)
-        })
     }
 
-    /// An Adobe app came forward. Ask it once, for the document name only.
+    /// Deliberately gone: Adobe apps do not name projects.
     ///
-    /// SELECT, never create: the answer is a filename, and filenames creating
-    /// projects would fill the switcher with versions of one job. If nothing
-    /// matches an existing project, the time still counts — it just stays
-    /// where the owner put it.
-    func applicationActivated(_ bundleID: String?) {
-        guard let bundleID, AdobeDocument.namesDocuments(bundleID) else {
-            lastAdobeApp = nil
-            return
-        }
-        guard bundleID != lastAdobeApp else { return }
-        lastAdobeApp = bundleID
-        if case .name(let candidate) = adobe.documentName(forBundleID: bundleID) {
-            onAdobeDocument(candidate, AdobeDocument.app(forBundleID: bundleID)?.displayName ?? "Adobe")
-        }
-    }
+    /// A build on 2026-09-08 asked Photoshop, Illustrator, InDesign and
+    /// After Effects for their open document and offered it as a project.
+    /// The owner's rule, and it is the better rule: **DaVinci Resolve is the
+    /// source of truth.** An Adobe app being frontmost proves someone is
+    /// working; it never says on what. While Resolve is on project A, work
+    /// in After Effects belongs to A — no document name, no Automation
+    /// prompt, no second opinion to disagree with Resolve.
 
     func tick() {
         // Detection runs while recording AND while paused for lack of a

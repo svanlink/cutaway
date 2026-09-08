@@ -199,6 +199,7 @@ final class DetectionEngine {
             manuallyPaused: manuallyPaused,
             isAsleep: isAsleep,
             hasActiveProject: hasActiveProject,
+            projectMismatch: projectMismatch,
             workAppPrefixes: workAppPrefixes
         )
         input.satellitePrefixes = satellitePrefixes
@@ -305,6 +306,9 @@ final class DetectionEngine {
     }
 
     /// Called after every tick — AppModel hooks project auto-detection here.
+    /// Set by the app: Resolve is on a project other than the recorded one.
+    /// The engine does not look this up; it obeys it.
+    var projectMismatch = false
     var onTick: (() -> Void)?
 
     /// Resume from the notification / panel — a no-op unless paused by hand.

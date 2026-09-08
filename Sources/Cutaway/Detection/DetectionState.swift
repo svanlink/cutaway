@@ -5,6 +5,16 @@ enum PauseReason: String, Sendable, Codable {
     case manual
     case systemSleep
     case noProject
+    /// DaVinci Resolve has a project open that is NOT the one being
+    /// recorded, and nobody has said where it belongs yet.
+    ///
+    /// This outranks recording, always. On 2026-09-08 Resolve sat on
+    /// "2026-08-2_BuildingBridges_OpeningFilm" for twelve minutes while the
+    /// timer quietly credited every second of it to a different client's
+    /// project. Time that lands on the wrong invoice is worse than time that
+    /// lands nowhere: the second is a gap you notice, the first is a lie you
+    /// send.
+    case projectMismatch
     case notFrontmost
     case inputIdle
 }
@@ -46,6 +56,9 @@ struct DetectionInput: Sendable {
     var manuallyPaused: Bool
     var isAsleep: Bool
     var hasActiveProject: Bool
+    /// Resolve is showing a project that is not the selected one. Set by the
+    /// app from Tier-1/Tier-2 detection; the state machine only obeys it.
+    var projectMismatch: Bool = false
     /// ANCHOR apps (prefix-matched): the toolchain that proves a work block —
     /// they can START recording and refresh the research window.
     var workAppPrefixes: [String] = []
@@ -138,6 +151,10 @@ extension DetectionState {
         if input.manuallyPaused { return .paused(.manual) }
         if input.isAsleep { return .paused(.systemSleep) }
         if !input.hasActiveProject { return .paused(.noProject) }
+        // Before anything about frontmost apps or idleness: if Resolve is on
+        // a different project than the one being recorded, there is no
+        // correct project to record TO.
+        if input.projectMismatch { return .paused(.projectMismatch) }
         guard input.isWorkContext else { return .paused(.notFrontmost) }
         if input.secondsSinceInput >= input.idleThreshold {
             return .paused(.inputIdle)
