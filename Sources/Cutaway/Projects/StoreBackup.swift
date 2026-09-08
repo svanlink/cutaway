@@ -221,6 +221,11 @@ enum StoreBackup {
                           now: Date) -> Set<String> {
         let sorted = names.sorted()          // stamps sort chronologically
         var keepers = Set(sorted.suffix(keep))
+        // The OLDEST generation is never evicted. It is the copy from before
+        // whatever went wrong — on this Mac, `billing-20260823-122952`, the
+        // pre-incident store, which the daily rule would have dropped on
+        // 2026-09-22. Costs one folder, roughly 800 KB.
+        if let eldest = sorted.first { keepers.insert(eldest) }
 
         // "billing-YYYYMMDD-HHMMSS" → the day, or nil. A name that does not
         // parse is NEVER deleted: destroying what cannot be classified is
@@ -245,6 +250,48 @@ enum StoreBackup {
         }
         keepers.formUnion(newestPerDay.values)
         return keepers
+    }
+
+    /// Full store copies and half-finished folders left by earlier restores
+    /// and interrupted backups. They are not backups and never rotate, so
+    /// without this they accumulate for the life of the app.
+    static func reapLitter(storeURL: URL, backupsDir: URL, now: Date = Date(),
+                           replacedDays: Double = 30, stagingHours: Double = 24,
+                           fm: FileManager = .default) {
+        let storeDir = storeURL.deletingLastPathComponent()
+        let replacedPrefix = storeURL.lastPathComponent + ".replaced-"
+        let replaced = ((try? fm.contentsOfDirectory(at: storeDir, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.lastPathComponent.hasPrefix(replacedPrefix) }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        // Keep the newest whatever its age — it is the only undo for the most
+        // recent restore. Older ones go once they are past their window.
+        let newestReplacedStem = replaced.last.map { stem(of: $0.lastPathComponent, prefix: replacedPrefix) }
+        for url in replaced {
+            let name = url.lastPathComponent
+            guard stem(of: name, prefix: replacedPrefix) != newestReplacedStem else { continue }
+            if age(of: url, now: now, fm: fm) > replacedDays * 86_400 { try? fm.removeItem(at: url) }
+        }
+
+        for url in ((try? fm.contentsOfDirectory(at: backupsDir, includingPropertiesForKeys: nil)) ?? [])
+            where url.lastPathComponent.hasPrefix(".staging-") {
+            if age(of: url, now: now, fm: fm) > stagingHours * 3_600 { try? fm.removeItem(at: url) }
+        }
+    }
+
+    /// `billing.store.replaced-2026-09-07T18-13-28` and its `-wal`/`-shm`
+    /// siblings are one generation — group them by the stamp, or the newest
+    /// generation loses its sidecars.
+    private static func stem(of name: String, prefix: String) -> String {
+        var stamp = String(name.dropFirst(prefix.count))
+        for suffix in ["-wal", "-shm"] where stamp.hasSuffix(suffix) {
+            stamp = String(stamp.dropLast(suffix.count))
+        }
+        return stamp
+    }
+
+    private static func age(of url: URL, now: Date, fm: FileManager) -> TimeInterval {
+        let modified = (try? fm.attributesOfItem(atPath: url.path)[.modificationDate] as? Date) ?? nil
+        return now.timeIntervalSince(modified ?? now)
     }
 
     private static func existingBackups(in dir: URL) -> [URL] {

@@ -28,7 +28,10 @@ final class BackupRotationTests: XCTestCase {
     /// burst of ten same-day generations after the wipe. Yesterday's newest
     /// must survive the entire burst.
     func testSameDaySpamCannotEvictAnotherDaysNewest() {
-        var names = [name(2026, 8, 20, 18), name(2026, 8, 20, 23, 26), name(2026, 8, 20, 23, 36)]
+        // The 19th is here only to hold the never-evict-the-eldest pin, so
+        // this test still measures the daily rule and not that one.
+        var names = [name(2026, 8, 19, 12),
+                     name(2026, 8, 20, 18), name(2026, 8, 20, 23, 26), name(2026, 8, 20, 23, 36)]
         names += (0..<10).map { name(2026, 8, 23, 11, $0) }
 
         let keepers = StoreBackup.survivors(of: names, keep: 7, dailyDays: 30,
@@ -44,9 +47,9 @@ final class BackupRotationTests: XCTestCase {
                      name(2026, 8, 15, 9), name(2026, 8, 15, 17)]
         let keepers = StoreBackup.survivors(of: names, keep: 2, dailyDays: 30,
                                             now: date(2026, 8, 23))
-        XCTAssertEqual(keepers, [name(2026, 8, 10, 17),
+        XCTAssertEqual(keepers, [name(2026, 8, 10, 9), name(2026, 8, 10, 17),
                                  name(2026, 8, 15, 9), name(2026, 8, 15, 17)],
-                       "10th keeps its 17:00; the 15th keeps both only because keep-2 covers them")
+                       "10th keeps its 17:00 as the daily and its 09:00 as the eldest; keep-2 covers the 15th")
     }
 
     func testDailiesExpireButTheNewestGenerationsNeverDo() {
@@ -60,13 +63,16 @@ final class BackupRotationTests: XCTestCase {
     }
 
     func testAnOldDailyOutsideTheWindowIsReleased() {
-        var names = [name(2026, 6, 1, 12)]                      // 83 days old
+        var names = [name(2026, 5, 1, 12)]                      // eldest — pinned forever
+        names += [name(2026, 6, 1, 12)]                         // 83 days old
         names += (0..<8).map { name(2026, 8, 23, 10, $0) }      // 8 fresh ones
         let keepers = StoreBackup.survivors(of: names, keep: 7, dailyDays: 30,
                                             now: date(2026, 8, 23))
         XCTAssertFalse(keepers.contains(name(2026, 6, 1, 12)),
                        "beyond the window and displaced from keep-newest, it may go")
-        XCTAssertEqual(keepers.count, 7)
+        XCTAssertTrue(keepers.contains(name(2026, 5, 1, 12)),
+                      "except the eldest, which is the copy from before whatever went wrong")
+        XCTAssertEqual(keepers.count, 8)
     }
 
     func testAnUnparsableNameIsNeverDeleted() {

@@ -126,35 +126,6 @@ final class IdleWarningTests: XCTestCase {
 
     // MARK: - Suppression
 
-    func testNoWarningDuringAProvenRender() {
-        // The render exemption already carries idle stretches with CPU
-        // evidence; a nag during an export teaches the user to ignore it.
-        final class BusyProbes: SystemProbing, @unchecked Sendable {
-            var frontmost: String? = DetectionInput.resolveBundleIDs[0]
-            var idle: TimeInterval = 0
-            var cpuNanos: UInt64 = 0
-            func frontmostBundleID() -> String? { frontmost }
-            func secondsSinceLastInput() -> TimeInterval { idle }
-            func workAppCPUNanos(matching prefixes: [String]) -> UInt64 { cpuNanos }
-        }
-        let busy = BusyProbes()
-        let scratch = scratchDefaults()
-        let e = DetectionEngine(probes: busy, defaults: scratch)
-        e.idleThreshold = 120
-        e.renderExemption = true
-        var c = Date(timeIntervalSince1970: 1_800_000_000)
-        e.now = { c }
-        e.tick()
-        busy.idle = 130                        // past threshold, exemption active
-        for _ in 0..<3 {
-            busy.cpuNanos += 4_000_000_000     // 4 cores' worth per second
-            c = c.addingTimeInterval(1)
-            e.tick()
-        }
-        XCTAssertEqual(e.state, .recording, "the render exemption is carrying this")
-        XCTAssertNil(e.idleWarning, "no nagging while the work is provably happening")
-    }
-
     func testNoWarningWhilePaused() {
         tick()
         engine.togglePause()

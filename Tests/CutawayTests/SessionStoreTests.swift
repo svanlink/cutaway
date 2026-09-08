@@ -153,6 +153,14 @@ final class StoreBackupTests: XCTestCase {
 
     private func date(_ s: TimeInterval) -> Date { Date(timeIntervalSince1970: 1_800_000_000 + s) }
 
+    /// The folder-name stamp the backup writer uses.
+    private func stamp(_ d: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyyMMdd-HHmmss"
+        return f.string(from: d)
+    }
+
     func testBackupCopiesStoreTrio() throws {
         try Data("main".utf8).write(to: store)
         try Data("wal".utf8).write(to: URL(fileURLWithPath: store.path + "-wal"))
@@ -181,8 +189,11 @@ final class StoreBackupTests: XCTestCase {
                                                    now: date(TimeInterval(i) * 60)))
         }
         let remaining = try FileManager.default.contentsOfDirectory(atPath: backups.path).sorted()
-        XCTAssertEqual(remaining.count, 7)
-        XCTAssertFalse(remaining.contains("billing-20270115-100000"), "oldest must be gone")
+        // Seven newest, plus the eldest generation, which is never evicted.
+        XCTAssertEqual(remaining.count, 8)
+        let all = (0..<9).map { "billing-" + stamp(date(TimeInterval($0) * 60)) }.sorted()
+        XCTAssertEqual(remaining.first, all.first, "the eldest generation is pinned")
+        XCTAssertFalse(remaining.contains(all[1]), "the one after it is not")
         // Newest backup holds the latest content.
         let newest = backups.appendingPathComponent(remaining.last!).appendingPathComponent("timex.store")
         XCTAssertEqual(try Data(contentsOf: newest), Data("content-8".utf8))

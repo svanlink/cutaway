@@ -7,7 +7,6 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     @AppStorage("idleThreshold") private var idleThreshold: Double = 120
     @AppStorage("defaultCurrency") private var defaultCurrency = AppModel.defaultCurrency.rawValue
-    @AppStorage("pillDisplay") private var pillDisplay = "today"
     @State private var editingWorkApps = false
     @State private var editingSatellites = false
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -21,43 +20,30 @@ struct SettingsView: View {
                     Text("5 minutes").tag(300.0)
                     Text("10 minutes").tag(600.0)
                 } label: {
-                    labelled("Idle threshold", "Timer pauses after this much inactivity")
-                }
-                Picker(selection: Binding(
-                    get: { model.engine.autoResume.rawValue },
-                    set: { Prefs.set($0, forKey: "autoResume")
-                           model.engine.autoResume = AutoResumeMode(rawValue: $0) ?? .ask }
-                )) {
-                    Text("Stay paused").tag(AutoResumeMode.off.rawValue)
-                    Text("Ask me").tag(AutoResumeMode.ask.rawValue)
-                    Text("Resume automatically").tag(AutoResumeMode.auto.rawValue)
-                } label: {
-                    labelled("After a manual pause", "When you start editing again in a workflow app")
-                }
-                Toggle(isOn: Binding(
-                    get: { Prefs.bool(forKey: "idleRenderExemption") },
-                    set: { Prefs.set($0, forKey: "idleRenderExemption"); model.engine.renderExemption = $0 }
-                )) {
-                    labelled("Keep counting during renders",
-                             "Bills export time with no input — only while Resolve is provably busy, max 30 min")
+                    // Load-bearing since the render exemption was deleted: this
+                    // is the only lever for a workflow with long unattended
+                    // renders, and its right value is a fact about the owner's
+                    // contracts, not a taste.
+                    labelled("Pause after no input for",
+                             "Raise it if your renders run unattended and you bill them")
                 }
                 LabeledContent {
                     Button("\(model.engine.workAppPrefixes.count) apps…") { editingWorkApps = true }
                         .popover(isPresented: $editingWorkApps, arrowEdge: .bottom) {
-                            AppListEditor(title: "Workflow apps", prefsKey: "workApps",
-                                          defaults: DetectionInput.defaultWorkAppPrefixes) { _ in model.applyAnchors() }
+                            AppPrefsPicker(title: "Apps that count", prefsKey: "workApps",
+                                           defaults: DetectionInput.defaultWorkAppPrefixes) { _ in model.applyAnchors() }
                         }
                 } label: {
-                    labelled("Workflow apps", "Time in these counts toward the project")
+                    labelled("Apps that count", "Time in these counts toward the project")
                 }
                 LabeledContent {
                     Button("\(model.engine.satellitePrefixes.count) apps…") { editingSatellites = true }
                         .popover(isPresented: $editingSatellites, arrowEdge: .bottom) {
-                            AppListEditor(title: "Research & comms apps", prefsKey: "satelliteApps",
-                                          defaults: DetectionInput.defaultSatellitePrefixes) { model.engine.satellitePrefixes = $0 }
+                            AppPrefsPicker(title: "Research & comms", prefsKey: "satelliteApps",
+                                           defaults: DetectionInput.defaultSatellitePrefixes) { model.engine.satellitePrefixes = $0 }
                         }
                 } label: {
-                    labelled("Research & comms", "These sustain the timer for 20 minutes after workflow-app activity")
+                    labelled("Research & comms", "These sustain the timer for 20 minutes after work-app activity")
                 }
             }
             Section("Billing") {
@@ -76,31 +62,18 @@ struct SettingsView: View {
             }
             Section("Data") {
                 LabeledContent {
-                    Button("Back up now") { model.backUpNow(reason: "manual") }
+                    Button("Restore…") { restoreFromBackup() }
                 } label: {
-                    labelled("Backups", "Daily, at launch and at quit — kept for 30 days on this Mac")
-                }
-                LabeledContent {
-                    HStack {
-                        Button("Reveal backups…") {
-                            NSWorkspace.shared.activateFileViewerSelecting([AppModel.backupsDir])
-                        }
-                        Button("Restore…") { restoreFromBackup() }
-                    }
-                } label: {
+                    // One control for an automatic system. Backups run at
+                    // launch, daily and at quit; the caption is the
+                    // reassurance, and it costs no button.
+                    labelled("Backups", "At launch, daily and at quit — kept on this Mac")
                     (model.lastBackup.map { Text("Last backup \($0, format: .dateTime.day().month().hour().minute())") }
                         ?? Text("No backup yet"))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
-            Section("Menu bar & system") {
-                Picker(selection: $pillDisplay) {
-                    Text("Today").tag("today")
-                    Text("Current session").tag("session")
-                    Text("Project total").tag("total")
-                } label: {
-                    labelled("Menu bar shows", "Which time the pill displays")
-                }
+            Section {
                 Toggle(isOn: Binding(
                     get: { launchAtLogin },
                     set: { on in
@@ -126,6 +99,10 @@ struct SettingsView: View {
                     LabeledContent("Pause shortcut") { Text("⌥⌘P is taken by another app — pause from the panel") }
                 }
                 LabeledContent("DaVinci Resolve", value: model.detectLine)
+            } header: {
+                Text("Menu bar & system")
+            }
+            Section {
                 LabeledContent {
                     if model.detector.accessibilityGranted {
                         Text("Granted").foregroundStyle(.secondary)
@@ -133,33 +110,29 @@ struct SettingsView: View {
                         Button("Enable…") { model.detector.requestAccessibility() }
                     }
                 } label: {
-                    labelled("Accessibility", "Lets Cutaway follow Resolve's project switches instantly")
+                    labelled("Accessibility",
+                             "Reads Resolve's window title so the project switches when you do. Never controls your Mac.")
                 }
                 LabeledContent {
-                    Button("Permissions…") { model.openPermissionsWindow?() }
+                    Text("Not needed yet").foregroundStyle(.secondary)
                 } label: {
-                    labelled("Permissions", "What Cutaway asks for, and what it never does")
+                    labelled("Automation",
+                             "Coming with Adobe project names: asks once per app, reads the document name only.")
                 }
                 LabeledContent {
-                    HStack {
-                        Button("Copy report") {
-                            NSPasteboard.general.clearContents()
-                            let text: String
-                            do {
-                                let r = try DiagnosticsStore.default.combinedReport()
-                                text = r.isEmpty ? String(localized: "No reports") : r
-                            } catch {
-                                text = String(localized: "Diagnostics folder unreadable: \(error.localizedDescription)")
-                            }
-                            NSPasteboard.general.setString(text, forType: .string)
-                        }
-                        Button("Reveal…") {
-                            NSWorkspace.shared.activateFileViewerSelecting([DiagnosticsStore.default.directory])
-                        }
+                    // Crash reports stay here. "Copy report" pasted MetricKit
+                    // JSON into a bug tracker that does not exist — the owner
+                    // is the maintainer. A folder still needs a door.
+                    Button("Reveal…") {
+                        NSWorkspace.shared.activateFileViewerSelecting([DiagnosticsStore.default.directory])
                     }
                 } label: {
-                    labelled("Diagnostics", "Crash and hang reports stay on this Mac; copy one into a bug report if you want to")
+                    labelled("Diagnostics", "Crash and hang reports, kept on this Mac")
                 }
+            } header: {
+                Text("Permissions")
+            } footer: {
+                Text(PermissionsPrimerPolicy.statement)
             }
         }
         .formStyle(.grouped)

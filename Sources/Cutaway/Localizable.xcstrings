@@ -161,16 +161,6 @@
         }
       }
     },
-    "Add": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hinzufügen"
-          }
-        }
-      }
-    },
     "Add time for a day": {
       "localizations": {
         "de": {
@@ -181,12 +171,22 @@
         }
       }
     },
-    "After a manual pause": {
+    "Always": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nach einer manuellen Pause"
+            "value": "Immer"
+          }
+        }
+      }
+    },
+    "Always resume automatically": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immer automatisch fortsetzen"
           }
         }
       }
@@ -211,6 +211,16 @@
         }
       }
     },
+    "Apps that count": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps, die zählen"
+          }
+        }
+      }
+    },
     "Are you working?": {
       "localizations": {
         "de": {
@@ -231,12 +241,12 @@
         }
       }
     },
-    "Ask me": {
+    "At launch, daily and at quit — kept on this Mac": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nachfragen"
+            "value": "Beim Start, täglich und beim Beenden — bleibt auf diesem Mac"
           }
         }
       }
@@ -271,16 +281,6 @@
         }
       }
     },
-    "Back up now": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jetzt sichern"
-          }
-        }
-      }
-    },
     "Backups": {
       "localizations": {
         "de": {
@@ -301,42 +301,12 @@
         }
       }
     },
-    "Bills export time with no input — only while Resolve is provably busy, max 30 min": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zählt Exportzeit ohne Eingabe — nur solange Resolve nachweislich arbeitet, max. 30 Min."
-          }
-        }
-      }
-    },
     "Budget": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Budget"
-          }
-        }
-      }
-    },
-    "Bundle id prefix": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bundle-ID-Präfix"
-          }
-        }
-      }
-    },
-    "Bundle id prefixes — e.g. com.adobe.PremierePro": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bundle-ID-Präfixe — z. B. com.adobe.PremierePro"
           }
         }
       }
@@ -401,12 +371,12 @@
         }
       }
     },
-    "Copy report": {
+    "Continue Without Restoring": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bericht kopieren"
+            "value": "Ohne Wiederherstellen fortfahren"
           }
         }
       }
@@ -431,12 +401,12 @@
         }
       }
     },
-    "Crash and hang reports stay on this Mac; copy one into a bug report if you want to": {
+    "Crash and hang reports, kept on this Mac": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Absturz- und Hänger-Berichte bleiben auf diesem Mac; kopiere einen in einen Fehlerbericht, wenn du möchtest"
+            "value": "Absturz- und Hänger-Berichte, bleiben auf diesem Mac"
           }
         }
       }
@@ -477,16 +447,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Währung"
-          }
-        }
-      }
-    },
-    "Current session": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktuelle Sitzung"
           }
         }
       }
@@ -551,6 +511,16 @@
         }
       }
     },
+    "Cutaway's billing data could not be read": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaways Abrechnungsdaten konnten nicht gelesen werden"
+          }
+        }
+      }
+    },
     "DaVinci Resolve": {
       "localizations": {
         "de": {
@@ -567,16 +537,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tagesübersicht"
-          }
-        }
-      }
-    },
-    "Daily, at launch and at quit — kept for 30 days on this Mac": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Täglich, beim Start und beim Beenden — 30 Tage auf diesem Mac aufbewahrt"
           }
         }
       }
@@ -841,32 +801,12 @@
         }
       }
     },
-    "Idle threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inaktivitäts-Schwelle"
-          }
-        }
-      }
-    },
     "Includes manual adjustment": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Enthält manuelle Anpassung"
-          }
-        }
-      }
-    },
-    "Keep counting during renders": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Während Renderings weiterzählen"
           }
         }
       }
@@ -901,16 +841,6 @@
         }
       }
     },
-    "Lets Cutaway follow Resolve's project switches instantly": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lässt Cutaway Projektwechseln in Resolve sofort folgen"
-          }
-        }
-      }
-    },
     "Looks like you're working": {
       "localizations": {
         "de": {
@@ -927,16 +857,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Menüleiste & System"
-          }
-        }
-      }
-    },
-    "Menu bar shows": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menüleiste zeigt"
           }
         }
       }
@@ -1031,16 +951,6 @@
         }
       }
     },
-    "No reports": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keine Berichte"
-          }
-        }
-      }
-    },
     "No, stay paused": {
       "localizations": {
         "de": {
@@ -1101,6 +1011,16 @@
         }
       }
     },
+    "Open Backups Folder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup-Ordner öffnen"
+          }
+        }
+      }
+    },
     "Open Cutaway": {
       "localizations": {
         "de": {
@@ -1151,6 +1071,16 @@
         }
       }
     },
+    "Pause after no input for": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausieren nach Inaktivität von"
+          }
+        }
+      }
+    },
     "Pause shortcut": {
       "localizations": {
         "de": {
@@ -1181,16 +1111,6 @@
         }
       }
     },
-    "Permissions…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Berechtigungen …"
-          }
-        }
-      }
-    },
     "Project name": {
       "localizations": {
         "de": {
@@ -1201,22 +1121,22 @@
         }
       }
     },
-    "Project total": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Projekt gesamt"
-          }
-        }
-      }
-    },
     "Quit Cutaway": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway beenden"
+          }
+        }
+      }
+    },
+    "Raise it if your renders run unattended and you bill them": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höher setzen, wenn Renders unbeaufsichtigt laufen und berechnet werden"
           }
         }
       }
@@ -1237,16 +1157,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recherche & Kommunikation"
-          }
-        }
-      }
-    },
-    "Research & comms apps": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recherche- & Kommunikations-Apps"
           }
         }
       }
@@ -1277,6 +1187,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auf Standard zurücksetzen"
+          }
+        }
+      }
+    },
+    "Restore That Backup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Backup wiederherstellen"
           }
         }
       }
@@ -1331,12 +1251,12 @@
         }
       }
     },
-    "Resume automatically": {
+    "Resume now, and from now on resume without asking": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatisch fortsetzen"
+            "value": "Jetzt fortsetzen und künftig ohne Nachfrage fortsetzen"
           }
         }
       }
@@ -1357,16 +1277,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erfassung fortsetzen"
-          }
-        }
-      }
-    },
-    "Reveal backups…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sicherungen anzeigen …"
           }
         }
       }
@@ -1471,16 +1381,6 @@
         }
       }
     },
-    "Stay paused": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausiert bleiben"
-          }
-        }
-      }
-    },
     "Still working?": {
       "localizations": {
         "de": {
@@ -1521,12 +1421,12 @@
         }
       }
     },
-    "That folder does not hold a Cutaway backup.": {
+    "That folder does not hold a readable Cutaway backup.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieser Ordner enthält keine Cutaway-Sicherung."
+            "value": "Dieser Ordner enthält kein lesbares Cutaway-Backup."
           }
         }
       }
@@ -1571,12 +1471,12 @@
         }
       }
     },
-    "These sustain the timer for 20 minutes after workflow-app activity": {
+    "These sustain the timer for 20 minutes after work-app activity": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese halten den Timer 20 Minuten nach Workflow-App-Aktivität am Laufen"
+            "value": "Diese halten die Uhr 20 Minuten nach Aktivität in einer Arbeits-App am Laufen"
           }
         }
       }
@@ -1597,16 +1497,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gearbeitete Zeit"
-          }
-        }
-      }
-    },
-    "Timer pauses after this much inactivity": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Timer pausiert nach so viel Inaktivität"
           }
         }
       }
@@ -1671,16 +1561,6 @@
         }
       }
     },
-    "What Cutaway asks for, and what it never does": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wofür Cutaway fragt — und was es nie tut"
-          }
-        }
-      }
-    },
     "What Cutaway needs, and why": {
       "localizations": {
         "de": {
@@ -1691,42 +1571,22 @@
         }
       }
     },
-    "When you start editing again in a workflow app": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wenn du in einer Workflow-App wieder zu schneiden beginnst"
-          }
-        }
-      }
-    },
-    "Which time the pill displays": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welche Zeit die Pille anzeigt"
-          }
-        }
-      }
-    },
-    "Workflow apps": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Workflow-Apps"
-          }
-        }
-      }
-    },
     "Yes, resume": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ja, fortsetzen"
+          }
+        }
+      }
+    },
+    "an unknown number of": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "eine unbekannte Anzahl"
           }
         }
       }
@@ -1767,6 +1627,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "use the billing store — it is damaged and was left untouched. Nothing tracked this run will be kept.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "die Abrechnungsdatenbank zu verwenden — sie ist beschädigt und wurde unverändert gelassen. Nichts aus dieser Sitzung wird gespeichert."
           }
         }
       }

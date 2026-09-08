@@ -52,13 +52,15 @@ final class StorePathTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: target.path))
     }
 
-    func testQuickCheckRejectsGarbage() throws {
+    func testGarbageIsDamagedAndARealStoreIsUsable() throws {
         let junk = dir.appendingPathComponent("junk.store")
         try Data(repeating: 0x41, count: 4096).write(to: junk)
-        XCTAssertFalse(StorePath.quickCheckOK(junk))
+        guard case .damaged = StorePath.verdict(junk) else {
+            return XCTFail("4 KB of 'A' is not a database")
+        }
         let good = dir.appendingPathComponent("good.store")
         makeStore(at: good, table: "ZPROJECT")
-        XCTAssertTrue(StorePath.quickCheckOK(good))
+        XCTAssertEqual(StorePath.verdict(good), .usable)
     }
 
     func testAPendingRestoreIsAppliedOnceAndKeepsTheReplacedStore() throws {

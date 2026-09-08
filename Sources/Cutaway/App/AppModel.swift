@@ -55,7 +55,6 @@ final class AppModel {
     var openPermissionsWindow: (() -> Void)?
     /// Last successful backup of the live store — launch, daily, quit or by hand.
     private(set) var lastBackup: Date? = Prefs.object(forKey: "lastBackupAt") as? Date
-    private var backupTimer: Timer?
     /// Beside whatever store is actually open — NOT a hard path. A hard path
     /// meant a UI-test run (quarantined by CUTAWAY_DATA_DIR, but backed up by
     /// the real rule) wrote its throwaway store into the owner's real backups
@@ -65,6 +64,47 @@ final class AppModel {
     /// True when SwiftData refused to open and we fell back to memory —
     /// the user must be TOLD their time won't survive a restart.
     var storeIsEphemeral = false
+    enum StoreHeldBack: Error { case damaged }
+
+    enum DamagedStoreChoice { case restore, revealBackups, continueWithout }
+
+    /// Replaceable so the decision can be driven in a test or a scenario run.
+    /// The default asks the owner, at launch, before anything is opened.
+    nonisolated(unsafe) static var askAboutDamagedStore: (String, StoreBootstrap.Candidate?) -> DamagedStoreChoice = { reason, candidate in
+        MainActor.assumeIsolated {
+            let alert = NSAlert()
+            alert.alertStyle = .critical
+            alert.messageText = String(localized: "Cutaway's billing data could not be read")
+            if let candidate {
+                let sessions = candidate.sessions.map { String($0) } ?? String(localized: "an unknown number of")
+                alert.informativeText = String(localized: """
+                    \(reason)
+
+                    The newest backup Cutaway can read is \(candidate.stamp), holding \(sessions) work sessions.
+
+                    Nothing has been changed yet. Restoring keeps the damaged file beside the restored one.
+                    """)
+                alert.addButton(withTitle: String(localized: "Restore That Backup"))
+            } else {
+                alert.informativeText = String(localized: """
+                    \(reason)
+
+                    Cutaway found no backup it can read. Nothing has been changed.
+                    """)
+            }
+            alert.addButton(withTitle: String(localized: "Open Backups Folder"))
+            alert.addButton(withTitle: String(localized: "Continue Without Restoring"))
+            let clicked = alert.runModal()
+            guard candidate != nil else {
+                return clicked == .alertFirstButtonReturn ? .revealBackups : .continueWithout
+            }
+            switch clicked {
+            case .alertFirstButtonReturn: return .restore
+            case .alertSecondButtonReturn: return .revealBackups
+            default: return .continueWithout
+            }
+        }
+    }
     /// Installed apps, scanned once per launch for the icon rows. The
     /// picker scans again when opened, so a freshly installed app shows up
     /// there without a relaunch.
@@ -83,6 +123,7 @@ final class AppModel {
         // Back up the real billing store before it opens (quiescent files).
         // Scenario/demo stores are disposable — never backed up.
         var launchBackupMade = false
+        var holdBackStore = false
         if !ScenarioMode.isActive {
             // First launch after 1.3.1: bring the work over from the shared
             // default.store into Cutaway's own file (copied, never removed).
@@ -92,31 +133,65 @@ final class AppModel {
             // A restore chosen in Settings is applied here, before anything opens.
             do { if try StorePath.applyPendingRestore(target: storeURL) { storeErrors.notice(String(localized: "The backup you chose has been restored.")) } }
             catch { NSLog("Cutaway: pending restore failed — %@", String(describing: error)) }
-            // A damaged store is set aside and the newest backup takes its
-            // place — said out loud in the panel, never silently.
-            if FileManager.default.fileExists(atPath: storeURL.path), !StorePath.quickCheckOK(storeURL),
-               let newest = StoreBackup.newest(in: Self.backupsDir) {
+            // Litter from earlier restores and interrupted backups.
+            StoreBackup.reapLitter(storeURL: storeURL, backupsDir: Self.backupsDir)
+
+            // The page scan is O(file). After a clean quit there is nothing it
+            // can find that the schema probe will not.
+            let cleanShutdown = Prefs.bool(forKey: "cleanShutdown")
+            Prefs.set(false, forKey: "cleanShutdown")
+            switch StoreBootstrap.plan(storeURL: storeURL, backupsDir: Self.backupsDir,
+                                       deepCheck: !cleanShutdown) {
+            case .open:
                 do {
-                    try StorePath.stagePendingRestore(from: newest, target: storeURL)
-                    try StorePath.applyPendingRestore(target: storeURL)
-                    storeErrors.notice(String(localized: "The billing store was damaged; the backup \(newest.lastPathComponent) was restored. The damaged file is kept beside it."))
-                } catch { NSLog("Cutaway: automatic restore failed — %@", String(describing: error)) }
+                    if try StoreBackup.backUp(storeURL: storeURL, backupsDir: Self.backupsDir) != nil { launchBackupMade = true }
+                } catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
+            case .openButWarn(let reason):
+                // The disk, not the file. Back up nothing (a backup of an
+                // unreadable store would only push good generations out of
+                // rotation) and let SwiftData try — it usually succeeds, and
+                // when it does not the in-memory fallback below says so.
+                NSLog("Cutaway: store not readable right now — %@", reason)
+                storeErrors.flag(String(localized: "read the billing store — \(reason). Nothing has been changed; try again after a restart."))
+            case .askBeforeRestoring(let reason, let candidate):
+                switch Self.askAboutDamagedStore(reason, candidate) {
+                case .restore:
+                    if let candidate {
+                        do {
+                            try StorePath.stagePendingRestore(from: candidate.folder, target: storeURL)
+                            try StorePath.applyPendingRestore(target: storeURL)
+                            storeErrors.notice(String(localized: "The backup \(candidate.stamp) has been restored. The damaged file is kept beside it."))
+                        } catch {
+                            NSLog("Cutaway: restore failed — %@", String(describing: error))
+                            holdBackStore = true
+                        }
+                    }
+                case .revealBackups:
+                    NSWorkspace.shared.activateFileViewerSelecting([Self.backupsDir])
+                    holdBackStore = true
+                case .continueWithout:
+                    // Never write over a damaged file: SwiftData would open it
+                    // and recreate its tables, and the evidence would be gone.
+                    holdBackStore = true
+                }
             }
-            do {
-                if try StoreBackup.backUp(storeURL: storeURL, backupsDir: Self.backupsDir) != nil { launchBackupMade = true }
-            } catch { NSLog("Cutaway: store backup skipped — %@", String(describing: error)) }
         }
         do {
+            if holdBackStore { throw StoreHeldBack.damaged }
             store = try SessionStore()
         } catch {
             // SwiftData refusing to open is unrecoverable at runtime; an
             // in-memory store keeps the app alive for this run. Say why in
             // the log, and say so in the PANEL — a menu-bar user may never
             // open the Stats window where the ephemeral banner lives.
-            NSLog("Cutaway: store failed to open, running in memory — %@", String(describing: error))
             store = try! SessionStore(inMemory: true)
             storeIsEphemeral = true
-            storeErrors.flag("open the billing store — nothing tracked this run will be kept")
+            if case StoreHeldBack.damaged = error {
+                storeErrors.flag(String(localized: "use the billing store — it is damaged and was left untouched. Nothing tracked this run will be kept."))
+            } else {
+                NSLog("Cutaway: store failed to open, running in memory — %@", String(describing: error))
+                storeErrors.flag("open the billing store — nothing tracked this run will be kept")
+            }
         }
         projectsModel = ProjectsModel(store: store, engine: engine, errors: storeErrors)
         // After the last stored property: a closure over self before that is
@@ -178,6 +253,11 @@ final class AppModel {
             // runs too, and its width and label still have to keep up.
             self.onEngineTick?()
             guard !ScenarioMode.isActive else { return }
+            // The app's ONE repeating timer. Ruled 2026-09-07: the backup
+            // check rides this tick keyed on WALL-CLOCK time, never on a tick
+            // count — a counter is meaningless under a variable cadence and
+            // keeps counting across a sleep that wall time notices.
+            if BackupPolicy.isDue(last: self.lastBackup, now: Date()) { self.backUpNow(reason: "daily") }
             // Detection runs while recording AND while paused for lack of a
             // project — that's how a zero-state install bootstraps itself
             // from whatever is open in Resolve.
@@ -237,23 +317,10 @@ final class AppModel {
             ScenarioDriver.run(model: self)
         } else {
             engine.start()
-            startBackupSchedule()
         }
     }
 
     // MARK: - Backups of the running store
-
-    private func startBackupSchedule() {
-        let t = Timer(timeInterval: BackupPolicy.checkEvery, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, BackupPolicy.isDue(last: self.lastBackup, now: Date()) else { return }
-                self.backUpNow(reason: "daily")
-            }
-        }
-        t.tolerance = 60
-        RunLoop.main.add(t, forMode: .common)
-        backupTimer = t
-    }
 
     /// A consistent snapshot of the live store. Returns whether one was written
     /// (nil from the snapshot means nothing changed since the last one).
@@ -280,6 +347,7 @@ final class AppModel {
     func prepareForTermination() {
         engine.stop()
         backUpNow(reason: "quit")
+        Prefs.set(true, forKey: "cleanShutdown")
     }
 
     /// Scenario hook: same path as a Tier-1 detection.
@@ -432,17 +500,12 @@ final class AppModel {
         "\(start.formatted(.dateTime.hour().minute())) – \(end.formatted(.dateTime.hour().minute()))"
     }
 
-    var pillSeconds: TimeInterval {
-        switch Prefs.string(forKey: "pillDisplay") ?? "today" {
-        case "session":
-            return engine.accumulator.activeSeconds
-        case "total":
-            guard let p = selectedProject else { return 0 }
-            return store.totalActiveSeconds(for: p) + engine.accumulator.activeSeconds
-        default:
-            return todaySeconds
-        }
-    }
+    /// Today. Not a choice: three meanings for one glanced number destroys
+    /// the glance — the pill stops being readable without remembering which
+    /// mode it is in. The session total is in the panel, the project total in
+    /// Stats, both one click away. (`pillDisplay` is left unread, as
+    /// `dailyGoalHours` was.)
+    var pillSeconds: TimeInterval { todaySeconds }
 
     /// Today's seconds for any project (live-merged for the selected one).
     func todaySecondsFor(_ project: Project) -> TimeInterval {

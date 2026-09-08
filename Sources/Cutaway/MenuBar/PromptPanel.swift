@@ -51,6 +51,11 @@ struct PromptCard<Actions: View>: View {
 struct ResumePromptView: View {
     let resume: () -> Void
     let stay: () -> Void
+    /// Resume, and stop asking. This was a Settings picker ("After a manual
+    /// pause: stay paused / ask me / resume automatically") that nobody ever
+    /// touched. The decision belongs here, where the question is live and the
+    /// answer is obvious — not in a window opened once a year.
+    let always: () -> Void
 
     var body: some View {
         PromptCard(symbol: "play.circle", tint: DT.signal, title: "Are you working?",
@@ -58,6 +63,10 @@ struct ResumePromptView: View {
                    spoken: String(localized: "Are you working? Cutaway is paused, but you're editing.")) {
             Button("No, stay paused", action: stay)
                 .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+            Button("Always", action: always)
+                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+                .accessibilityLabel("Always resume automatically")
+                .help("Resume now, and from now on resume without asking")
             Button("Yes, resume", action: resume)
                 .buttonStyle(.borderedProminent).tint(DT.signal)
         }
@@ -121,7 +130,14 @@ final class PromptPanel {
         case .resume:
             return AnyView(ResumePromptView(
                 resume: { [weak self] in self?.model.engine.resume(); self?.model.resumePromptOpen = false },
-                stay: { [weak self] in self?.model.resumePromptOpen = false }))
+                stay: { [weak self] in self?.model.resumePromptOpen = false },
+                always: { [weak self] in
+                    guard let self else { return }
+                    Prefs.set(AutoResumeMode.auto.rawValue, forKey: "autoResume")
+                    self.model.engine.autoResume = .auto
+                    self.model.engine.resume()
+                    self.model.resumePromptOpen = false
+                }))
         }
     }
 

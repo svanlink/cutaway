@@ -39,7 +39,7 @@ final class BackupScheduleTests: XCTestCase {
         let copy = first.appendingPathComponent("billing.store")
         XCTAssertEqual(count(copy, "ZPROJECT"), 1)
         XCTAssertEqual(count(copy, "ZWORKSESSION"), 1, "the WAL is folded into the snapshot")
-        XCTAssertTrue(StorePath.quickCheckOK(copy))
+        XCTAssertEqual(StorePath.verdict(copy), .usable)
         XCTAssertNil(try StoreBackup.snapshot(storeURL: live, backupsDir: backups, now: Date(timeIntervalSince1970: 1_800_020_000)),
                      "nothing changed — no second copy")
         XCTAssertEqual(StoreBackup.newest(in: backups)?.lastPathComponent, first.lastPathComponent)

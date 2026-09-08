@@ -16,7 +16,7 @@ private final class ScratchSweeper: NSObject, XCTestObservation {
         sweep()
     }
 
-    func testBundleWillFinish(_ testBundle: Bundle) { Self.sweep() }
+    func testBundleDidFinish(_ testBundle: Bundle) { Self.sweep() }
 
     static func sweep() {
         let prefs = FileManager.default.homeDirectoryForCurrentUser
