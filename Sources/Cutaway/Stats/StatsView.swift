@@ -280,6 +280,15 @@ struct StatsView: View {
                     .help("Includes manual adjustment")
                     .accessibilityLabel("includes manual adjustment")
             }
+            // A day on an issued invoice cannot be edited. Saying so here is
+            // cheaper than letting someone try and meet a refusal.
+            if let number = model.invoiceNumber(for: d.day, project: p) {
+                Image(systemName: "lock.fill")
+                    .font(DT.glyph)
+                    .foregroundStyle(DT.text3)
+                    .help("On invoice \(number)")
+                    .accessibilityHidden(true)
+            }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.07))
@@ -312,10 +321,15 @@ struct StatsView: View {
         // so the whole daily ledger, the thing a client's money depends on,
         // announced the same four words thirty times.
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Self.dayRowLabel(d, project: p, isToday: isToday))
+        .accessibilityLabel(Self.dayRowLabel(d, project: p, isToday: isToday,
+                                             invoice: model.invoiceNumber(for: d.day, project: p)))
         .accessibilityHint(expandedDay == d.day ? "Hide sessions" : "Show sessions")
         .contextMenu {
-            Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+            if let number = model.invoiceNumber(for: d.day, project: p) {
+                Text("On invoice \(number)")
+            } else {
+                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+            }
         }
         .accessibilityAddTraits(.isButton)
     }
@@ -383,10 +397,14 @@ struct StatsView: View {
 
     /// What VoiceOver hears for one day of the ledger. Pure, so the claim
     /// "every row states its own figures" is testable without a screen reader.
-    static func dayRowLabel(_ d: DayTotal, project p: Project, isToday: Bool) -> String {
+    static func dayRowLabel(_ d: DayTotal, project p: Project, isToday: Bool,
+                            invoice: String? = nil) -> String {
         let day = isToday ? "Today" : d.day.formatted(.dateTime.weekday(.wide).month(.wide).day())
         let worked = PillView.spokenDuration(d.activeSeconds)
-        return "\(day), \(worked), \(p.currency.format(d.earned))"
+        let base = "\(day), \(worked), \(p.currency.format(d.earned))"
+        // The lock is drawn as a glyph; without this a VoiceOver user meets
+        // the refusal instead of the reason.
+        return invoice.map { "\(base), on invoice \($0)" } ?? base
     }
 
     private func hours(_ t: TimeInterval) -> String {

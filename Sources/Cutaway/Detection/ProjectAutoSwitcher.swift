@@ -40,6 +40,9 @@ final class ProjectAutoSwitcher {
 
     private var schedule = DetectionSchedule()
     private var tier1InFlight = false
+    private let adobe: AdobeDetector
+    /// Ask each Adobe app once per activation, not once per tick.
+    private var lastAdobeApp: String?
 
     init(detector: ProjectDetector, engine: DetectionEngine,
          intent: @escaping () -> ManualIntent,
@@ -48,6 +51,27 @@ final class ProjectAutoSwitcher {
         self.engine = engine
         self.intent = intent
         self.onDetected = onDetected
+        self.adobe = AdobeDetector(log: { [weak engine] kind, detail in
+            engine?.logDetection(kind, detail: detail)
+        })
+    }
+
+    /// An Adobe app came forward. Ask it once, for the document name only.
+    ///
+    /// SELECT, never create: the answer is a filename, and filenames creating
+    /// projects would fill the switcher with versions of one job. If nothing
+    /// matches an existing project, the time still counts — it just stays
+    /// where the owner put it.
+    func applicationActivated(_ bundleID: String?) {
+        guard let bundleID, AdobeDocument.namesDocuments(bundleID) else {
+            lastAdobeApp = nil
+            return
+        }
+        guard bundleID != lastAdobeApp else { return }
+        lastAdobeApp = bundleID
+        if case .name(let candidate) = adobe.documentName(forBundleID: bundleID) {
+            onDetected(candidate, false)
+        }
     }
 
     func tick() {

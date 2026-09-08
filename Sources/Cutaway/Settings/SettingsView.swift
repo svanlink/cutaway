@@ -118,10 +118,10 @@ struct SettingsView: View {
                              "Reads Resolve's window title so the project switches when you do. Never controls your Mac.")
                 }
                 LabeledContent {
-                    Text("Not needed yet").foregroundStyle(.secondary)
+                    Text("Asked per app").foregroundStyle(.secondary)
                 } label: {
                     labelled("Automation",
-                             "Coming with Adobe project names: asks once per app, reads the document name only.")
+                             "Photoshop, Illustrator, InDesign and After Effects are asked for the name of the open document, once each, when you switch to them. Premiere cannot answer and is never asked.")
                 }
                 LabeledContent {
                     // Crash reports stay here. "Copy report" pasted MetricKit

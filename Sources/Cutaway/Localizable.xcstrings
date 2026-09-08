@@ -351,6 +351,16 @@
         }
       }
     },
+    "Asked per app": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro App gefragt"
+          }
+        }
+      }
+    },
     "At launch, daily and at quit — kept on this Mac": {
       "localizations": {
         "de": {
@@ -1091,6 +1101,16 @@
         }
       }
     },
+    "Issued": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgestellt"
+          }
+        }
+      }
+    },
     "Last backup %@": {
       "localizations": {
         "de": {
@@ -1127,6 +1147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sieht aus, als würdest du arbeiten"
+          }
+        }
+      }
+    },
+    "Mark paid": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als bezahlt markieren"
           }
         }
       }
@@ -1381,6 +1411,16 @@
         }
       }
     },
+    "PDF…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF …"
+          }
+        }
+      }
+    },
     "PROJECT TOTAL": {
       "localizations": {
         "de": {
@@ -1487,6 +1527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Berechtigungen"
+          }
+        }
+      }
+    },
+    "Photoshop, Illustrator, InDesign and After Effects are asked for the name of the open document, once each, when you switch to them. Premiere cannot answer and is never asked.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photoshop, Illustrator, InDesign und After Effects werden je einmal nach dem Namen des geöffneten Dokuments gefragt, wenn du zu ihnen wechselst. Premiere kann nicht antworten und wird nie gefragt."
           }
         }
       }
@@ -1981,6 +2031,16 @@
         }
       }
     },
+    "The number is kept and never reused, so the sequence stays gapless. Its work becomes billable again and the days unlock.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Nummer bleibt bestehen und wird nie wiederverwendet, damit die Reihenfolge lückenlos bleibt. Die Arbeit wird wieder abrechenbar und die Tage werden entsperrt."
+          }
+        }
+      }
+    },
     "The running session alone is longer than that — pause first, then edit.": {
       "localizations": {
         "de": {
@@ -2141,6 +2201,26 @@
         }
       }
     },
+    "Void": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stornieren"
+          }
+        }
+      }
+    },
+    "Void Invoice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechnung stornieren"
+          }
+        }
+      }
+    },
     "Welcome to Cutaway": {
       "localizations": {
         "de": {
@@ -2265,8 +2345,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "open the billing store — nothing tracked this run will be kept"
+            "state": "translated",
+            "value": "die Abrechnungsdatenbank zu öffnen — nichts aus dieser Sitzung wird gespeichert"
           }
         }
       }

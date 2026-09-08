@@ -21,6 +21,8 @@ struct InvoiceSheet: View {
     @State private var clientVAT = ""
     @State private var refusal: String?
     @State private var preview: InvoiceBuilder.Draft?
+    /// Bumped after a status change so the list re-reads the store.
+    @State private var bump = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -81,6 +83,13 @@ struct InvoiceSheet: View {
                         Text(refusal).font(.callout).foregroundStyle(.orange)
                     }
                 }
+                if !issued.isEmpty {
+                    Section("Issued") {
+                        ForEach(issued, id: \.persistentModelID) { invoice in
+                            issuedRow(invoice)
+                        }
+                    }
+                }
             }
             .formStyle(.grouped)
             HStack {
@@ -112,6 +121,72 @@ struct InvoiceSheet: View {
             return (Date.distantPast, cal.startOfDay(for: Date()))
         }
         return (i.start, cal.date(byAdding: .day, value: -1, to: i.end) ?? i.end)
+    }
+
+    /// Past invoices for this project, newest first. They live here rather
+    /// than in a window of their own: the app has three surfaces, and the
+    /// place you think about invoices is the place you make them.
+    private var issued: [Invoice] {
+        ((try? model.store.invoices()) ?? [])
+            .filter { $0.projectName == project.name }
+    }
+
+    @ViewBuilder
+    private func issuedRow(_ invoice: Invoice) -> some View {
+        LabeledContent {
+            HStack(spacing: 8) {
+                if invoice.status == .issued {
+                    Button("Mark paid") { try? model.store.markPaid(invoice); bump += 1 }
+                }
+                if invoice.status != .void {
+                    Button("PDF…") { savePDF(invoice) }
+                    // Void keeps the number and releases the work, which is
+                    // the only correction path an issued document has.
+                    Button("Void") { voidInvoice(invoice) }
+                }
+            }
+            .buttonStyle(.link)
+        } label: {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(invoice.number).monospacedDigit()
+                Text(statusLine(invoice)).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func statusLine(_ invoice: Invoice) -> String {
+        let total = invoice.currency.format(NSDecimalNumber(decimal: invoice.total).doubleValue)
+        let issuedOn = invoice.issueDate.formatted(.dateTime.day().month(.abbreviated).year())
+        switch invoice.status {
+        case .draft: return String(localized: "Draft · \(total)")
+        case .issued: return String(localized: "Issued \(issuedOn) · \(total) · unpaid")
+        case .paid: return String(localized: "Issued \(issuedOn) · \(total) · paid")
+        case .void: return String(localized: "Issued \(issuedOn) · \(total) · VOID")
+        }
+    }
+
+    private func voidInvoice(_ invoice: Invoice) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Void \(invoice.number)?")
+        alert.informativeText = String(localized: "The number is kept and never reused, so the sequence stays gapless. Its work becomes billable again and the days unlock.")
+        alert.addButton(withTitle: String(localized: "Void Invoice"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do { try model.store.voidInvoice(invoice); bump += 1; refresh() }
+        catch { refusal = error.localizedDescription }
+    }
+
+    private func savePDF(_ invoice: Invoice) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = InvoicePDF.filename(for: invoice)
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            MainActor.assumeIsolated {
+                do { try InvoicePDF.write(invoice, to: url) }
+                catch { refusal = error.localizedDescription }
+            }
+        }
     }
 
     private var summary: String {

@@ -48,8 +48,13 @@ final class AccessibilityAuditTests: XCTestCase {
         // ratios in the design system (dark theme trips the automated
         // heuristic on intentionally-muted tertiary text), so audit the
         // structural categories.
+        // `.frame` on an element that has gone away since the query throws a
+        // snapshot error, which fails the test with plumbing rather than a
+        // finding. Ask whether it still exists first.
         let containerFrames = (app.windows.allElementsBoundByIndex
-                               + app.sheets.allElementsBoundByIndex).map(\.frame)
+                               + app.sheets.allElementsBoundByIndex)
+            .filter(\.exists)
+            .map(\.frame)
         try app.performAccessibilityAudit(
             for: [.hitRegion, .parentChild, .elementDetection,
                   .sufficientElementDescription, .action]

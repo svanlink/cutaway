@@ -151,6 +151,17 @@ final class AppModel {
             if BackupPolicy.isDue(last: self.lastBackup, now: Date()) { self.backUpNow(reason: "daily") }
             self.autoSwitcher?.tick()
         }
+        // Adobe document names are read on ACTIVATION, never polled — one
+        // Automation prompt per app, and only for the four that can answer.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: nil
+        ) { [weak self] note in
+            let id = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+            MainActor.assumeIsolated {
+                guard let self, !ScenarioMode.isActive else { return }
+                self.autoSwitcher?.applicationActivated(id)
+            }
+        }
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
             object: nil, queue: .main
@@ -359,6 +370,21 @@ final class AppModel {
     /// Stats, both one click away. (`pillDisplay` is left unread, as
     /// `dailyGoalHours` was.)
     var pillSeconds: TimeInterval { todaySeconds }
+
+    /// Money worked and not yet on any invoice, for the selected project.
+    /// The figure an editor actually wants at a glance near the end of a
+    /// month — "what have I not billed yet" — which no other surface answered.
+    var unbilledLine: String? {
+        guard let p = selectedProject else { return nil }
+        let unbilled = store.unbilledTotal(for: p)
+        guard unbilled > 0 else { return nil }
+        return p.currency.format(NSDecimalNumber(decimal: unbilled).doubleValue)
+    }
+
+    /// The invoice locking a day, if any — drives the badge in Stats.
+    func invoiceNumber(for day: Date, project: Project) -> String? {
+        store.invoiceNumber(coveringDay: day, for: project)
+    }
 
     /// Today's seconds for any project (live-merged for the selected one).
     func todaySecondsFor(_ project: Project) -> TimeInterval {

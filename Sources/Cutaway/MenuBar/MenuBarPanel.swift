@@ -45,7 +45,7 @@ struct MenuBarPanel: View {
                                  offersAccessibility: model.shouldOfferAccessibility,
                                  workDetectedWhilePaused: model.engine.workDetectedWhilePaused,
                                  researchLabel: model.engine.recordingSource?.label != nil,
-                                 receipt: model.lastSessionLine != nil,
+                                 receipt: model.lastSessionLine != nil || model.unbilledLine != nil,
                                  storeProblem: model.storeErrors.banner != nil)
         VStack(spacing: 0) {
             ForEach(blocks, id: \.self) { block in
@@ -284,6 +284,24 @@ struct MenuBarPanel: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(line)
+        }
+        // Money worked and not yet on an invoice. It rides the receipt block
+        // rather than taking a block of its own — the panel interrupts for
+        // two things and shows one number; this is a quiet second line under
+        // an existing one, not a third surface.
+        if let unbilled = model.unbilledLine {
+            HStack(spacing: 6) {
+                Image(systemName: "tray.full").font(DT.glyph)
+                Text("\(unbilled) unbilled")
+                    .font(DT.captionMedium).monospacedDigit().lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(DT.text3)
+            .padding(.horizontal, DT.rowInset)
+            .padding(.bottom, DT.s2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(unbilled) not yet invoiced")
         }
     }
 
