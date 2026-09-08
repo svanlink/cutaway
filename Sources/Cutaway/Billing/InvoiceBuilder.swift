@@ -45,7 +45,15 @@ enum InvoiceBuilder {
             let minutes = (day.activeSeconds / 60).rounded(.down)
             let hours = Money.decimal(minutes / 60, places: 6)
             let rate = Money.decimal(day.effectiveRate)
-            let amount = Money.rounded(hours * rate, currency: currency)
+            // From the MINUTES, not from `hours`. `hours` is a 6-decimal
+            // string for display, and that rounding is not free: 227 minutes
+            // becomes "3.783333", which is 0.0000005 h too much. Multiplied
+            // by a rate whose sixtieth ends in 5 — CHF 112.50, CHF 187.50 —
+            // it lifts an exact half-rappen just above the tie, and half-down
+            // then rounds it UP. 480 minute/rate pairs billed a rappen too
+            // much, every one of them against the client. Minutes are exact;
+            // divide last and the tie stays a tie.
+            let amount = Money.rounded(Decimal(Int(minutes)) * rate / 60, currency: currency)
             return Line(kind: .time,
                         day: day.day,
                         text: dayText(day.day, calendar: calendar),

@@ -194,8 +194,14 @@ struct InvoiceDocumentView: View {
     /// 1'040.40, while the line said 1'040.00, and a client who checks the
     /// arithmetic finds the invoice wrong. Hours and minutes are exact, and
     /// the amount is computed from the same minutes, so the page adds up.
+    /// NEAREST, not down. `quantity` is a whole minute count that was routed
+    /// through a 6-decimal string, so 227 minutes arrives as 3.783333 and
+    /// times 60 is 226.99998 — flooring printed 3:46 beside an amount for
+    /// 3:47, on 488 of the 1440 possible minute counts, always a minute
+    /// short. The true value is always an exact minute, so rounding to the
+    /// nearest one is exact and flooring is simply wrong.
     static func clockHours(_ value: Decimal) -> String {
-        let totalMinutes = Int((NSDecimalNumber(decimal: value).doubleValue * 60).rounded(.down))
+        let totalMinutes = Int((NSDecimalNumber(decimal: value).doubleValue * 60).rounded())
         return String(format: "%d:%02d", totalMinutes / 60, totalMinutes % 60)
     }
 
