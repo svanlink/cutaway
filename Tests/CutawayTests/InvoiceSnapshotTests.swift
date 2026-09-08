@@ -168,6 +168,59 @@ final class InvoiceSnapshotTests: XCTestCase {
                       "and the difference is a visible line, not a silent trim")
     }
 
+    /// A fixed price is a ceiling that stays a ceiling.
+    ///
+    /// budgetCapped guards `budget > 0`, and the store passes it what is
+    /// LEFT of the budget. Once the budget is fully invoiced that remainder
+    /// is zero, the guard fails, and the draft comes back UNCAPPED — so the
+    /// second invoice bills hourly time against a job the client agreed a
+    /// fixed price for, with no cap, no warning and no mention that it is a
+    /// fixed-price project.
+    func testAFullyInvoicedBudgetRefusesToBillMore() throws {
+        let p = try project(rate: 150, mode: .budget, budget: 4_500)
+        for day in 1...6 {
+            try store.record(SessionRecord(start: date(day, 8), end: date(day, 16), activeSeconds: 28_800),
+                             to: p, calendar: cal)
+        }
+        let first = try issue(p, from: 1, to: 6)
+        XCTAssertEqual(first.subtotal, Decimal(string: "4500.00"))
+
+        // Revisions the following week, on a job that is fully paid for.
+        try store.record(SessionRecord(start: date(15, 9), end: date(15, 15), activeSeconds: 21_600),
+                         to: p, calendar: cal)
+        XCTAssertThrowsError(try issue(p, from: 15, to: 20),
+                             "the budget is spent — this must not quietly bill 900 on top") { error in
+            guard case SessionStore.InvoiceError.budgetFullyInvoiced = error else {
+                return XCTFail("wrong error: \(error)")
+            }
+        }
+    }
+
+    /// Renaming a project must not hand back a budget that is already spent.
+    ///
+    /// invoicedTotal joined issued invoices to the project by NAME, and a
+    /// rename mutates that name in place — so every invoice already issued
+    /// became invisible to the cap and the ceiling reset to full. A client
+    /// rebrand, or tidying a Resolve project name, doubled the job.
+    func testRenamingAProjectDoesNotResetItsBudget() throws {
+        let p = try project(rate: 150, mode: .budget, budget: 4_500)
+        for day in 1...6 {
+            try store.record(SessionRecord(start: date(day, 8), end: date(day, 16), activeSeconds: 28_800),
+                             to: p, calendar: cal)
+        }
+        _ = try issue(p, from: 1, to: 6)
+        try store.rename(p, to: "Richemont EC — Maisons 2026")
+
+        try store.record(SessionRecord(start: date(15, 9), end: date(15, 15), activeSeconds: 21_600),
+                         to: p, calendar: cal)
+        XCTAssertThrowsError(try issue(p, from: 15, to: 20),
+                             "the 4'500 already billed still counts after a rename") { error in
+            guard case SessionStore.InvoiceError.budgetFullyInvoiced = error else {
+                return XCTFail("wrong error: \(error)")
+            }
+        }
+    }
+
     func testSwissVATIsRefusedWithoutAUID() throws {
         let p = try project()
         try store.record(SessionRecord(start: date(4, 9), end: date(4, 11), activeSeconds: 7200),

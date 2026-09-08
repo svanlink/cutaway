@@ -8,6 +8,13 @@ enum BillingMode: String, Codable, Sendable {
 
 @Model
 final class Project {
+    /// A stable identity that survives a rename.
+    ///
+    /// `name` is a display string the owner edits — a client rebrands, a
+    /// Resolve project gets tidied. Anything that must still point at THIS
+    /// project afterwards joins on this instead. Additive with a default, so
+    /// the schema stays inferable; `ensureUID()` backfills on first use.
+    var uid: String = ""
     var name: String
     var client: String
     var modeRaw: String
@@ -25,6 +32,13 @@ final class Project {
     /// migration, and this store holds the only record of what the owner is
     /// owed. A second entity can be added later beside these fields; the
     /// fields themselves stay put.
+    /// Mints the identity on first use. Existing projects get one the first
+    /// time anything asks, which is the first invoice they appear on.
+    func ensureUID() -> String {
+        if uid.isEmpty { uid = UUID().uuidString }
+        return uid
+    }
+
     var clientAddress: String = ""
     var clientVATNumber: String = ""
     /// How this client is taxed. A fact about the relationship, not a setting.

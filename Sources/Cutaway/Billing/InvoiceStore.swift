@@ -11,6 +11,7 @@ extension SessionStore {
         case sessionsAreInvoiced(String)
         case nothingToBill
         case taxRefused(String)
+        case budgetFullyInvoiced
 
         var errorDescription: String? {
             switch self {
@@ -22,6 +23,8 @@ extension SessionStore {
                 return String(localized: "There is no unbilled work in that period.")
             case .taxRefused(let why):
                 return why
+            case .budgetFullyInvoiced:
+                return String(localized: "This project's budget is fully invoiced. Agree more with the client, or void the earlier invoice.")
             }
         }
     }
@@ -29,8 +32,17 @@ extension SessionStore {
     /// What this project has already been invoiced, excluding voided
     /// documents — a void keeps its number but claims nothing.
     func invoicedTotal(for project: Project) throws -> Decimal {
-        try invoices()
-            .filter { $0.projectName == project.name && $0.status != .void }
+        let uid = project.uid
+        return try invoices()
+            .filter { invoice in
+                guard invoice.status != .void else { return false }
+                // Identity first; name only for documents issued before
+                // projects had one. Joining on the name alone meant a rename
+                // hid every invoice already issued and handed back a budget
+                // that was already spent.
+                if !uid.isEmpty, !invoice.projectUID.isEmpty { return invoice.projectUID == uid }
+                return invoice.projectName == project.name
+            }
             .reduce(Decimal(0)) { $0 + $1.subtotal }
     }
 
@@ -101,8 +113,16 @@ extension SessionStore {
             // each invoice at the full figure let a CHF 4'500 job bill 4'500
             // and then 2'400 on top.
             let alreadyBilled = try invoicedTotal(for: project)
-            draft = InvoiceBuilder.budgetCapped(draft,
-                                                budget: Money.decimal(project.budget) - alreadyBilled,
+            let remaining = Money.decimal(project.budget) - alreadyBilled
+            // A ceiling that is spent is still a ceiling. budgetCapped only
+            // caps while `budget > 0`, so a fully-invoiced job used to fall
+            // through UNCAPPED and bill hourly time on top of an agreed fixed
+            // price. Refusing is the under-billing answer, and it is the one
+            // the owner can act on: raise it with the client, or void.
+            if project.budget > 0, remaining <= 0 {
+                throw InvoiceError.budgetFullyInvoiced
+            }
+            draft = InvoiceBuilder.budgetCapped(draft, budget: remaining,
                                                 currency: project.currency)
         }
 
@@ -122,6 +142,7 @@ extension SessionStore {
         invoice.supplierBlock = supplier
         invoice.clientBlock = clientBlock
         invoice.projectName = project.name
+        invoice.projectUID = project.ensureUID()
         invoice.subtotalString = "\(draft.subtotal)"
         invoice.taxAmountString = "\(draft.taxAmount)"
         invoice.totalString = "\(draft.total)"

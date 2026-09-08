@@ -2381,6 +2381,16 @@
         }
       }
     },
+    "This project's budget is fully invoiced. Agree more with the client, or void the earlier invoice.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Budget dieses Projekts ist vollständig in Rechnung gestellt. Vereinbare mehr mit der Kundschaft, oder storniere die frühere Rechnung."
+          }
+        }
+      }
+    },
     "Time in these counts toward the project": {
       "localizations": {
         "de": {

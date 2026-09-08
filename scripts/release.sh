@@ -17,6 +17,31 @@ xcodegen generate
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests | grep -q "TEST SUCCEEDED"
 ./scripts/smoke.sh "" 3
 
+# The owner's real store must still open under the build about to be tagged,
+# with the same work in it. Schema.swift has said "run this by hand before
+# any change here" since the staged-migration incident, and a rule that only
+# holds when someone remembers it is not a rule. A copy is used, so the
+# migration writing to it is harmless. Count AND summed seconds, because a
+# migration that opened the store and dropped half the sessions would pass a
+# non-empty check.
+LIVE="$HOME/Library/Application Support/Cutaway/billing.store"
+if [ -f "$LIVE" ]; then
+  echo "── the owner's real store still opens under this build"
+  CHK="$(mktemp -d)"
+  cp "$LIVE"* "$CHK/"
+  Q="select count(*)||'|'||round(sum(ZACTIVESECONDS),0) from ZWORKSESSION;"
+  BEFORE="$(sqlite3 "$CHK/billing.store" "$Q")"
+  TEST_RUNNER_CUTAWAY_MIGRATE_CHECK="$CHK/billing.store" \
+    xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' \
+    test -only-testing:CutawayTests/RealStoreMigrationCheck | grep -q "TEST SUCCEEDED"
+  AFTER="$(sqlite3 "$CHK/billing.store" "$Q")"
+  [ "$BEFORE" = "$AFTER" ] || { echo "MIGRATION CHANGED THE DATA: $BEFORE -> $AFTER"; exit 1; }
+  echo "   $BEFORE survived"
+  rm -rf "$CHK"
+else
+  echo "── no live store on this Mac; migration gate skipped"
+fi
+
 echo "── stamp version"
 # The bundle must say what brew says. 1.1.0 and 1.2.0 shipped with the
 # plist's original "1.0" because nothing wrote it; now the script does.

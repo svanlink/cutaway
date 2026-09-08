@@ -157,6 +157,7 @@ DE = {
  "VOID": "STORNIERT",
  "A Swiss VAT invoice must print your UID. Add it in Settings, or choose a different tax mode.": "Eine Rechnung mit Schweizer MWST muss Ihre UID ausweisen. Ergänzen Sie sie in den Einstellungen oder wählen Sie einen anderen Steuermodus.",
  "A reverse-charge invoice must print your UID alongside the client's.": "Eine Rechnung mit Reverse Charge muss Ihre UID neben derjenigen des Kunden ausweisen.",
+ "This project's budget is fully invoiced. Agree more with the client, or void the earlier invoice.": "Das Budget dieses Projekts ist vollständig in Rechnung gestellt. Vereinbare mehr mit der Kundschaft, oder storniere die frühere Rechnung.",
  "Fixed-price adjustment to agreed budget": "Anpassung auf das vereinbarte Festbudget",
  "No VAT — not registered for Swiss VAT (below the CHF 100'000 threshold).": "Keine MWST — nicht MWST-pflichtig (unter der Grenze von CHF 100'000).",
  "Reverse charge — VAT to be accounted for by the recipient.": "Reverse Charge — die MWST schuldet der Leistungsempfänger.",

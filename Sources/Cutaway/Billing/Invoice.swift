@@ -42,6 +42,10 @@ final class Invoice {
     var supplierBlock: String = ""
     var clientBlock: String = ""
     var projectName: String = ""
+    /// The project's stable identity, so a later rename cannot detach this
+    /// document from the job it belongs to. `projectName` stays as the
+    /// frozen copy that gets PRINTED — this one is for joining.
+    var projectUID: String = ""
     /// Stored as strings: SwiftData has no Decimal support, and a Double here
     /// would undo the exactness the lines were built with.
     var subtotalString: String = "0"
