@@ -169,7 +169,7 @@ releases later. Same signals, same yardstick. Measured, not remembered.
 | Updates | none | none (parked by decision 1) | Unchanged by choice |
 | Diagnostics | none | MetricKit capture + reveal | **FIXED** |
 | Engine | 1 × Timer @1 Hz | **1 repeating timer** — backup folded onto it | Improved |
-| Largest files | 469 / 429 / 426 / 408 | **639** / 453 / 440 / 417 | **REGRESSED.** `AppModel` is the offender; the ruled fix (extract `StoreBootstrap`'s acting half) is half-done. |
+| Largest files | 469 / 429 / 426 / 408 | 455 / 453 / 440 / 417 | **FIXED 2026-09-08** (31e5283). `AppModel` 639 → 455; the launch path, the detection schedule and crash recovery moved to files that own them, and gained twelve tests that could not exist before. |
 
 ## Signals the original audit had no row for
 
@@ -200,10 +200,7 @@ quarter's eight, five are done in the last two days.
 
 ## What the numbers say to do next
 
-1. **`AppModel` at 639 lines** is the one regression on the original card.
-   The launch sequence it grew is exactly the code Architecture said to
-   extract, and the pure half (`StoreBootstrap.plan`) already exists — moving
-   the acting half is the rest of that ruling.
+1. ~~**`AppModel` at 639 lines**~~ — done, 31e5283. No file is over 455.
 2. **The $99 signing decision** is now the sole structural gap. Every other
    "not professional" tell from 2026-09-05 is closed.
 3. **A slow test remains unexplained**: the suite takes 9 s or 250 s, always
