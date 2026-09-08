@@ -71,7 +71,12 @@ final class SessionLogger: @unchecked Sendable {
             entry["frontmost"] = input.frontmostBundleID ?? "none"
             entry["idle"] = String(format: "%.1f", input.secondsSinceInput)
         }
-        osLog.info("\(event, privacy: .public) \(detail, privacy: .public)")
+        // `detail` carries project names, and project names are client
+        // names. The unified log is what a sysdiagnose collects and
+        // mails to Apple or a vendor. The event kind is safe to see;
+        // who the work was for is not. The JSONL file in Application
+        // Support keeps the full detail — that one never leaves the Mac.
+        osLog.info("\(event, privacy: .public) \(detail, privacy: .private)")
         queue.async { [fileURL, entry] in
             guard let data = try? JSONSerialization.data(withJSONObject: entry),
                   var line = String(data: data, encoding: .utf8) else { return }

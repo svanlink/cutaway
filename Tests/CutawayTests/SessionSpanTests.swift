@@ -26,6 +26,37 @@ final class SessionSpanTests: XCTestCase {
                                 hourlyRate: rate, currency: .chf)
     }
 
+    /// A typed span must not swallow work that is already recorded.
+    ///
+    /// Found in the owner's live store on 2026-09-08: a typed 10:00-18:00
+    /// day sat on top of two tracked sessions inside it, and the day billed
+    /// both. Small that time. Type "09:00-17:00" for a day the tracker was
+    /// running and the whole day bills twice — over-billing, the one
+    /// direction this app has sworn off.
+    func testATypedSpanRefusesToSwallowWorkAlreadyRecorded() throws {
+        let p = try project()
+        try store.addSession(from: at(4, 14), to: at(4, 15), for: p, calendar: cal)
+
+        XCTAssertThrowsError(
+            try store.addSession(from: at(4, 9), to: at(4, 18), for: p, calendar: cal),
+            "a span containing an existing session must be refused") { error in
+                guard case SessionStore.SessionEditError.overlapsExisting = error else {
+                    return XCTFail("wrong error: \(error)")
+                }
+            }
+        XCTAssertEqual(store.sessions(for: p, on: at(4, 0), calendar: cal).count, 1,
+                       "the refusal left the day as it was")
+    }
+
+    /// Touching at the boundary is not overlapping — a 09:00-12:00 morning
+    /// and a 12:00-17:00 afternoon are two ordinary halves of a day.
+    func testBackToBackSpansAreFine() throws {
+        let p = try project()
+        try store.addSession(from: at(4, 9), to: at(4, 12), for: p, calendar: cal)
+        XCTAssertNoThrow(try store.addSession(from: at(4, 12), to: at(4, 17), for: p, calendar: cal))
+        XCTAssertEqual(store.sessions(for: p, on: at(4, 0), calendar: cal).count, 2)
+    }
+
     func testASpanBecomesHoursAndKeepsItsClockTimes() throws {
         let p = try project()
         try store.addSession(from: at(4, 9), to: at(4, 12, 30), for: p, calendar: cal)

@@ -124,6 +124,15 @@ final class SessionStore {
         if let number = invoiceNumber(coveringDay: start, for: project, calendar: calendar) {
             throw InvoiceError.dayIsInvoiced(number)
         }
+        // A typed span must not sit on top of work that is already recorded.
+        // Found live on 2026-09-08: a typed 10:00-18:00 day covering two
+        // tracked sessions, and the day billed both. Half-open comparison, so
+        // a 09:00-12:00 morning and a 12:00-17:00 afternoon still touch
+        // legally. Only this project's own sessions — two clients at once is
+        // a different argument, and not this one.
+        if let clash = project.sessions.first(where: { $0.start < end && start < $0.end }) {
+            throw SessionEditError.overlapsExisting(clash.start)
+        }
         let record = SessionRecord(start: start, end: end, activeSeconds: end.timeIntervalSince(start))
         var inserted: [WorkSession] = []
         let rate = project.hourlyRate
@@ -237,11 +246,15 @@ final class SessionStore {
         case endBeforeStart
         case spansMidnight
         case splitOutsideSession
+        case overlapsExisting(Date)
 
         var errorDescription: String? {
             switch self {
             case .endBeforeStart:
                 return String(localized: "The end has to come after the start.")
+            case .overlapsExisting(let start):
+                let when = start.formatted(date: .omitted, time: .shortened)
+                return String(localized: "That span already holds work recorded at \(when). Change the span, or edit the session that is already there.")
             case .splitOutsideSession:
                 return String(localized: "Split at a moment inside the session.")
             case .spansMidnight:

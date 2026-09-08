@@ -78,7 +78,13 @@ final class SystemProbes: SystemProbing {
     func secondsSinceLastInput() -> TimeInterval {
         // ~0 = "any input event type" — keyboard, mouse, scroll, tablet.
         let anyInput = CGEventType(rawValue: ~0)!
-        return CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput)
+        // HID, not the combined session table. That table counts events
+        // posted by ANY process — a mouse jiggler, a Stream Deck macro, a
+        // screen-sharing session, an automation script — so the clock ran
+        // with nobody at the desk. The HID table only sees real hardware.
+        // The trade is that input arriving over Screen Sharing may not
+        // register, which under-bills: the correct direction.
+        return CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: anyInput)
     }
 
     func frontmostWindowIsFullScreen() -> Bool {

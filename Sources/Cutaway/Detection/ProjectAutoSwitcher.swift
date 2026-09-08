@@ -76,7 +76,13 @@ final class ProjectAutoSwitcher {
         guard active else { return }
         schedule.advance()
 
-        if schedule.runsTier2, let detected = detector.detectProjectName() {
+        // freshProjectName, not detectProjectName. The latter answers with
+        // the LAST KNOWN name on every failure path, which is right for
+        // "what project are we on" and wrong for "what is Resolve showing
+        // right now" — it re-asserted a stale name as an observation, and
+        // the mismatch guard then cleared itself against a name nobody had
+        // seen. Written for exactly this and left unwired until now.
+        if schedule.runsTier2, let detected = detector.freshProjectName() {
             // Tier 2 may only SELECT. Titles carry suffixes and case drift;
             // letting them create would spawn duplicate projects that
             // silently split one job's billing.
