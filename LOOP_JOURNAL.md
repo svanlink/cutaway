@@ -10,6 +10,52 @@ quarantine); a downloaded zip does not. Full mark needs a Developer ID.
 
 ---
 
+## 2026-09-08 — [keep] v1.4 "Invoice" complete — all seven items
+
+Built in plan order, each with the gate green before the next started.
+
+Foundations first, because the arbitration made them blocking: `CutawaySchemaV1`
++ migration plan in their own commit (5a8d4cb) — adding entities to an
+undeclared schema leaves a later V1 with no version to migrate FROM, and the
+only path left is the in-memory fallback, i.e. a day of billing into RAM.
+Then Decimal money (11126d0): its own tests found that `seconds/3600*rate`
+turns the exact 45.125 tie into 45.124999…9, and that `Decimal(45.55)`
+inherits the binary approximation it exists to avoid.
+
+The document (da14a54, 57c94d4): Invoice/InvoiceLine as frozen snapshots,
+INV-YYYY-NNNN, provenance by session UID rather than a relationship,
+`invoiceNumber` as the lock. PDF via ImageRenderer into a CGContext — vector
+text, no dependency. Typed time carries a † on its own row and a footnote,
+so the honesty rule reaches the client, not just the app. Refusals instead of
+bad documents: no Swiss VAT invoice without a UID (MWSTG Art. 27 — stating a
+tax means owing it), and a period too long for one page says so.
+
+QR-bill (be229ef): payload exact and pinned by nine tests — field ORDER is
+what identifies a field, so the seven reserved lines after the creditor are
+load-bearing. Refuses a QR-IBAN rather than inventing the 27-digit reference
+only a bank can issue. The LAYOUT is arranged, not certified; the sheet says
+so and points at validation.iso-payments.ch.
+
+Status and Adobe (070cbd6): locks visible in Stats, unbilled total in the
+panel, past invoices with Mark paid / PDF / Void in the sheet. Adobe document
+names on activation only, SELECT never create, Premiere permanently excluded
+and pinned.
+
+Between them, AppModel went 639 → 455 (31e5283) and its launch path became
+testable for the first time — twelve tests on code that had none, including
+that a damaged store the owner declines to restore is left byte-for-byte
+untouched.
+
+Gate at the end: 448 unit tests, smoke ×3 ALL PASS, 10 UI tests, 0 failures.
+German complete at 242 keys. Not tagged, not released.
+
+Traps: interpolating an Error prints the CASE NAME, not localizedDescription
+(a test asserted the wrong string and passed for the wrong reason once);
+`.frame` on a vanished XCUIElement throws a snapshot error that reads like a
+finding; the accessibility audit's window query must run BEFORE the audit.
+
+---
+
 ## 2026-09-08 — [keep] v1.3.2 "Quiet" — all nine items, three gates green
 
 Six department agents (`.claude/agents/cutaway-*.md`, charters and process in

@@ -38,7 +38,7 @@ For any number the app shows, it must name the sessions behind it and mark each
 
 Gate: 368 unit tests green, smoke ×3 ALL PASS.
 
-## v1.3.2 "Quiet" — days, no new features
+## v1.3.2 "Quiet" — COMPLETE 2026-09-08
 
 1. **Store recovery rework** (arbitration): a four-way verdict — absent /
    usable / unreadable / damaged. An unreadable store (permissions, disk full,
@@ -69,7 +69,7 @@ Gate: 368 unit tests green, smoke ×3 ALL PASS.
 9. README: delete the stale "Your data" section, correct the test count, and
    stop selling `brew install` as a working path on macOS 26.
 
-## v1.4 "Invoice" — the quarter
+## v1.4 "Invoice" — the quarter — COMPLETE 2026-09-08
 
 1. **`Decimal` for money before the first PDF exists.** Frozen invoice values
    must not be binary floats.

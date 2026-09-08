@@ -43,6 +43,10 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [invoice] v1.4 "Invoice" complete: schema versioning, Decimal money, frozen invoices with locking and void-and-reissue, PDF, Swiss QR-bill, billing status, Adobe document names — 5a8d4cb, 11126d0, da14a54, 57c94d4, be229ef, 070cbd6
+
+- [structure] AppModel 639 → 455; the launch path is testable at last — 31e5283
+
 - [quiet] v1.3.2 "Quiet": store recovery asks before it acts, restore opens every backup, one timer, render exemption deleted, Settings 15→7, undo, README true again — 795a817, 925949f, f5d93e3, 1239d51
 
 - [money] five ways the app lost or mis-stated money, plus 4'103 prefs files the suite left on the owner's Mac — 054c150
