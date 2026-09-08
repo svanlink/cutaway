@@ -29,10 +29,27 @@ final class Project {
     var clientVATNumber: String = ""
     /// How this client is taxed. A fact about the relationship, not a setting.
     var taxModeRaw: String = TaxMode.notRegistered.rawValue
+    /// Other names that mean THIS project: a Resolve project name, an After
+    /// Effects file, a Photoshop document. Answered once, then remembered —
+    /// which is what makes the attribution card a question you are asked
+    /// once per job rather than once per app switch.
+    var detectedNames: [String] = []
 
     var taxMode: TaxMode {
         get { TaxMode(rawValue: taxModeRaw) ?? .notRegistered }
         set { taxModeRaw = newValue.rawValue }
+    }
+
+    /// Does this project answer to that detected name?
+    func answersTo(_ name: String) -> Bool {
+        ProjectName.matches(self.name, name) || detectedNames.contains { ProjectName.matches($0, name) }
+    }
+
+    /// Remember a name so it never has to be asked about again.
+    func remember(_ name: String) {
+        let clean = name.trimmingCharacters(in: .whitespaces)
+        guard !clean.isEmpty, !answersTo(clean) else { return }
+        detectedNames.append(clean)
     }
 
     /// The block an invoice prints for this client: name, then address.

@@ -4,14 +4,29 @@ import AppKit
 enum Prompt: Equatable {
     case idle(secondsLeft: TimeInterval)
     case resume
+    /// A name nobody has claimed yet.
+    case attribution(name: String, source: AttributionPolicy.Source, current: String?)
 }
 
 /// Which floating card, if any. Pure.
+///
+/// Three kinds now, and the invariant is unchanged: never two at once. The
+/// third earns its place by replacing a silent wrong guess rather than adding
+/// a new interruption — it only appears for a name the app has never been
+/// told about, and it is asked once per name, ever.
+///
+/// Order matters. A question about attribution can wait; a timer about to
+/// pause cannot, and a pause the owner is working through is costing money
+/// right now.
 enum PromptArbiter {
     static func visible(idle: IdleWarning?, resumeAsked: Bool,
-                        manuallyPaused: Bool, state: DetectionState) -> Prompt? {
+                        manuallyPaused: Bool, state: DetectionState,
+                        attribution: (name: String, source: AttributionPolicy.Source, current: String?)? = nil) -> Prompt? {
         if manuallyPaused { return resumeAsked ? .resume : nil }
         if state == .recording, let idle { return .idle(secondsLeft: idle.secondsLeft) }
+        if let a = attribution {
+            return .attribution(name: a.name, source: a.source, current: a.current)
+        }
         return nil
     }
 }
@@ -73,7 +88,37 @@ struct ResumePromptView: View {
     }
 }
 
-/// The single floating, NON-ACTIVATING panel both prompts share — stealing
+/// Where a newly seen name belongs. Three answers, and each one is
+/// remembered: the app asks about a given name exactly once.
+struct AttributionPromptView: View {
+    let name: String
+    let source: AttributionPolicy.Source
+    let current: String?
+    let attach: () -> Void
+    let create: () -> Void
+    let ignore: () -> Void
+
+    var body: some View {
+        let q = AttributionPolicy.question(name: name, source: source, current: current)
+        return PromptCard(symbol: source.isDocument ? "doc.badge.plus" : "film.stack",
+                          tint: DT.signal,
+                          title: LocalizedStringKey(q.title),
+                          line: LocalizedStringKey(q.line),
+                          spoken: "\(q.title). \(q.line)") {
+            Button("Not billable", action: ignore)
+                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.textTertiary)
+            Button("New project", action: create)
+                .buttonStyle(.plain).font(DT.smallSemibold).foregroundStyle(DT.text2)
+            if current != nil {
+                // The common answer for an Adobe document: same job, other app.
+                Button("Yes", action: attach)
+                    .buttonStyle(.borderedProminent).tint(DT.signal)
+            }
+        }
+    }
+}
+
+/// The single floating, NON-ACTIVATING panel the prompts share — stealing
 /// keyboard focus from Resolve to ask whether someone is working would
 /// answer its own question in the worst possible way. Driven from the
 /// engine's 1 Hz tick; no timer of its own.
@@ -100,7 +145,8 @@ final class PromptPanel {
         let next = PromptArbiter.visible(idle: model.engine.idleWarning,
                                          resumeAsked: model.resumePromptOpen,
                                          manuallyPaused: model.engine.manuallyPaused,
-                                         state: model.engine.state)
+                                         state: model.engine.state,
+                                         attribution: model.pendingAttribution)
         guard let next else { hide(); return }
         let isNew = !sameKind(showing, next)
         show(next)
@@ -110,6 +156,9 @@ final class PromptPanel {
             switch next {
             case .idle: model.announce(String(localized: "Still working? The timer pauses in \(Int(IdleWarning.lead)) seconds."))
             case .resume: model.announce(String(localized: "Are you working? Cutaway is paused, but you're editing."))
+            case .attribution(let name, let source, let current):
+                let q = AttributionPolicy.question(name: name, source: source, current: current)
+                model.announce("\(q.title). \(q.line)")
             }
         }
     }
@@ -127,6 +176,12 @@ final class PromptPanel {
             return AnyView(IdleWarningView(secondsLeft: left) { [weak self] in
                 self?.model.engine.confirmPresence()
             })
+        case .attribution(let name, let source, let current):
+            return AnyView(AttributionPromptView(
+                name: name, source: source, current: current,
+                attach: { [weak self] in self?.model.attachDetectedName(name) },
+                create: { [weak self] in self?.model.createProjectForDetectedName(name) },
+                ignore: { [weak self] in self?.model.ignoreDetectedName(name) }))
         case .resume:
             return AnyView(ResumePromptView(
                 resume: { [weak self] in self?.model.engine.resume(); self?.model.resumePromptOpen = false },

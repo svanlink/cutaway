@@ -147,6 +147,9 @@ final class AppModel {
             detector: detector, engine: engine,
             intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },
             onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) })
+        autoSwitcher?.onAdobeDocument = { [weak self] document, app in
+            self?.detected(document, source: .adobe(app: app))
+        }
         engine.onTick = { [weak self] in
             guard let self else { return }
             // Before the scenario guard: the pill is live during verification
@@ -222,16 +225,89 @@ final class AppModel {
     }
 
     /// Scenario hook: same path as a Tier-1 detection.
+    /// Scenario hook: same path as a Tier-1 detection, and then the answer a
+    /// person would give.
+    ///
+    /// The scenarios exist to prove the ENGINE, not the card. Since an
+    /// unknown name now raises a question instead of silently creating a
+    /// project, the harness answers it — "yes, new project" — which is the
+    /// flow it was always modelling. Leaving the question unanswered would
+    /// have the harness prove that nothing gets tracked, which is true and
+    /// useless.
     func scenarioDetect(_ name: String) {
-        autoDetected(name, canCreate: true)
+        detected(name, source: .resolve)
+        if pendingAttribution?.name == name { createProjectForDetectedName(name) }
+    }
+
+    // MARK: - Attribution
+
+    /// A name nobody has claimed yet, waiting on the card.
+    private(set) var pendingAttribution: (name: String, source: AttributionPolicy.Source, current: String?)?
+    /// Names asked about this run. A card someone dismissed must not come
+    /// back on the next app switch.
+    private var askedNames: Set<String> = []
+
+    private var ignoredNames: [String] {
+        get { Prefs.stringArray(forKey: "ignoredDetectionNames") ?? [] }
+        set { Prefs.set(newValue, forKey: "ignoredDetectionNames") }
+    }
+
+    /// Detection saw a name. Where it goes is the OWNER's call the first
+    /// time, and the app's from then on.
+    func detected(_ name: String, source: AttributionPolicy.Source) {
+        let known = projects.map { (project: $0.name, names: [$0.name] + $0.detectedNames) }
+        switch AttributionPolicy.decide(name: name, source: source, known: known,
+                                        current: selectedProject?.name,
+                                        ignored: ignoredNames,
+                                        asked: Array(askedNames)) {
+        case .stay, .ignore:
+            return
+        case .select(let projectName):
+            if let match = projects.first(where: { $0.name == projectName }) {
+                projectsModel.select(match)
+                announce(Self.switchAnnouncement(to: match.name))
+            }
+        case .ask(let n, let src, let current):
+            askedNames.insert(n)
+            pendingAttribution = (n, src, current)
+        }
+    }
+
+    /// "Yes" — this name is the project already selected. Remembered, so the
+    /// question is asked once per job rather than once per app switch.
+    func attachDetectedName(_ name: String) {
+        defer { pendingAttribution = nil }
+        guard let p = selectedProject else { return }
+        storeErrors.attempt("remember that name") {
+            p.remember(name)
+            try store.context.save()
+        }
+    }
+
+    /// "New project" — what the app used to do silently, now on request.
+    func createProjectForDetectedName(_ name: String) {
+        defer { pendingAttribution = nil }
+        projectsModel.createProject(name: name, client: "", mode: .hourly,
+                                    rate: ProjectsModel.defaultHourlyRate, budget: 0,
+                                    currency: ProjectsModel.defaultCurrency,
+                                    apps: ProjectsModel.globalWorkApps)
+        if let now = selectedProject?.name { announce(Self.switchAnnouncement(to: now)) }
+    }
+
+    /// "Not billable" — a personal file, a test comp, someone else's job.
+    /// Never asked about again, on any run.
+    func ignoreDetectedName(_ name: String) {
+        defer { pendingAttribution = nil }
+        ignoredNames = ignoredNames + [name]
     }
 
     /// Detection moved attribution by itself — say so. A manual switch needs
     /// no announcement — the user is the one who just did it.
     private func autoDetected(_ name: String, canCreate: Bool) {
-        if projectsModel.autoDetected(name, canCreate: canCreate), let now = selectedProject?.name {
-            announce(Self.switchAnnouncement(to: now))
-        }
+        // `canCreate` is history: creating without asking is what produced
+        // two stray projects in one afternoon. Every unknown name now goes
+        // to the owner instead.
+        detected(name, source: .resolve)
     }
 
     /// Sets a day's TOTAL (what the Stats row shows). For today while

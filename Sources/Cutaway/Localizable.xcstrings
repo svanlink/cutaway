@@ -1321,6 +1321,16 @@
         }
       }
     },
+    "New project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Projekt"
+          }
+        }
+      }
+    },
     "New projects start with this currency": {
       "localizations": {
         "de": {
@@ -1407,6 +1417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nein, pausiert bleiben"
+          }
+        }
+      }
+    },
+    "Not billable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht abrechenbar"
           }
         }
       }
@@ -1787,6 +1807,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auf Standard zurücksetzen"
+          }
+        }
+      }
+    },
+    "Resolve opened it, and nothing is selected.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve hat es geöffnet, und nichts ist ausgewählt."
           }
         }
       }
@@ -2427,6 +2457,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was auf der Rechnung dieses Kunden stehen muss"
+          }
+        }
+      }
+    },
+    "Which project is this?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu welchem Projekt gehört das?"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
           }
         }
       }

@@ -37,6 +37,8 @@ final class ProjectAutoSwitcher {
     private let intent: () -> ManualIntent
     /// (name, mayCreateProject)
     private let onDetected: (String, Bool) -> Void
+    /// (document stem, app display name) — asked about, never auto-created.
+    var onAdobeDocument: (String, String) -> Void = { _, _ in }
 
     private var schedule = DetectionSchedule()
     private var tier1InFlight = false
@@ -70,7 +72,7 @@ final class ProjectAutoSwitcher {
         guard bundleID != lastAdobeApp else { return }
         lastAdobeApp = bundleID
         if case .name(let candidate) = adobe.documentName(forBundleID: bundleID) {
-            onDetected(candidate, false)
+            onAdobeDocument(candidate, AdobeDocument.app(forBundleID: bundleID)?.displayName ?? "Adobe")
         }
     }
 
