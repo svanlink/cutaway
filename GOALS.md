@@ -19,8 +19,12 @@ LOOP_JOURNAL.md. Final iteration before 06:00: release v1.1.0 via
 scripts/release.sh so `brew install svanlink/tap/cutaway` serves it.
 
 Readiness checklist (each item needs proof, not belief):
-- [x] R-INSTALL  Fresh-Mac install works: ad-hoc signed app, quarantined
-      launch opens, cask caveats explain first launch.
+- [~] R-INSTALL  Fresh-Mac install works VIA HOMEBREW ONLY. Marked proven on
+      2026-08-20 and no longer true as written: since macOS 15 the right-click
+      → Open bypass is gone, and macOS 26 reports an ad-hoc-signed quarantined
+      download as damaged. The cask strips quarantine, so `brew install` is a
+      working path; a downloaded zip is not. Fully proven only with a
+      Developer ID, which is an open decision (docs/PLAN.md).
 - [x] R-BACKUP   Billing data survives disaster: automatic store backup
       rotation, proven by test.
 - [x] R-DEGRADE  Works without Resolve / nonstandard Resolve path: manual

@@ -17,14 +17,14 @@ brew install --cask svanlink/tap/cutaway
 
 Two things on first run:
 
-1. **Gatekeeper** — Cutaway is signed ad-hoc (no paid Apple Developer ID), so the first launch may warn about an unidentified developer. Right-click the app in `/Applications` and choose *Open* (once; macOS remembers) — or skip the warning entirely by installing with `brew install --cask --no-quarantine svanlink/tap/cutaway`.
+1. **Gatekeeper** — Cutaway is signed ad-hoc (no paid Apple Developer ID). **Install with Homebrew** (above): the cask removes the quarantine flag, so the app just opens. A zip downloaded from GitHub is a different story — since macOS 15 the old right-click → *Open* bypass is gone, and macOS 26 reports an ad-hoc-signed quarantined app as damaged and offers to move it to the Trash. If you have downloaded one, either `brew install --cask --no-quarantine svanlink/tap/cutaway` or build from source (below). A Developer ID would fix this properly; there isn't one yet, and this README will not pretend otherwise.
 2. **Accessibility (optional)** — lets Cutaway read Resolve's window title so it can follow project switches instantly. Cutaway works fine without it; detection just falls back to the scripting API and manual switching.
 
 Requires macOS 14+. Works with [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) Free or Studio — and without Resolve at all, using manual projects.
 
 **First invoice in two minutes:** open Cutaway → it detects your open Resolve project (or you create one) → set your hourly rate or budget → edit as usual → menu-bar pill shows the day building up → *Stats → Export CSV* when it's invoice time.
 
-**Where your data lives:** `~/Library/Application Support/Cutaway/billing.store` (since 1.3.2; earlier versions used the shared `default.store`, which other SwiftData apps also write to — Cutaway adopts it once and never deletes it). Backups in `Cutaway/Backups/`: at launch, once a day while running, at quit, and from Settings › Data › Back up now (a consistent SQLite snapshot; 7 generations plus each day's newest for 30 days). To restore: Settings › Data › Restore…, pick a `billing-*` folder, and Cutaway relaunches with it — the replaced store is kept beside it. A damaged store is set aside and the newest backup restored automatically, with a notice in the panel.
+**Where your data lives:** `~/Library/Application Support/Cutaway/billing.store` (since 1.3.2; earlier versions used the shared `default.store`, which other SwiftData apps also write to — Cutaway adopts it once and never deletes it). Backups in `Cutaway/Backups/`: at launch, once a day while running, at quit, (a consistent SQLite snapshot; 7 generations, plus each day's newest for 30 days, plus the oldest one forever). To restore: Settings › Data › Restore…, pick a `billing-*` folder, and Cutaway relaunches with it — the replaced store is kept beside it. Any backup opens, whatever the store file inside is called, including ones from before the app was renamed. If the store is ever damaged, Cutaway does **not** replace it on its own: it stops at launch and shows you the reason, the newest backup it can actually read, when that backup was taken and how many work sessions it holds — then Restore, Open Backups Folder, or Continue Without Restoring. Continuing runs in memory and leaves the damaged file untouched, so nothing is destroyed by a wrong guess. A store that merely cannot be *opened* right now — a permissions problem, a full disk, a Time Machine lock — is never treated as damaged; those heal, and a restore would drop the minutes since the backup.
 
 **Releasing** (maintainer): push a tag `vX.Y.Z`. CI tests, builds, ad-hoc signs, publishes the GitHub release and bumps the cask — the cask step needs a `TAP_TOKEN` repository secret with write access to `svanlink/homebrew-tap`. `scripts/release.sh` remains the local fallback and is the only path that also runs the smoke harness (it needs a GUI session).
 
@@ -61,7 +61,7 @@ Most timers make you remember to press a button. Cutaway watches how an editor a
 
 **Hard boundaries.** Manual pause (⌥⌘P, from anywhere) and system sleep are sacred. Time behind a pause is never billed, no matter what — not even by the bridge.
 
-**Forgotten pauses.** Pause for a call, come back, edit for an hour — and never notice the amber pill. Cutaway watches for that: once you've been actively editing in Resolve (or another workflow app) for about 45 seconds while paused, it asks *"Are you working?"* in a small card under the menu bar — one click resumes, no permission needed. The panel shows the same question with a Resume button, and the pill reads *paused · working?*. The pause stays sacred backwards: nothing before the resume is ever billed, including those 45 seconds. Prefer it to resume on its own, or never to ask? Settings → *After a manual pause*. Browsers never trigger this; only workflow apps do.
+**Forgotten pauses.** Pause for a call, come back, edit for an hour — and never notice the amber pill. Cutaway watches for that: once you've been actively editing in Resolve (or another workflow app) for about 45 seconds while paused, it asks *"Are you working?"* in a small card under the menu bar — one click resumes, no permission needed. The panel shows the same question with a Resume button, and the pill reads *paused · working?*. The pause stays sacred backwards: nothing before the resume is ever billed, including those 45 seconds. Prefer it to stop asking? The card's *Always* button resumes and turns on automatic resume from then on. Browsers never trigger this; only workflow apps do.
 
 **Two questions, never at once.** Cutaway interrupts for exactly two things — *Still working?* before an idle pause, and *Are you working?* when you edit through a manual pause — each a small card under the menu bar that never steals focus. Everything else is in the panel.
 
@@ -86,18 +86,11 @@ Currencies: CHF, EUR, USD, COP — formatted correctly for each.
 
 Everything is local. No account, no network calls, no telemetry, ever. Your data is a SQLite file on your Mac that you own outright.
 
-## Your data
-
-- **Where it lives:** `~/Library/Application Support/` — a SQLite store (`default.store`) plus its journal files.
-- **Automatic backups:** every launch, Cutaway snapshots your billing data to `~/Library/Application Support/Cutaway/Backups/` (skipped when nothing changed, newest 7 kept).
-- **Restore:** quit Cutaway, copy the three files from the backup folder you want back into `~/Library/Application Support/`, relaunch.
-- **Invoices:** the CSV export is the canonical hand-off — archive those alongside your invoices and the numbers survive anything.
-
 ## FAQ
 
 **Resolve Free or Studio?** Both. Studio gets instant project detection via the scripting API; Free uses window titles (with Accessibility) or manual switching.
 
-**What if Resolve renders for 20 minutes and I don't touch anything?** The idle threshold pauses the clock. If your workflow has long unattended renders, raise the idle threshold in Settings — your call, deliberately.
+**What if Resolve renders for 20 minutes and I don't touch anything?** The clock pauses, and Cutaway bills nothing for it. There used to be an opt-in that kept billing while the CPU looked busy; it was deleted in 1.3.2 as the one rule in the app that billed time nobody worked. If you do bill unattended renders, either raise *Pause after no input for* in Settings, or enter the time afterwards in *Stats → Edit day…*, where it is marked as entered rather than tracked.
 
 **Does it run at login?** There's a toggle in Settings. Off by default.
 
@@ -116,7 +109,7 @@ xcodegen generate
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release build
 ```
 
-Run the verification loop (86 unit tests plus an end-to-end scenario harness that replays scripted work sessions against the full app):
+Run the verification loop (371 unit tests, 10 UI tests including an accessibility audit, plus an end-to-end scenario harness that replays scripted work sessions against the full app):
 
 ```bash
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway test
