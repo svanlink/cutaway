@@ -1,41 +1,44 @@
 import Foundation
 import SwiftData
 
-/// The store's declared schema history.
+/// Why this store's schema is INFERRED, not staged.
 ///
-/// This exists BEFORE the invoice entities, and that order is not a
-/// preference. `ModelContainer(for:)` derives an implicit schema identity
-/// from whatever types it is handed; add two entities to an undeclared
-/// schema and the store's identity changes with no origin to migrate from.
-/// A `SchemaV1` declared afterwards has nothing to migrate *out of*, so the
-/// only path left is `SessionStore()` throwing into the in-memory fallback —
-/// which means `storeIsEphemeral`, a banner someone misses while a render
-/// runs, and a day of billing into RAM. Roughly twenty-five lines, and no
-/// second chance at them.
-enum CutawaySchemaV1: VersionedSchema {
-    static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
-    static var models: [any PersistentModel.Type] { [Project.self, WorkSession.self] }
-}
-
-/// V2 adds the invoice document. Project and WorkSession gain properties with
-/// defaults, which is a lightweight change; Invoice and InvoiceLine are new
-/// entities, which is also lightweight. The stage is declared anyway, so the
-/// store carries an explicit record of when the shape changed.
-enum CutawaySchemaV2: VersionedSchema {
-    static var versionIdentifier: Schema.Version { Schema.Version(2, 0, 0) }
-    static var models: [any PersistentModel.Type] {
-        [Project.self, WorkSession.self, Invoice.self, InvoiceLine.self]
-    }
-}
-
-/// The order the app has ever stored data in. Append; never reorder.
-enum CutawayMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [CutawaySchemaV1.self, CutawaySchemaV2.self] }
-
-    /// Lightweight: every V1→V2 change is an added property with a default or
-    /// a new entity. The stage exists so the first change that ISN'T has
-    /// somewhere to go, and so the store records that this one happened.
-    static var stages: [MigrationStage] {
-        [.lightweight(fromVersion: CutawaySchemaV1.self, toVersion: CutawaySchemaV2.self)]
-    }
-}
+/// On 2026-09-08 a `VersionedSchema` + `SchemaMigrationPlan` was added here,
+/// because an arbitration reasoned that adding the invoice entities to an
+/// undeclared schema changes the store's identity with no origin to migrate
+/// from. The reasoning was sound; the implementation was not, and running it
+/// against a COPY of the owner's real store — before installing — is what
+/// caught it:
+///
+///     CoreData: error 134504
+///     "Cannot use staged migration with an unknown model version."
+///
+/// Two things were wrong, and both matter for whoever tries this next:
+///
+/// 1. `CutawaySchemaV1.models` pointed at `Project.self` and
+///    `WorkSession.self` — the LIVE types, which by then had gained `uid`,
+///    `invoiceNumber`, `clientAddress`, `taxModeRaw` and the rest. So "V1"
+///    described today's shape, not what shipped. A real versioned schema
+///    contains FROZEN copies of the old model definitions, nested inside it.
+/// 2. Declaring a plan makes SwiftData REFUSE any store whose model version
+///    it does not recognise — and every store written before the declaration
+///    is exactly that. The owner's billing store, holding 51 hours of work,
+///    would have failed to open and the app would have run in memory behind
+///    a banner.
+///
+/// The unit test that was supposed to prevent this asserted the entity
+/// NAMES ("Project", "WorkSession") and passed, because names were never
+/// the thing that changed.
+///
+/// Inference has migrated every change this app has ever made — all of them
+/// added properties with defaults, plus two new entities — and it accepts a
+/// store it has never seen a declaration for. Doing versioning properly
+/// means freezing the current shape as V1 *first*, on a build that still
+/// opens the old stores, and only then adding V2. That is a deliberate piece
+/// of work for the next schema change, not something to retrofit onto a
+/// store that already exists.
+///
+/// Before any future change here: copy a real store and run
+/// `RealStoreMigrationCheck` against the copy. It is the only check that
+/// looks at the shape actually on disk.
+enum CutawaySchemaNotes {}

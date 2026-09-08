@@ -32,11 +32,11 @@ final class SessionStore {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             config = ModelConfiguration(url: url)
         }
-        // The schema is DECLARED, with a migration plan, rather than inferred
-        // from an argument list — see Schema.swift for why that ordering is
-        // load-bearing rather than tidy.
-        container = try ModelContainer(for: Schema(versionedSchema: CutawaySchemaV2.self),
-                                       migrationPlan: CutawayMigrationPlan.self,
+        // Inferred, NOT staged. See Schema.swift: a declared plan makes
+        // SwiftData reject any store whose model version it does not know,
+        // and every store written before the declaration is exactly that.
+        container = try ModelContainer(for: Project.self, WorkSession.self,
+                                       Invoice.self, InvoiceLine.self,
                                        configurations: config)
     }
 
