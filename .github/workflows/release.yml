@@ -24,8 +24,15 @@ jobs:
           xcodegen generate
           [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/Cutaway/Info.plist)" = "$V" ]
           echo "V=$V" >> "$GITHUB_ENV"
+      # The UI suite carries the accessibility audit, which has caught real
+      # defects (five unlabelled controls on 2026-09-08). The smoke harness
+      # stays local: it launches the app and drives scripted scenarios, and
+      # scripts/release.sh — which needs a GUI session anyway — is the path
+      # that runs it.
       - name: Test
-        run: xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests
+        run: |
+          xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayTests
+          xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -destination 'platform=macOS' test -only-testing:CutawayUITests
       - name: Build (ad-hoc signed — Developer ID parked by decision 1)
         run: |
           xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' -derivedDataPath build build
@@ -41,9 +48,28 @@ jobs:
         run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" "Cutaway-$V.zip" --title "Cutaway $V" --generate-notes
       - name: Bump cask
         if: github.ref_type == 'tag' && env.TAP_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          SHA=$(cat sha256.txt)
+          # Checksum the asset that is PUBLISHED, never the one this runner
+          # happened to build.
+          #
+          # Two builds of the same commit are not byte-identical — timestamps
+          # and the ad-hoc signature differ — and scripts/release.sh usually
+          # uploaded its own zip minutes earlier. Using the local sha256 here
+          # would have written a checksum for a file nobody can download, and
+          # every `brew install --cask cutaway` would fail on a mismatch. It
+          # has never bitten only because TAP_TOKEN is unset; it would have
+          # broken the first release after it was added.
+          rm -rf published && mkdir published
+          gh release download "$GITHUB_REF_NAME" -p "Cutaway-$V.zip" -D published --clobber
+          SHA=$(shasum -a 256 "published/Cutaway-$V.zip" | cut -d' ' -f1)
+          [ -n "$SHA" ] || { echo "no published asset to checksum"; exit 1; }
           git clone -q "https://x-access-token:${TAP_TOKEN}@github.com/svanlink/homebrew-tap" tap
           sed -i '' "s/version \".*\"/version \"$V\"/; s/sha256 \".*\"/sha256 \"$SHA\"/" tap/Casks/cutaway.rb
+          # A sed that matched nothing is a silent no-op, and a cask that
+          # still points at the previous version is worse than a failed job.
+          grep -q "version \"$V\"" tap/Casks/cutaway.rb || { echo "cask version not updated"; exit 1; }
+          grep -q "sha256 \"$SHA\"" tap/Casks/cutaway.rb || { echo "cask sha not updated"; exit 1; }
           git -C tap -c user.name=cutaway-ci -c user.email=ci@vaneickelen.com commit -aqm "cutaway $V"
           git -C tap push -q

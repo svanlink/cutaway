@@ -60,10 +60,26 @@ echo "── publish"
 git branch -f main HEAD && git push -q origin main HEAD
 gh release create "v$V" "$ZIP" --title "Cutaway $V" --generate-notes
 
+echo "── verify the published asset"
+# What the cask promises must be what a user actually downloads. Checking the
+# local zip proves only that the local zip is the local zip; this fetches the
+# asset back from the release and compares. (For 1.2.0 and 1.3.0 this was done
+# by hand, three ways. A step that matters that much belongs in the script.)
+BACK=$(mktemp -d)
+gh release download "v$V" -p "Cutaway-$V.zip" -D "$BACK"
+PUBLISHED=$(shasum -a 256 "$BACK/Cutaway-$V.zip" | cut -d' ' -f1)
+[ "$PUBLISHED" = "$SHA" ] || { echo "PUBLISHED ASSET DOES NOT MATCH: $PUBLISHED != $SHA"; exit 1; }
+echo "   asset verified: $SHA"
+
 echo "── bump cask"
 TAP=$(mktemp -d)
 gh repo clone svanlink/homebrew-tap "$TAP" -- -q
 sed -i '' "s/version \".*\"/version \"$V\"/; s/sha256 \".*\"/sha256 \"$SHA\"/" "$TAP/Casks/cutaway.rb"
+# A sed that matched nothing is a silent no-op, and a cask still pointing at
+# the previous version would install the wrong build while the script says
+# "shipped".
+grep -q "version \"$V\"" "$TAP/Casks/cutaway.rb" || { echo "cask version not updated"; exit 1; }
+grep -q "sha256 \"$SHA\"" "$TAP/Casks/cutaway.rb" || { echo "cask sha not updated"; exit 1; }
 git -C "$TAP" -c user.name=vaneickelen -c user.email=vaneickelen.smo91@gmail.com commit -aqm "cutaway $V"
 git -C "$TAP" push -q
 echo "shipped: brew upgrade --cask cutaway picks up $V"
