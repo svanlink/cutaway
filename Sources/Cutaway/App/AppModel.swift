@@ -3,6 +3,14 @@ import SwiftUI
 import AppKit
 import SwiftData
 
+/// Which session sheet to show: an existing span, or a new one on a day.
+struct SessionEditTarget: Identifiable {
+    let id = UUID()
+    var session: WorkSession?
+    var day: Date
+    let project: Project
+}
+
 struct DayEditTarget: Identifiable {
     let id = UUID()
     /// nil = "Add time" for a day the app never saw.
@@ -37,6 +45,7 @@ final class AppModel {
     var deleteTarget: Project?
     /// Non-nil while the day editor is up. `day == nil` = add a new day.
     var editDay: DayEditTarget?
+    var editSessionTarget: SessionEditTarget?
     /// The ⌥⌘P registration failed (shortcut conflict) — surfaced in Settings.
     var hotkeyUnavailable = false
     /// Ask-mode: the engine asked "are you working?" and nobody has answered

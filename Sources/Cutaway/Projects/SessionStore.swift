@@ -102,6 +102,90 @@ final class SessionStore {
         invalidateTodayCache()
     }
 
+    /// A session entered by hand as a SPAN — "I worked 09:00 to 12:00".
+    ///
+    /// The honest unit. Setting a day's total has to invent a moment for the
+    /// time to sit at (the old editor pinned it to noon), so the CSV could
+    /// say a day held four hours without being able to say when. A span says
+    /// when, and `first/last activity` on an invoice stays true.
+    ///
+    /// Marked adjusted, like every typed figure: it reaches the CSV's
+    /// `adjusted_hours` column and the invoice's footnote.
+    @discardableResult
+    func addSession(from start: Date, to end: Date, for project: Project,
+                    calendar: Calendar = .current) throws -> [WorkSession] {
+        guard end > start else {
+            throw SessionEditError.endBeforeStart
+        }
+        if let number = invoiceNumber(coveringDay: start, for: project, calendar: calendar) {
+            throw InvoiceError.dayIsInvoiced(number)
+        }
+        let record = SessionRecord(start: start, end: end, activeSeconds: end.timeIntervalSince(start))
+        var inserted: [WorkSession] = []
+        let rate = project.hourlyRate
+        for part in DaySplitter.split(record, calendar: calendar) where part.activeSeconds > 0 {
+            let session = WorkSession(start: part.start, end: part.end,
+                                      activeSeconds: part.activeSeconds,
+                                      hourlyRate: rate, project: project, isAdjusted: true)
+            context.insert(session)
+            inserted.append(session)
+        }
+        try context.save()
+        invalidateTodayCache()
+        return inserted
+    }
+
+    /// Move or resize one recorded session. The hours follow the span: a
+    /// session that says 09:00–12:00 and bills two hours is a session nobody
+    /// can defend.
+    func updateSession(_ session: WorkSession, from start: Date, to end: Date,
+                       calendar: Calendar = .current) throws {
+        guard end > start else { throw SessionEditError.endBeforeStart }
+        guard let project = session.project else { return }
+        for day in [session.start, start] {
+            if let number = invoiceNumber(coveringDay: day, for: project, calendar: calendar) {
+                throw InvoiceError.dayIsInvoiced(number)
+            }
+        }
+        guard calendar.startOfDay(for: start) == calendar.startOfDay(for: end) else {
+            throw SessionEditError.spansMidnight
+        }
+        session.start = start
+        session.end = end
+        session.activeSeconds = end.timeIntervalSince(start)
+        session.isAdjusted = true
+        try context.save()
+        invalidateTodayCache()
+    }
+
+    /// Remove one session outright — the timer ran while nobody worked.
+    func deleteSession(_ session: WorkSession, calendar: Calendar = .current) throws {
+        if let project = session.project,
+           let number = invoiceNumber(coveringDay: session.start, for: project, calendar: calendar) {
+            throw InvoiceError.dayIsInvoiced(number)
+        }
+        context.delete(session)
+        try context.save()
+        invalidateTodayCache()
+    }
+
+    enum SessionEditError: LocalizedError {
+        case endBeforeStart
+        case spansMidnight
+
+        var errorDescription: String? {
+            switch self {
+            case .endBeforeStart:
+                return String(localized: "The end has to come after the start.")
+            case .spansMidnight:
+                // Splitting on edit would turn one row into two under the
+                // owner's hands. Adding across midnight is fine — that path
+                // splits deliberately.
+                return String(localized: "A session has to end on the day it started. Add a second one after midnight.")
+            }
+        }
+    }
+
     /// Manual correction of one day's total. Growing the day appends a single
     /// zero-span adjustment pinned to the day's last activity; shrinking it
     /// trims the newest sessions first and deletes any that reach zero. The

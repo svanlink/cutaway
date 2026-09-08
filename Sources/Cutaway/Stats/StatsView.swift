@@ -342,10 +342,17 @@ struct StatsView: View {
         let live = isToday ? model.engine.accumulator.activeSeconds : 0
         VStack(spacing: 0) {
             ForEach(sessions, id: \.persistentModelID) { s in
-                sessionLine(range: AppModel.sessionTimeRange(start: s.start, end: s.end),
-                            seconds: s.activeSeconds,
-                            earned: s.earned(projectRate: p.hourlyRate),
-                            project: p, isLive: false)
+                Button {
+                    model.editSessionTarget = SessionEditTarget(session: s, day: d.day, project: p)
+                } label: {
+                    sessionLine(range: AppModel.sessionTimeRange(start: s.start, end: s.end),
+                                seconds: s.activeSeconds,
+                                earned: s.earned(projectRate: p.hourlyRate),
+                                project: p, isLive: false)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Self.sessionRowLabel(s, project: p))
+                .accessibilityHint("Edit this session")
             }
             // A day row that includes the running accumulator must itemise it,
             // or the parts visibly fail to add up to the total above them.
@@ -358,6 +365,12 @@ struct StatsView: View {
             }
             HStack {
                 Spacer()
+                Button("Add session…") {
+                    model.editSessionTarget = SessionEditTarget(session: nil, day: d.day, project: p)
+                }
+                    .font(DT.captionMedium)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(DT.signal)
                 Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
                     .font(DT.captionMedium)
                     .buttonStyle(.plain)
@@ -397,6 +410,13 @@ struct StatsView: View {
 
     /// What VoiceOver hears for one day of the ledger. Pure, so the claim
     /// "every row states its own figures" is testable without a screen reader.
+    static func sessionRowLabel(_ s: WorkSession, project p: Project) -> String {
+        let range = AppModel.sessionTimeRange(start: s.start, end: s.end)
+        let worked = PillView.spokenDuration(s.activeSeconds)
+        let entered = s.isAdjusted ? String(localized: ", entered by hand") : ""
+        return "\(range), \(worked), \(p.currency.format(s.earned(projectRate: p.hourlyRate)))\(entered)"
+    }
+
     static func dayRowLabel(_ d: DayTotal, project p: Project, isToday: Bool,
                             invoice: String? = nil) -> String {
         let day = isToday ? "Today" : d.day.formatted(.dateTime.weekday(.wide).month(.wide).day())

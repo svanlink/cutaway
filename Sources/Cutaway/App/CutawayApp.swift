@@ -96,6 +96,10 @@ struct CutawayApp: App {
                 .sheet(item: Bindable(model).editDay) { t in
                     EditDaySheet(model: model, project: t.project, target: t)
                 }
+                .sheet(item: Bindable(model).editSessionTarget) { t in
+                    SessionEditSheet(model: model, project: t.project,
+                                     editing: t.session, day: t.day)
+                }
                 .sheet(item: Bindable(model).deleteTarget) { p in
                     DeleteProjectSheet(model: model, project: p)
                 }

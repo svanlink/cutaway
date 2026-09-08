@@ -50,6 +50,28 @@ extension AppModel {
     var canRedo: Bool { undoManager.canRedo }
 
     func undoLastEdit() { undoManager.undo() }
+
+    // MARK: - Session spans
+
+    /// Every span edit goes through here so it is undoable and so the day's
+    /// previous shape is captured before anything is destroyed.
+    func addSession(from start: Date, to end: Date, to project: Project) throws {
+        let before = store.dayEdit(start, for: project, named: Self.dayEditName(start))
+        try store.addSession(from: start, to: end, for: project)
+        registerUndo(of: before, for: project)
+    }
+
+    func editSession(_ session: WorkSession, from start: Date, to end: Date, in project: Project) throws {
+        let before = store.dayEdit(session.start, for: project, named: Self.dayEditName(session.start))
+        try store.updateSession(session, from: start, to: end)
+        registerUndo(of: before, for: project)
+    }
+
+    func deleteSession(_ session: WorkSession, in project: Project) throws {
+        let before = store.dayEdit(session.start, for: project, named: Self.dayEditName(session.start))
+        try store.deleteSession(session)
+        registerUndo(of: before, for: project)
+    }
     func redoLastEdit() { undoManager.redo() }
 
     /// What the persisted part of today must become for the day to total
