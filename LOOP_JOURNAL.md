@@ -7,6 +7,65 @@ Readiness: 6/6 proven — PRODUCTION PUSH COMPLETE, v1.1.0 live (R-INSTALL, R-BA
 
 ---
 
+## 2026-09-08 — [keep] v1.3.2 "Quiet" — all nine items, three gates green
+
+Six department agents (`.claude/agents/cutaway-*.md`, charters and process in
+docs/TEAM.md) reviewed the app on 2026-09-07 and wrote docs/research/
+2026-09-07-*.md; three conflicts went to arbitration. docs/PLAN.md carries the
+result. This entry is the build.
+
+Landed 054c150 (money bugs the review found): InDesign was in the picker but
+not in the default anchors, so every InDesign hour was tracked as nothing;
+CSVExporter.round2 was half-away while NumberFormatter is half-even, so the
+CSV a client receives said 45.13 where Stats said 45.12 (~3 months in 4) —
+one Money.round2, ties DOWN; the edit-day sheet read selectedProject at
+render time and saved one project's figures onto another when detection
+switched mid-edit; a day ended at +86_400-1, which lands past midnight on a
+23-hour spring-forward day; backups derived from a hard path, so UI-test runs
+wrote into the real Backups folder; and the suite had left 4'103 preference
+domains in the owner's ~/Library/Preferences (deleted with their approval;
+scratch suites now clean up, a sweeper bounds what cfprefsd writes back).
+
+Landed 795a817 (the arbitrations): StorePath.verdict replaces quickCheckOK —
+unreadable (permissions, disk full, a lock) is never damaged, and a zero-byte
+file is damaged rather than "ok", which is how the September incident could
+have repeated silently. StoreBootstrap.plan is pure; a damaged store now ASKS
+at launch, naming the reason, the newest readable backup, its age and session
+count. Continue-without-restoring runs in memory and never writes over the
+damaged file. Restore matches by content, so all twelve of the owner's
+backups open across two renames — ten of them could not be opened before.
+Oldest generation pinned forever (billing-20260823 was due to die 2026-09-22);
+.replaced-* and .staging-* reaped. One repeating timer: the backup check
+rides the engine tick on wall-clock time. The render exemption is deleted,
+not re-evidenced — Resolve holds the display-sleep assertion during renders,
+so that evidence is no better. Settings 15 controls → 7; permissions folded
+in; the after-a-manual-pause choice moved into the card as "Always".
+
+Landed 925949f: the accessibility audit is green for the first time. Printing
+the offending element turned twelve identical failures into five real defects
+— three pop-up buttons with NO label (macOS makes a Picker's `label:` a
+sibling static text, not the control's title), plus the rate field, the login
+toggle, unlabelled stat cards and picker tiles. What is filtered is filtered
+by identity and documented; anything that names an element still fails.
+
+Landed f5d93e3 (README stopped claiming what the app no longer does — the
+duplicate "Your data" section contradicted the real one on all three facts,
+the test count was 86 against 371, and right-click → Open has not worked
+since macOS 15) and 1239d51 (undo: ⌘Z restores a day exactly, spans and
+adjusted flags intact — the precondition for the timeline's editing).
+
+Gate at the end: 374 unit tests, smoke ×3 ALL PASS, 10 UI tests, 0 failures.
+Not tagged, not released — the owner runs scripts/release.sh after a day of
+real use.
+
+Traps found: deleting prefs plists and killing cfprefsd DURING a test run
+turned a 5-minute suite into 78 minutes and produced a misleading timing;
+querying app.windows from inside an accessibility-audit handler returns
+nothing, so capture frames before the audit; .accessibilityElement(children:
+.ignore) strips a Button's click action (use .combine).
+
+---
+
 ## 2026-09-06 ~12:15 — [keep] the store was being wiped by ANOTHER app — data restored, store renamed
 Sebastian asked for everything to be verified. The live store had 0 projects
 and 0 sessions; the backups showed 3 projects / 4 sessions on Sep 4 18:04,

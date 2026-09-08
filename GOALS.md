@@ -43,6 +43,12 @@ Readiness checklist (each item needs proof, not belief):
 
 ## Done
 
+- [quiet] v1.3.2 "Quiet": store recovery asks before it acts, restore opens every backup, one timer, render exemption deleted, Settings 15→7, undo, README true again — 795a817, 925949f, f5d93e3, 1239d51
+
+- [money] five ways the app lost or mis-stated money, plus 4'103 prefs files the suite left on the owner's Mac — 054c150
+
+- [team] six department agents and the plan they produced — 35aed67
+
 - [data] store wipes traced to the shared default.store (another app's schema); named store + legacy adoption; data restored from backups + log
 
 - [ship] v1.3.0 released; tag on the stamped commit; bundle version finally true — dea6339
