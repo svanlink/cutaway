@@ -35,10 +35,20 @@ targets:
         SWIFT_VERSION: "6.0"
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
-        ENABLE_HARDENED_RUNTIME: false
         GENERATE_INFOPLIST_FILE: false
       configs:
         Release:
+          # Release ONLY, deliberately. Hardened runtime turns on library
+          # validation, and an ad-hoc signature carries no Team ID for nested
+          # code to match — so a Debug build, which ships a Cutaway.debug.dylib
+          # beside the binary, aborts on launch with "different Team IDs".
+          # The Release bundle has no nested code at all (verified: no
+          # Frameworks, no dylibs), so it hardens cleanly. It composes with
+          # ad-hoc signing and needs no notarization for the kernel to enforce
+          # it: measured, an inserted DYLD_INSERT_LIBRARIES is stripped with
+          # the runtime on and loads with it off. This app holds Accessibility
+          # and spawns a subprocess, so that is worth closing.
+          ENABLE_HARDENED_RUNTIME: true
           SWIFT_COMPILATION_MODE: wholemodule
           COPY_PHASE_STRIP: true
           DEAD_CODE_STRIPPING: true

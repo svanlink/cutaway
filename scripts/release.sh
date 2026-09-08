@@ -77,8 +77,12 @@ echo "── sign (ad-hoc)"
 # Ad-hoc signature: no paid Developer ID, but Apple Silicon refuses to run
 # fully unsigned binaries, and a valid signature turns Gatekeeper's
 # "damaged" error into the right-click-openable "unidentified developer".
-codesign --force --deep --sign - "$REL"
-codesign --verify --deep --strict "$REL"
+codesign --force --options runtime --sign - "$REL"
+codesign --verify --strict "$REL"
+# The flag, not just a valid signature. Ad-hoc signing composes with the
+# hardened runtime, but nothing complains if the option is dropped, and a
+# release that quietly lost it looks identical from here.
+codesign -dv "$REL" 2>&1 | grep -q "flags=.*runtime" || { echo "hardened runtime missing from the signature"; exit 1; }
 
 echo "── package"
 ZIP="/tmp/Cutaway-$V.zip"

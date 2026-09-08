@@ -37,7 +37,7 @@ jobs:
         run: |
           xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release -destination 'platform=macOS' -derivedDataPath build build
           APP=build/Build/Products/Release/Cutaway.app
-          codesign --force --deep --sign - "$APP" && codesign --verify --deep --strict "$APP"
+          codesign --force --options runtime --sign - "$APP" && codesign --verify --strict "$APP"
           ditto -c -k --keepParent "$APP" "Cutaway-$V.zip"
           shasum -a 256 "Cutaway-$V.zip" | cut -d' ' -f1 > sha256.txt
       - name: Release

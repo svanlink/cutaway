@@ -17,9 +17,19 @@ brew install --cask svanlink/tap/cutaway
 
 Two things on first run:
 
-1. **Install with Homebrew — it is the supported path**, not a shortcut. Cutaway is signed ad-hoc and deliberately not notarized: it is free, and a paid Apple Developer ID is not part of how it is published. The cask removes the quarantine flag, so the app simply opens.
+1. **Clear the quarantine flag after installing.** Cutaway is signed ad-hoc and deliberately not notarized: it is free, and a paid Apple Developer ID is not part of how it is published. macOS quarantines anything downloaded, and Homebrew is no exception — a cask cannot opt out of quarantine, only the person installing can. This README used to claim the cask removed the flag. It does not, and that claim was wrong.
 
-   A zip downloaded from the GitHub release is a different story, and the difference is not cosmetic: since macOS 15 the right-click → *Open* bypass is gone, and macOS 26 reports an ad-hoc-signed quarantined app as damaged and offers to move it to the Trash. If you already have one, run `xattr -d com.apple.quarantine /Applications/Cutaway.app`, or install from the tap, or build from source (below). The GitHub zip exists because the cask downloads it — it is not the way to install by hand.
+   So after `brew install --cask svanlink/tap/cutaway`, run:
+
+   ```
+   xattr -d com.apple.quarantine /Applications/Cutaway.app
+   ```
+
+   Or install with `brew install --cask --no-quarantine svanlink/tap/cutaway` in the first place. Both are a deliberate Gatekeeper bypass — that is the price of not notarizing, and it is stated here rather than hidden.
+
+   Skipping this is not cosmetic: since macOS 15 the right-click → *Open* bypass is gone, and macOS 26 reports an ad-hoc-signed quarantined app as damaged and offers to move it to the Trash. The GitHub zip exists because the cask downloads it — it is not the way to install by hand.
+
+   The Release build does run with the **hardened runtime**, which is enforced by the kernel whether or not the app is notarized: an attacker cannot inject a dylib into a process that holds Accessibility.
 2. **Accessibility (optional)** — lets Cutaway read Resolve's window title so it can follow project switches instantly. Cutaway works fine without it; detection just falls back to the scripting API and manual switching.
 
 Requires macOS 14+. Works with [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve) Free or Studio — and without Resolve at all, using manual projects.
