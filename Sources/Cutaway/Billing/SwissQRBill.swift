@@ -24,8 +24,17 @@ enum SwissQRBill {
 
         /// "S" — structured. The combined form ("K") is being retired; new
         /// implementations are expected to use structured addresses.
-        var structuredLines: [String] {
-            [ "S", name, street, buildingNumber, postalCode, town, country ]
+        /// Every field held to the scheme's character set and maximum. A
+        /// bill that carries an impossible character is refused here rather
+        /// than printed and handed to a client.
+        func structuredLines() throws -> [String] {
+            [ "S",
+              try schemeText(name, max: 70, field: String(localized: "name")),
+              try schemeText(street, max: 70, field: String(localized: "street")),
+              try schemeText(buildingNumber, max: 16, field: String(localized: "building number")),
+              try schemeText(postalCode, max: 16, field: String(localized: "postcode")),
+              try schemeText(town, max: 35, field: String(localized: "town")),
+              country ]
         }
     }
 
@@ -56,6 +65,57 @@ enum SwissQRBill {
                        postalCode: townParts[0],
                        town: townParts[1],
                        country: country)
+    }
+
+    /// The scheme's permitted character set, and what to do about the rest.
+    ///
+    /// IG v2.3 §4.1.1 allows Basic Latin (U+0020-U+007E), Latin-1 Supplement
+    /// (U+00A0-U+00FF), Latin Extended-A (U+0100-U+017F), the four Romanian
+    /// comma-below letters, and the euro sign. Nothing else — and macOS
+    /// TextField turns an apostrophe into U+2019 and a double hyphen into an
+    /// em dash as you type, so the owner's own name is the likeliest source
+    /// of a character that makes a bank's scanner refuse the bill. The
+    /// validator lists this as its most common rejection.
+    ///
+    /// Typography folds to its ASCII equivalent, because "Sebastian's" and
+    /// "Sebastian's" are the same name. Anything left that the scheme does
+    /// not permit REFUSES: silently deleting a character out of a payee's
+    /// name on a payment instruction is worse than printing no bill.
+    enum CharacterSet1 {
+        static let folds: [Character: String] = [
+            "\u{2018}": "'", "\u{2019}": "'", "\u{201A}": "'", "\u{201B}": "'",
+            "\u{201C}": "\"", "\u{201D}": "\"", "\u{201E}": "\"", "\u{2033}": "\"",
+            "\u{2013}": "-", "\u{2014}": "-", "\u{2015}": "-", "\u{2212}": "-",
+            "\u{2026}": "...", "\u{00A0}": " ", "\u{202F}": " ", "\u{2009}": " ",
+            "\u{2022}": "-", "\u{00AD}": "",
+        ]
+
+        static func permits(_ scalar: Unicode.Scalar) -> Bool {
+            switch scalar.value {
+            case 0x20...0x7E, 0xA0...0xFF, 0x100...0x17F: return true
+            case 0x218, 0x219, 0x21A, 0x21B: return true   // Ș ș Ț ț
+            case 0x20AC: return true                        // €
+            default: return false
+            }
+        }
+    }
+
+    /// Folds what can be folded, refuses what cannot, and cuts to the field's
+    /// maximum. `max` comes from IG §4.2.2: Name 70, Street 70,
+    /// BuildingNumber 16, PstCd 16, TwnNm 35, unstructured message 140.
+    static func schemeText(_ value: String, max: Int, field: String) throws -> String {
+        var folded = ""
+        for character in value {
+            if let replacement = CharacterSet1.folds[character] {
+                folded += replacement
+            } else {
+                folded.append(character)
+            }
+        }
+        if let bad = folded.unicodeScalars.first(where: { !CharacterSet1.permits($0) }) {
+            throw Refusal(what: String(localized: "The \(field) contains a character a QR-bill cannot carry (\(String(bad))). Use plain Latin text."))
+        }
+        return String(folded.prefix(max))
     }
 
     enum ReferenceType: String {
@@ -139,15 +199,22 @@ enum SwissQRBill {
             throw Refusal(what: String(localized: "A QR-IBAN requires a QR reference."))
         }
 
+        // IG §4.2.2: the amount must be between 0.01 and 999999999.99. A
+        // period holding only a sub-minute day rounds to nothing, and "0.00"
+        // is rejected outright by the scheme — a bill nobody can pay.
+        guard amount >= Decimal(string: "0.01")!, amount <= Decimal(string: "999999999.99")! else {
+            throw Refusal(what: String(localized: "A QR-bill must be for at least 0.01 and at most 999999999.99. This invoice is for \(amountString(amount))."))
+        }
+
         var lines: [String] = []
         lines += ["SPC", "0200", "1"]              // header: type, version, coding
         lines += [account]
-        lines += creditor.structuredLines          // creditor
+        lines += try creditor.structuredLines()    // creditor
         lines += Array(repeating: "", count: 7)    // ultimate creditor: reserved, always empty
         lines += [amountString(amount), currency.rawValue]
-        lines += debtor?.structuredLines ?? Array(repeating: "", count: 7)
+        lines += try debtor?.structuredLines() ?? Array(repeating: "", count: 7)
         lines += [referenceType.rawValue, reference]
-        lines += [String(message.prefix(140))]
+        lines += [try schemeText(message, max: 140, field: String(localized: "message"))]
         lines += ["EPD"]                           // end of payment data
         return lines.joined(separator: "\r\n")
     }

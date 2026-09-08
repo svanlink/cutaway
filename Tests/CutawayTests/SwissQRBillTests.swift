@@ -1,3 +1,5 @@
+import CoreImage
+import CoreImage.CIFilterBuiltins
 import XCTest
 @testable import Cutaway
 
@@ -5,6 +7,19 @@ import XCTest
 /// field — an extra or missing empty line shifts everything after it and the
 /// bill scans as a different bill.
 final class SwissQRBillTests: XCTestCase {
+
+    /// A valid bill, with one thing varied per test.
+    private func makePayload(amount: Decimal = Decimal(string: "1250.00")!,
+                             creditorName: String = "Sebastian van Eickelen") throws -> String {
+        try SwissQRBill.payload(
+            iban: "CH5604835012345678009",
+            creditor: SwissQRBill.Address(name: creditorName, street: "Bahnhofstrasse",
+                                          buildingNumber: "1", postalCode: "8001",
+                                          town: "Zürich", country: "CH"),
+            amount: amount, currency: .chf, debtor: nil,
+            referenceType: .non, reference: "", message: "Invoice INV-2026-0001")
+    }
+
 
     private let creditor = SwissQRBill.Address(
         name: "Sebastian van Eickelen", street: "Badenerstrasse", buildingNumber: "12",
@@ -44,11 +59,54 @@ final class SwissQRBillTests: XCTestCase {
         XCTAssertEqual(lines.last, "EPD")
     }
 
-    func testAnUnpaidAmountFormatsAsTheSchemeWants() {
-        XCTAssertEqual(SwissQRBill.amountString(Decimal(string: "0")!), "0.00")
+    func testAnAmountFormatsAsTheSchemeWants() {
         XCTAssertEqual(SwissQRBill.amountString(Decimal(string: "1000000")!), "1000000.00",
                        "no thousands separator, ever")
+        XCTAssertEqual(SwissQRBill.amountString(Decimal(string: "0.01")!), "0.01")
     }
+
+    /// The scheme's range is 0.01 to 999999999.99. A day under a minute of
+    /// tracked time rounds to nothing, and if it is the only day in the
+    /// period the bill carried "0.00" — which the validator rejects outright
+    /// ("The provided amount is not valid"). Better to refuse to draw a
+    /// payment part than to hand a client one their bank will not scan.
+    func testAnAmountOutsideTheSchemesRangeIsRefused() {
+        for amount in ["0", "0.001", "1000000000"] {
+            XCTAssertThrowsError(try makePayload(amount: Decimal(string: amount)!),
+                                 "\(amount) is outside the scheme's range and must be refused")
+        }
+        XCTAssertNoThrow(try makePayload(amount: Decimal(string: "0.01")!))
+        XCTAssertNoThrow(try makePayload(amount: Decimal(string: "999999999.99")!))
+    }
+
+    /// macOS turns an apostrophe into U+2019 as you type, and the scheme
+    /// permits no such character. The bill looks perfect and the bank's
+    /// scanner refuses it — the validator's most common rejection.
+    func testTypographicCharactersAreFoldedToWhatTheSchemePermits() throws {
+        let payload = try makePayload(creditorName: "Sebastian\u{2019}s Studio \u{2014} Zürich")
+        XCTAssertTrue(payload.contains("Sebastian's Studio - Zürich"),
+                      "curly quote and em dash folded; the umlaut is permitted and stays")
+        XCTAssertFalse(payload.contains("\u{2019}"))
+        XCTAssertFalse(payload.contains("\u{2014}"))
+    }
+
+    /// A character with no ASCII equivalent cannot be silently dropped into
+    /// a bill either — refuse, and say so.
+    func testACharacterTheSchemeForbidsIsRefusedNotSmuggled() {
+        XCTAssertThrowsError(try makePayload(creditorName: "Studio 東京"),
+                             "an unmappable character must refuse, not ship a mangled name")
+    }
+
+    /// Field maxima from the implementation guidelines: Name 70, Street 70,
+    /// BuildingNumber 16, PstCd 16, TwnNm 35, message 140.
+    func testFieldsAreHeldToTheirMaximumLength() throws {
+        let payload = try makePayload(creditorName: String(repeating: "a", count: 120))
+        let lines = payload.components(separatedBy: "\r\n")
+        for line in lines { XCTAssertLessThanOrEqual(line.count, 140, "over-long field: \(line.prefix(20))") }
+        XCTAssertTrue(lines.contains(String(repeating: "a", count: 70)), "the name is cut at 70")
+    }
+
+
 
     func testIBANValidation() {
         XCTAssertTrue(SwissQRBill.isValidIBAN(iban))
@@ -106,5 +164,54 @@ final class SwissQRBillTests: XCTestCase {
             for digit in part { remainder = (remainder * 10 + (digit.wholeNumberValue ?? 0)) % 97 }
         }
         XCTAssertEqual(remainder, 1, "the check digits must validate")
+    }
+}
+
+/// The printed geometry of the code itself.
+///
+/// IG v2.3 §6.4: "The measurements of the Swiss QR Code for printing must
+/// always be 46 x 46 mm (without surrounding quiet space) regardless of the
+/// Swiss QR Code version." Not a recommendation — a generation parameter.
+final class SwissQRCodeGeometryTests: XCTestCase {
+
+    private let pointsPerMM: CGFloat = 72.0 / 25.4
+
+    /// CoreImage bakes a one-module quiet zone into its output. Scaling the
+    /// whole thing into 46 mm printed the CODE at about 44.3 mm — undersized
+    /// by 3.6%, and by a different amount for every payload length, since
+    /// the module count grows with the data.
+    func testTheCodeItselfMeasures46mmWhateverTheVersion() {
+        let side = SwissQRCode.sideMM * pointsPerMM
+        // 25 modules is the smallest QR version; 177 is the largest.
+        for extent in [25, 33, 55, 63, 177].map(CGFloat.init) {
+            let step = SwissQRCode.modulePoints(extentWidth: extent, sidePoints: side)
+            let printedMM = (extent - 2) * step / pointsPerMM
+            XCTAssertEqual(printedMM, SwissQRCode.sideMM, accuracy: 0.01,
+                           "a \(Int(extent))-module image must still print 46 mm of code")
+        }
+    }
+
+    /// And the generator really does bake in that border — if CoreImage ever
+    /// stops, this test says so rather than the bill quietly growing.
+    func testTheGeneratorStillBakesInAOneModuleQuietZone() throws {
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data("SPC\r\n0200\r\n1\r\nCH5604835012345678009".utf8)
+        filter.correctionLevel = "M"
+        let output = try XCTUnwrap(filter.outputImage)
+        let modules = try XCTUnwrap(SwissQRCode.readModules(output))
+
+        for i in 0..<modules.side {
+            XCTAssertFalse(modules.isDark(i, 0), "top row is quiet zone")
+            XCTAssertFalse(modules.isDark(i, modules.side - 1), "bottom row is quiet zone")
+            XCTAssertFalse(modules.isDark(0, i), "left column is quiet zone")
+            XCTAssertFalse(modules.isDark(modules.side - 1, i), "right column is quiet zone")
+        }
+        // A finder pattern sits at the top-left corner of the code proper.
+        XCTAssertTrue(modules.isDark(1, 1), "the code starts one module in")
+    }
+
+    func testTheSwissCrossKeepsItsProportionToTheCode() {
+        XCTAssertEqual(SwissQRCode.crossMM / SwissQRCode.sideMM, 7.0 / 46.0, accuracy: 0.0001,
+                       "the cross is 7 mm of the code's 46, not of some other width")
     }
 }

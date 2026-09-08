@@ -160,6 +160,8 @@ DE = {
  "This project's budget is fully invoiced. Agree more with the client, or void the earlier invoice.": "Das Budget dieses Projekts ist vollständig in Rechnung gestellt. Vereinbare mehr mit der Kundschaft, oder storniere die frühere Rechnung.",
  "back up your billing data": "deine Abrechnungsdaten zu sichern",
  "finish restoring the backup you chose — the store was left as it is. Nothing tracked this run will be kept.": "die gewählte Sicherung fertig wiederherzustellen — der Speicher wurde unverändert gelassen. Nichts aus dieser Sitzung wird gespeichert.",
+ "name": "Name", "street": "Strasse", "building number": "Hausnummer",
+ "postcode": "PLZ", "town": "Ort", "message": "Mitteilung",
  "Fixed-price adjustment to agreed budget": "Anpassung auf das vereinbarte Festbudget",
  "No VAT — not registered for Swiss VAT (below the CHF 100'000 threshold).": "Keine MWST — nicht MWST-pflichtig (unter der Grenze von CHF 100'000).",
  "Reverse charge — VAT to be accounted for by the recipient.": "Reverse Charge — die MWST schuldet der Leistungsempfänger.",

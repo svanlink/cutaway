@@ -2641,6 +2641,16 @@
         }
       }
     },
+    "building number": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hausnummer"
+          }
+        }
+      }
+    },
     "e.g. Nyx Fashion Film": {
       "localizations": {
         "de": {
@@ -2681,6 +2691,26 @@
         }
       }
     },
+    "message": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilung"
+          }
+        }
+      }
+    },
+    "name": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
     "open the billing store — nothing tracked this run will be kept": {
       "localizations": {
         "de": {
@@ -2701,12 +2731,42 @@
         }
       }
     },
+    "postcode": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PLZ"
+          }
+        }
+      }
+    },
     "running": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "street": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strasse"
+          }
+        }
+      }
+    },
+    "town": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ort"
           }
         }
       }
