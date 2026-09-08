@@ -121,6 +121,16 @@
         }
       }
     },
+    "A Swiss VAT invoice must print your UID. Add it in Settings, or choose a different tax mode.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Rechnung mit Schweizer MWST muss Ihre UID ausweisen. Ergänzen Sie sie in den Einstellungen oder wählen Sie einen anderen Steuermodus."
+          }
+        }
+      }
+    },
     "A new rate applies from now on. Work already recorded keeps the rate it was worked at.": {
       "localizations": {
         "de": {
@@ -137,6 +147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Projekt mit diesem Namen existiert bereits"
+          }
+        }
+      }
+    },
+    "A reverse-charge invoice must print your UID alongside the client's.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Rechnung mit Reverse Charge muss Ihre UID neben derjenigen des Kunden ausweisen."
           }
         }
       }
@@ -751,6 +771,16 @@
         }
       }
     },
+    "Fixed-price adjustment to agreed budget": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anpassung auf das vereinbarte Festbudget"
+          }
+        }
+      }
+    },
     "Follow project switches instantly": {
       "localizations": {
         "de": {
@@ -897,6 +927,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neue Projekte starten mit dieser Währung"
+          }
+        }
+      }
+    },
+    "No VAT — not registered for Swiss VAT (below the CHF 100'000 threshold).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine MWST — nicht MWST-pflichtig (unter der Grenze von CHF 100'000)."
           }
         }
       }
@@ -1311,6 +1351,16 @@
         }
       }
     },
+    "Reverse charge — VAT to be accounted for by the recipient.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reverse Charge — die MWST schuldet der Leistungsempfänger."
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "de": {
@@ -1491,6 +1541,16 @@
         }
       }
     },
+    "There is no unbilled work in that period.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Zeitraum gibt es keine offene Arbeit."
+          }
+        }
+      }
+    },
     "These sustain the timer for 20 minutes after work-app activity": {
       "localizations": {
         "de": {
@@ -1627,6 +1687,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "z. B. Nyx Fashion Film"
+          }
+        }
+      }
+    },
+    "h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "h"
           }
         }
       }

@@ -35,7 +35,14 @@ final class Tier1LiveTests: XCTestCase {
                         "fuscript must be locatable when Resolve is installed")
 
         let name = await detector.detectViaScriptingAPI()
-        let detected = try XCTUnwrap(name, "a running Studio with an open project must answer")
+        // The Developer/Scripting folder ships with every edition, so its
+        // presence does not mean external scripting is AVAILABLE: the free
+        // edition refuses, and Studio refuses until "External scripting
+        // using" is switched on in Preferences. Neither is a regression in
+        // this app, and neither must be reported as one — but everything
+        // below still has to hold whenever Tier 1 does answer.
+        try XCTSkipUnless(name != nil, "external scripting did not answer — free edition, or External scripting using is off in Resolve's preferences")
+        let detected = try XCTUnwrap(name)
         XCTAssertFalse(detected.isEmpty)
         XCTAssertFalse(detected.contains("Blackmagic Design"),
                        "the banner filter must not leak boilerplate as a project name")

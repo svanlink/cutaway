@@ -16,11 +16,19 @@ final class SchemaVersionTests: XCTestCase {
         XCTAssertEqual(CutawaySchemaV1.versionIdentifier, Schema.Version(1, 0, 0))
     }
 
-    func testTheMigrationPlanStartsAtVersionOne() {
-        XCTAssertEqual(CutawayMigrationPlan.schemas.count, 1)
-        XCTAssertTrue(CutawayMigrationPlan.schemas.first == CutawaySchemaV1.self)
-        XCTAssertTrue(CutawayMigrationPlan.stages.isEmpty,
-                      "every change so far is lightweight; the plan exists for the first one that is not")
+    func testTheMigrationPlanStartsAtVersionOneAndOnlyGrows() {
+        XCTAssertTrue(CutawayMigrationPlan.schemas.first == CutawaySchemaV1.self,
+                      "V1 stays first forever — schemas are appended, never reordered")
+        XCTAssertTrue(CutawayMigrationPlan.schemas.last == CutawaySchemaV2.self)
+        XCTAssertEqual(CutawayMigrationPlan.stages.count, CutawayMigrationPlan.schemas.count - 1,
+                       "one stage per version boundary, or a store has a gap it cannot cross")
+    }
+
+    func testVersionTwoAddsTheInvoiceWithoutLosingAnything() {
+        let v1 = Set(CutawaySchemaV1.models.map { String(describing: $0) })
+        let v2 = Set(CutawaySchemaV2.models.map { String(describing: $0) })
+        XCTAssertTrue(v1.isSubset(of: v2), "a later version never drops an entity")
+        XCTAssertEqual(v2.subtracting(v1), ["Invoice", "InvoiceLine"])
     }
 
     /// The whole point: a store written before the declaration still opens.

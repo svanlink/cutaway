@@ -35,7 +35,7 @@ final class SessionStore {
         // The schema is DECLARED, with a migration plan, rather than inferred
         // from an argument list — see Schema.swift for why that ordering is
         // load-bearing rather than tidy.
-        container = try ModelContainer(for: Schema(versionedSchema: CutawaySchemaV1.self),
+        container = try ModelContainer(for: Schema(versionedSchema: CutawaySchemaV2.self),
                                        migrationPlan: CutawayMigrationPlan.self,
                                        configurations: config)
     }
@@ -56,6 +56,14 @@ final class SessionStore {
         context.insert(p)
         try context.save()
         return p
+    }
+
+    /// Deleting work that an invoice claims would leave the document
+    /// unprovable. Refused by number, so the message says which one.
+    func assertNothingInvoiced(in project: Project) throws {
+        if let locked = project.sessions.first(where: \.isInvoiced) {
+            throw InvoiceError.sessionsAreInvoiced(locked.invoiceNumber)
+        }
     }
 
     func rename(_ project: Project, to newName: String) throws {
@@ -131,6 +139,12 @@ final class SessionStore {
     /// ponytail: adjustments count as a session in the CSV's session column.
     func setActiveSeconds(_ target: TimeInterval, on day: Date, for project: Project,
                           calendar: Calendar = .current, now: Date = Date()) throws {
+        // A day on an issued invoice is not editable. The document a client
+        // holds and the store must never be able to disagree quietly; the way
+        // back is to void the invoice, which says so out loud.
+        if let number = invoiceNumber(coveringDay: day, for: project, calendar: calendar) {
+            throw InvoiceError.dayIsInvoiced(number)
+        }
         let dayStart = calendar.startOfDay(for: day)
         let sessions = project.sessions
             .filter { calendar.startOfDay(for: $0.start) == dayStart }
@@ -195,7 +209,9 @@ final class SessionStore {
     /// Anything that changes what a day contains drops the memo. Wholesale
     /// rather than per-project: writes are rare, renders are not, and a
     /// too-clever invalidation is how a billing figure goes quietly stale.
-    private func invalidateTodayCache() {
+    // Not private: the invoice extension lives in its own file and locks
+    // sessions, which changes what today's figures mean.
+    func invalidateTodayCache() {
         todayCache.removeAll()
     }
 

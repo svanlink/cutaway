@@ -57,6 +57,19 @@ final class WorkSession {
     /// edit. Invoices may carry typed time; they may not hide it. Default so
     /// rows written before this field existed migrate as "tracked".
     var isAdjusted: Bool = false
+    /// Stable identity, so an invoice line can name the sessions behind its
+    /// figure without holding a relationship to them.
+    ///
+    /// A `String` defaulting to empty rather than `UUID = UUID()`: a SwiftData
+    /// default is evaluated once for the migration, so every row that already
+    /// exists would inherit the SAME uid — provenance that points at all of
+    /// them and none of them. Empty means "not needed yet"; `ensureUID()`
+    /// fills one in the first time a session is actually invoiced.
+    var uid: String = ""
+    /// The invoice this session is locked into. Non-empty = locked: its day
+    /// cannot be edited, it cannot be deleted, and its rate cannot change.
+    /// Denormalised so the guard is checkable without loading the invoice.
+    var invoiceNumber: String = ""
     var project: Project?
 
     init(start: Date, end: Date, activeSeconds: TimeInterval,
@@ -67,6 +80,15 @@ final class WorkSession {
         self.hourlyRate = hourlyRate
         self.project = project
         self.isAdjusted = isAdjusted
+    }
+
+    var isInvoiced: Bool { !invoiceNumber.isEmpty }
+
+    /// Gives this session an identity if it does not have one yet.
+    @discardableResult
+    func ensureUID() -> String {
+        if uid.isEmpty { uid = UUID().uuidString }
+        return uid
     }
 
     /// What this session is worth, at the rate it was worked at.

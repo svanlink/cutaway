@@ -17,12 +17,25 @@ enum CutawaySchemaV1: VersionedSchema {
     static var models: [any PersistentModel.Type] { [Project.self, WorkSession.self] }
 }
 
+/// V2 adds the invoice document. Project and WorkSession gain properties with
+/// defaults, which is a lightweight change; Invoice and InvoiceLine are new
+/// entities, which is also lightweight. The stage is declared anyway, so the
+/// store carries an explicit record of when the shape changed.
+enum CutawaySchemaV2: VersionedSchema {
+    static var versionIdentifier: Schema.Version { Schema.Version(2, 0, 0) }
+    static var models: [any PersistentModel.Type] {
+        [Project.self, WorkSession.self, Invoice.self, InvoiceLine.self]
+    }
+}
+
 /// The order the app has ever stored data in. Append; never reorder.
 enum CutawayMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [CutawaySchemaV1.self] }
+    static var schemas: [any VersionedSchema.Type] { [CutawaySchemaV1.self, CutawaySchemaV2.self] }
 
-    /// Empty on purpose. Every change so far has been an added property with
-    /// a default, which SwiftData migrates on its own. The plan exists so the
-    /// NEXT change — the one that cannot be lightweight — has somewhere to go.
-    static var stages: [MigrationStage] { [] }
+    /// Lightweight: every V1→V2 change is an added property with a default or
+    /// a new entity. The stage exists so the first change that ISN'T has
+    /// somewhere to go, and so the store records that this one happened.
+    static var stages: [MigrationStage] {
+        [.lightweight(fromVersion: CutawaySchemaV1.self, toVersion: CutawaySchemaV2.self)]
+    }
 }
