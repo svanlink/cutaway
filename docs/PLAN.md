@@ -108,10 +108,15 @@ reclaim prompt · Mac App Store · subscriptions.
 
 ## Open decisions, owner only
 
-1. **Apple Developer Program, $99/yr.** Ad-hoc signing means macOS 26 reports
-   the app as damaged, and every rebuild drops the Accessibility grant. If
-   Cutaway stays yours alone, skip it and fix the README's claims. If anyone
-   else should install it, this is the blocker.
+1. ~~**Apple Developer Program, $99/yr.**~~ **DECIDED 2026-09-08: no.**
+   Cutaway stays free and is published through Homebrew, where the cask
+   strips quarantine and the app opens normally. Notarization and Sparkle
+   stay parked; the README says Homebrew is the supported path rather than
+   apologising for the absence of a Developer ID. Two consequences to live
+   with, both accepted: a hand-downloaded zip needs `xattr -d`, and every
+   local rebuild drops the Accessibility grant (re-tick it in System
+   Settings after installing a new build). Revisit only if Cutaway is ever
+   sold or pushed to people who cannot use a terminal.
 2. **Existing projects and InDesign.** New projects now pre-tick it. Your three
    existing projects still exclude it — tick it per project, or say the word and
    a one-time migration adds it to any project that already ticks another Adobe

@@ -164,7 +164,7 @@ releases later. Same signals, same yardstick. Measured, not remembered.
 | Force unwraps | 1 × `try!`, 4 × `!` | 1 × `try!` (the guarded in-memory fallback) | Unchanged, still acceptable |
 | Localization | 0 localized, 66 hard-coded strings | **String Catalog, 233 keys, 233 German** | **FIXED** |
 | Appearance | `preferredColorScheme` in 7 views | **0** — one app-level decision | **FIXED** |
-| Signing | ad-hoc, no hardened runtime | ad-hoc, no hardened runtime | **Unchanged — now the only structural gap left** |
+| Signing | ad-hoc, no hardened runtime | ad-hoc, no hardened runtime | **Settled 2026-09-08: staying that way.** Free, Homebrew-published; the cask strips quarantine. Not a gap — a chosen trade-off with two accepted costs (a hand-downloaded zip needs `xattr -d`; a rebuild drops the Accessibility grant). |
 | Bundle metadata | no category, empty copyright, legacy `.icns` | category ✓, copyright ✓, **still `.icns`** | Mostly fixed; Icon Composer icon still owed |
 | Updates | none | none (parked by decision 1) | Unchanged by choice |
 | Diagnostics | none | MetricKit capture + reveal | **FIXED** |
@@ -201,8 +201,10 @@ quarter's eight, five are done in the last two days.
 ## What the numbers say to do next
 
 1. ~~**`AppModel` at 639 lines**~~ — done, 31e5283. No file is over 455.
-2. **The $99 signing decision** is now the sole structural gap. Every other
-   "not professional" tell from 2026-09-05 is closed.
+2. ~~**The $99 signing decision**~~ — decided on 2026-09-08: no notarization,
+   Homebrew stays the channel. Every other "not professional" tell from
+   2026-09-05 is closed, and this one is now a documented choice rather than
+   an open item.
 3. **A slow test remains unexplained**: the suite takes 9 s or 250 s, always
    attributed to `AppearanceGuardTests`, which runs in 0.017 s alone. Two
    theories tested and disproved. It costs minutes per gate, not correctness.
