@@ -105,7 +105,7 @@ struct InvoiceDocumentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(line.kind == .time ? hours(line.quantity) : "")
+                    Text(line.kind == .time ? Self.clockHours(line.quantity) : "")
                         .frame(width: 60, alignment: .trailing)
                     Text(line.kind == .time ? amount(line.unitPrice) : "")
                         .frame(width: 70, alignment: .trailing)
@@ -159,14 +159,14 @@ struct InvoiceDocumentView: View {
     /// Built from the SAME frozen fields the page prints, so the code and
     /// the text beside it can never disagree.
     private var qrPayload: String? {
-        let creditor = SwissQRBill.Address(name: line(invoice.supplierBlock, 0),
-                                           street: "", buildingNumber: "",
-                                           postalCode: "", town: line(invoice.supplierBlock, 1),
-                                           country: "CH")
-        let debtor = SwissQRBill.Address(name: line(invoice.clientBlock, 0),
-                                         street: "", buildingNumber: "",
-                                         postalCode: "", town: line(invoice.clientBlock, 1),
-                                         country: "CH")
+        // Structured addresses, parsed from the blocks that are printed above
+        // — and no payment part at all when they cannot be parsed. The
+        // scheme requires a postal code and a street; guessing at them
+        // produced a bill that looked right and would be refused.
+        guard let creditor = SwissQRBill.address(name: line(invoice.supplierBlock, 0),
+                                                 block: invoice.supplierBlock) else { return nil }
+        let debtor = SwissQRBill.address(name: line(invoice.clientBlock, 0),
+                                         block: invoice.clientBlock)
         return try? SwissQRBill.payload(iban: invoice.creditorIBAN, creditor: creditor,
                                         amount: invoice.total, currency: invoice.currency,
                                         debtor: debtor, referenceType: .scor,
@@ -186,6 +186,17 @@ struct InvoiceDocumentView: View {
             let end = invoice.creditorIBAN.index(start, offsetBy: min(4, invoice.creditorIBAN.count - $0))
             return String(invoice.creditorIBAN[start..<end])
         }.joined(separator: " ")
+    }
+
+    /// "8:40", not "8.67".
+    ///
+    /// A decimal quantity does not multiply back: 8.67 h at CHF 120 is
+    /// 1'040.40, while the line said 1'040.00, and a client who checks the
+    /// arithmetic finds the invoice wrong. Hours and minutes are exact, and
+    /// the amount is computed from the same minutes, so the page adds up.
+    static func clockHours(_ value: Decimal) -> String {
+        let totalMinutes = Int((NSDecimalNumber(decimal: value).doubleValue * 60).rounded(.down))
+        return String(format: "%d:%02d", totalMinutes / 60, totalMinutes % 60)
     }
 
     private func hours(_ value: Decimal) -> String {

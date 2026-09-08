@@ -79,6 +79,10 @@ final class SessionStore {
     /// Deletes a project. Sessions either move to `reassignTo` or fall to the
     /// cascade delete — the caller decides, explicitly.
     func delete(_ project: Project, reassignTo target: Project?) throws {
+        // The cascade would take sessions an issued invoice claims with it,
+        // leaving a document nobody can prove. `assertNothingInvoiced` had no
+        // production caller at all until now.
+        if target == nil { try assertNothingInvoiced(in: project) }
         if let target {
             for s in project.sessions { s.project = target }
         }
@@ -150,9 +154,21 @@ final class SessionStore {
         guard calendar.startOfDay(for: start) == calendar.startOfDay(for: end) else {
             throw SessionEditError.spansMidnight
         }
+        // Active time SCALES with the span; it is not the span.
+        //
+        // Setting it to the new span invented money on every move: a session
+        // from 13:00 to 17:00 holding 2 h 30 of actual work — the rest was
+        // idle the engine already excluded — became four billable hours the
+        // moment it was dragged sideways. CHF 300 turned into CHF 480 with a
+        // gesture that was supposed to change WHEN, not how much.
+        let oldSpan = session.end.timeIntervalSince(session.start)
+        let newSpan = end.timeIntervalSince(start)
+        let ratio = oldSpan > 0 ? newSpan / oldSpan : 1
         session.start = start
         session.end = end
-        session.activeSeconds = end.timeIntervalSince(start)
+        // Never more than the span itself, and never conjured out of a
+        // zero-length original.
+        session.activeSeconds = min(session.activeSeconds * ratio, newSpan)
         session.isAdjusted = true
         try context.save()
         invalidateTodayCache()
@@ -253,19 +269,31 @@ final class SessionStore {
             .filter { calendar.startOfDay(for: $0.start) == dayStart }
             .sorted { $0.start < $1.start }
             .map { DayEdit.Session(start: $0.start, end: $0.end, activeSeconds: $0.activeSeconds,
-                                   hourlyRate: $0.hourlyRate, isAdjusted: $0.isAdjusted) }
+                                   hourlyRate: $0.hourlyRate, isAdjusted: $0.isAdjusted,
+                                   uid: $0.uid, invoiceNumber: $0.invoiceNumber) }
         return DayEdit(day: dayStart, sessions: sessions, name: name)
     }
 
     /// Put a day back exactly as `dayEdit` found it.
     func restore(_ edit: DayEdit, for project: Project, calendar: Calendar = .current) throws {
         let dayStart = calendar.startOfDay(for: edit.day)
+        // An issued invoice outranks an undo: the document is already with
+        // the client, and the store must not quietly disagree with it.
+        if let number = invoiceNumber(coveringDay: dayStart, for: project, calendar: calendar) {
+            throw InvoiceError.dayIsInvoiced(number)
+        }
         for session in project.sessions where calendar.startOfDay(for: session.start) == dayStart {
             context.delete(session)
         }
         for s in edit.sessions {
-            context.insert(WorkSession(start: s.start, end: s.end, activeSeconds: s.activeSeconds,
-                                       hourlyRate: s.hourlyRate, project: project, isAdjusted: s.isAdjusted))
+            let restored = WorkSession(start: s.start, end: s.end, activeSeconds: s.activeSeconds,
+                                       hourlyRate: s.hourlyRate, project: project, isAdjusted: s.isAdjusted)
+            // Identity and the lock come back with the work. Without them an
+            // undo unlocked an invoiced day and orphaned the invoice's
+            // provenance.
+            restored.uid = s.uid
+            restored.invoiceNumber = s.invoiceNumber
+            context.insert(restored)
         }
         try context.save()
         invalidateTodayCache()
@@ -362,7 +390,18 @@ final class SessionStore {
 
     /// Daily Breakdown rows, newest first. One entry per worked day.
     func dayTotals(for project: Project, calendar: Calendar = .current) -> [DayTotal] {
-        let grouped = Dictionary(grouping: project.sessions) { calendar.startOfDay(for: $0.start) }
+        Self.dayTotals(from: project.sessions, projectRate: project.hourlyRate, calendar: calendar)
+    }
+
+    /// Day rows over a GIVEN set of sessions.
+    ///
+    /// The invoice needs this: it bills only sessions that are not already on
+    /// an invoice, and grouping the project's whole history instead meant a
+    /// day that was partly invoiced got billed again IN FULL. Two hours
+    /// invoiced and one added later produced a line for three.
+    static func dayTotals(from sessions: [WorkSession], projectRate: Double,
+                          calendar: Calendar = .current) -> [DayTotal] {
+        let grouped = Dictionary(grouping: sessions) { calendar.startOfDay(for: $0.start) }
         return grouped.map { day, sessions in
             DayTotal(
                 day: day,
@@ -370,7 +409,7 @@ final class SessionStore {
                 sessionCount: sessions.count,
                 firstStart: sessions.map(\.start).min() ?? day,
                 lastEnd: sessions.map(\.end).max() ?? day,
-                earned: sessions.reduce(0) { $0 + $1.earned(projectRate: project.hourlyRate) },
+                earned: sessions.reduce(0) { $0 + $1.earned(projectRate: projectRate) },
                 adjustedSeconds: sessions.filter { $0.isAdjusted }.reduce(0) { $0 + $1.activeSeconds }
             )
         }

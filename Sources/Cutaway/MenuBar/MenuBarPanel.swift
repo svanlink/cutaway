@@ -208,7 +208,9 @@ struct MenuBarPanel: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(DT.glyph)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Not recording — Resolve is on another project")
+                    (model.heldNameIsIgnored
+                        ? Text("Not recording — you marked this project not billable")
+                        : Text("Not recording — Resolve is on another project"))
                         .font(DT.smallSemibold)
                     Text(onScreen)
                         .font(DT.captionMedium)
@@ -216,6 +218,18 @@ struct MenuBarPanel: View {
                         .truncationMode(.middle)
                 }
                 Spacer(minLength: 0)
+                // A hold with no way out is a trap. This is the door.
+                Button {
+                    model.reconsiderIgnoredName()
+                    model.raiseAttributionIfHeld()
+                } label: {
+                    // Two Texts, not a ternary of literals: a ternary
+                    // resolves to String, which is verbatim and never reaches
+                    // the catalog. Third time this trap has been hit.
+                    model.heldNameIsIgnored ? Text("Bill it after all") : Text("Choose…")
+                }
+                .buttonStyle(DayActionButtonStyle())
+                .fixedSize()
             }
             .foregroundStyle(DT.held)
             .padding(.horizontal, DT.rowInset)

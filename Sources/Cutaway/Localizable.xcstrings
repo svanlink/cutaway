@@ -491,6 +491,16 @@
         }
       }
     },
+    "Bill it after all": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doch abrechnen"
+          }
+        }
+      }
+    },
     "Billed to": {
       "localizations": {
         "de": {
@@ -567,6 +577,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "App auswählen …"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen …"
           }
         }
       }
@@ -1511,6 +1531,16 @@
         }
       }
     },
+    "Not recording — you marked this project not billable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aufzeichnung — du hast dieses Projekt als nicht abrechenbar markiert"
+          }
+        }
+      }
+    },
     "Not registered for VAT": {
       "localizations": {
         "de": {
@@ -2227,6 +2257,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das ist eine QR-IBAN; sie braucht eine von der Bank vergebene QR-Referenz. Verwende stattdessen deine gewöhnliche IBAN."
+          }
+        }
+      }
+    },
+    "The PDF could not be written — check the disk and try saving it again from the invoice list.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das PDF konnte nicht geschrieben werden — prüfe den Speicherplatz und sichere es erneut aus der Rechnungsliste."
           }
         }
       }

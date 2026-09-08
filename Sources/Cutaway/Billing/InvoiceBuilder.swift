@@ -37,9 +37,15 @@ enum InvoiceBuilder {
     static func lines(for days: [DayTotal], sessionUIDsByDay: [Date: [String]],
                       currency: BillingCurrency, calendar: Calendar = .current) -> [Line] {
         days.sorted { $0.day < $1.day }.map { day in
-            let hours = Money.decimal(day.activeSeconds / 3600, places: 4)
+            // Billed to the MINUTE, rounded down. The page prints h:mm and the
+            // amount is computed from those same minutes, so a client can
+            // multiply the row and get the number beside it. Seconds beyond
+            // the minute are given away — the direction every other rule in
+            // this app resolves toward.
+            let minutes = (day.activeSeconds / 60).rounded(.down)
+            let hours = Money.decimal(minutes / 60, places: 6)
             let rate = Money.decimal(day.effectiveRate)
-            let amount = Money.rounded(Money.decimal(day.earned), currency: currency)
+            let amount = Money.rounded(hours * rate, currency: currency)
             return Line(kind: .time,
                         day: day.day,
                         text: dayText(day.day, calendar: calendar),

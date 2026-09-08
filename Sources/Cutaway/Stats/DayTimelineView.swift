@@ -30,10 +30,14 @@ struct DayTimelineView: View {
     }
 
     private var blocks: [DayTimeline.Block] {
-        var result = sessions.map {
-            DayTimeline.Block(id: $0.persistentModelID.storeIdentifier ?? UUID().uuidString,
-                              start: $0.start, end: $0.end,
-                              activeSeconds: $0.activeSeconds, isAdjusted: $0.isAdjusted)
+        var result = sessions.enumerated().map { index, session in
+            // Position within the day, which is stable for as long as the
+            // strip is on screen and unique per row — unlike the store
+            // identifier, which is one value for the whole file.
+            DayTimeline.Block(id: Self.blockID(session, index: index),
+                              start: session.start, end: session.end,
+                              activeSeconds: session.activeSeconds,
+                              isAdjusted: session.isAdjusted)
         }
         if let live {
             result.append(DayTimeline.Block(id: "live", start: live.start, end: Date(),
@@ -198,8 +202,15 @@ struct DayTimelineView: View {
 
     // MARK: - Actions
 
+    /// Start time plus index: two sessions cannot share both.
+    static func blockID(_ session: WorkSession, index: Int) -> String {
+        "\(index)-\(session.start.timeIntervalSinceReferenceDate)"
+    }
+
     private func session(for id: String) -> WorkSession? {
-        sessions.first { $0.persistentModelID.storeIdentifier == id }
+        sessions.enumerated()
+            .first { Self.blockID($0.element, index: $0.offset) == id }?
+            .element
     }
 
     private func middle(_ block: DayTimeline.Block) -> Date {

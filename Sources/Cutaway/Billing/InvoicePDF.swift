@@ -45,6 +45,13 @@ enum InvoicePDF {
         }
         context.closePDF()
         guard drew else { throw RenderError(what: String(localized: "The invoice could not be drawn.")) }
+        // A closure that ran is not a file that exists. On a full disk the
+        // draw succeeds and the write does not, and the owner is left with a
+        // locked invoice and a truncated PDF they believe is fine.
+        let written = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? nil
+        guard let written, written > 1_000 else {
+            throw RenderError(what: String(localized: "The PDF could not be written — check the disk and try saving it again from the invoice list."))
+        }
         return url
     }
 

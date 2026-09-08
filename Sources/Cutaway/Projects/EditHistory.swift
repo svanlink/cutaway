@@ -15,6 +15,11 @@ struct DayEdit: Sendable {
         let activeSeconds: TimeInterval
         let hourlyRate: Double
         let isAdjusted: Bool
+        /// Carried, or an undo silently unlocks work an invoice claims and
+        /// leaves that invoice's provenance pointing at sessions that no
+        /// longer exist.
+        let uid: String
+        let invoiceNumber: String
     }
 
     let day: Date

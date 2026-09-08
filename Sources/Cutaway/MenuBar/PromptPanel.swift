@@ -213,7 +213,9 @@ final class PromptPanel {
                                          resumeAsked: model.resumePromptOpen,
                                          manuallyPaused: model.engine.manuallyPaused,
                                          state: model.engine.state,
-                                         attribution: model.pendingAttribution)
+                                         attribution: model.pendingAttribution.map {
+                                             (name: $0.name, source: $0.source, current: $0.current)
+                                         })
         guard let next else { hide(); return }
         let isNew = !sameKind(showing, next)
         show(next)

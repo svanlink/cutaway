@@ -163,7 +163,7 @@ final class AppModel {
             // project would hold the clock for the rest of the evening —
             // the rule is meant to stop the wrong work being billed, not to
             // stop work being billed at all.
-            if self.detector.resolveEdition() == nil { self.resolveProject = nil }
+            if !self.detector.isResolveRunning { self.resolveProject = nil }
             // The engine cannot see Resolve; it is told, every tick.
             self.engine.projectMismatch = self.projectMismatch
             self.autoSwitcher?.tick()
@@ -236,7 +236,18 @@ final class AppModel {
     // MARK: - Attribution
 
     /// A name nobody has claimed yet, waiting on the card.
-    private(set) var pendingAttribution: (name: String, source: AttributionPolicy.Source, current: String?)?
+    ///
+    /// It carries the project it OFFERED, by identity. Reading the current
+    /// selection when the answer arrives means a card that says "Yes,
+    /// Alpina" can write the alias onto whatever detection selected in the
+    /// meantime.
+    struct Attribution: Equatable {
+        let name: String
+        let source: AttributionPolicy.Source
+        let current: String?
+        let currentID: PersistentIdentifier?
+    }
+    private(set) var pendingAttribution: Attribution?
     /// Names asked about this run. A card someone dismissed must not come
     /// back on the next app switch.
     private var askedNames: Set<String> = []
@@ -267,44 +278,64 @@ final class AppModel {
 
     /// Detection saw a name. Where it goes is the OWNER's call the first
     /// time, and the app's from then on.
-    func detected(_ name: String, source: AttributionPolicy.Source) {
-        if case .resolve = source {
-            resolveProject = name.trimmingCharacters(in: .whitespaces)
-        }
+    func detected(_ name: String, source: AttributionPolicy.Source, isTransition: Bool = true) {
+        let clean = name.trimmingCharacters(in: .whitespaces)
+        guard !clean.isEmpty else { return }
+        if case .resolve = source { resolveProject = clean }
+
         let known = projects.map { (project: $0.name, names: [$0.name] + $0.detectedNames) }
-        switch AttributionPolicy.decide(name: name, source: source, known: known,
+        switch AttributionPolicy.decide(name: clean, source: source, known: known,
                                         current: selectedProject?.name,
                                         ignored: ignoredNames,
                                         asked: Array(askedNames)) {
         case .stay, .ignore:
-            return
+            break
         case .select(let projectName):
-            if let match = projects.first(where: { $0.name == projectName }) {
+            // Only a TRANSITION switches. Acting on steady state means a poll
+            // every thirty seconds re-asserts whatever Resolve has loaded, so
+            // a manual pick survives at most one tick — the property commit
+            // 7ef3870 established and this path had quietly bypassed.
+            if isTransition, let match = projects.first(where: { $0.name == projectName }),
+               match.persistentModelID != selectedProjectID {
                 projectsModel.select(match)
                 announce(Self.switchAnnouncement(to: match.name))
             }
         case .ask(let n, let src, let current):
             askedNames.insert(n)
-            pendingAttribution = (n, src, current)
+            pendingAttribution = Attribution(name: n, source: src,
+                                             current: current,
+                                             currentID: selectedProjectID)
         }
-        // The card is a question, not a dismissal: while Resolve sits on a
-        // name nobody has placed, it comes back. Asking once and then
-        // silently billing the previous project is the bug this whole
-        // change exists to kill.
-        if projectMismatch, pendingAttribution == nil, let unplaced = resolveProject {
-            pendingAttribution = (unplaced, .resolve, selectedProject?.name)
-        }
+
+        // Outside the switch, and reached from EVERY branch. The re-raise
+        // used to sit behind `case .stay, .ignore: return`, so a held clock
+        // with a dismissed card had no card and no route back — the exact
+        // state its own comment claimed was impossible.
+        raiseAttributionIfHeld()
+    }
+
+    /// While the clock is held, the question stands. A dismissed card must
+    /// come back, or the hold is a trap.
+    func raiseAttributionIfHeld() {
+        guard projectMismatch, pendingAttribution == nil, let unplaced = resolveProject else { return }
+        pendingAttribution = Attribution(name: unplaced, source: .resolve,
+                                         current: selectedProject?.name,
+                                         currentID: selectedProjectID)
     }
 
     /// "Yes" — this name is the project already selected. Remembered, so the
     /// question is asked once per job rather than once per app switch.
     func attachDetectedName(_ name: String) {
+        let offered = pendingAttribution?.currentID
         defer { pendingAttribution = nil; engine.projectMismatch = projectMismatch }
-        guard let p = selectedProject else { return }
+        // The project the CARD named, not the one selected now.
+        guard let p = projects.first(where: { $0.persistentModelID == offered }) ?? selectedProject
+        else { return }
         storeErrors.attempt("remember that name") {
             p.remember(name)
             try store.context.save()
         }
+        if p.persistentModelID != selectedProjectID { projectsModel.select(p) }
     }
 
     /// "New project" — what the app used to do silently, now on request.
@@ -325,6 +356,24 @@ final class AppModel {
     func ignoreDetectedName(_ name: String) {
         defer { pendingAttribution = nil }
         ignoredNames = ignoredNames + [name]
+    }
+
+    /// The way back out of a hold the owner chose: forget that this name was
+    /// ever marked not billable, and ask again. Without this, "Not billable"
+    /// was a one-way door — nothing can ever answer to an ignored name, so
+    /// the mismatch, and the stopped clock, would have lasted forever.
+    func reconsiderIgnoredName() {
+        guard let name = resolveProject else { return }
+        ignoredNames = ignoredNames.filter { !ProjectName.matches($0, name) }
+        askedNames.remove(name)
+        raiseAttributionIfHeld()
+    }
+
+    /// Is the held name one the owner marked not billable? The banner needs
+    /// to say which of the two holds this is.
+    var heldNameIsIgnored: Bool {
+        guard let name = resolveProject else { return false }
+        return ignoredNames.contains { ProjectName.matches($0, name) }
     }
 
     /// Detection moved attribution by itself — say so. A manual switch needs

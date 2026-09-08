@@ -8,6 +8,13 @@ import Foundation
 struct DayTimeline: Equatable {
 
     struct Block: Identifiable, Equatable {
+        /// Identity of the ROW.
+        ///
+        /// This was `persistentModelID.storeIdentifier`, which is the
+        /// STORE's identifier — the same string for every session in the
+        /// file. Every lookup therefore returned the day's first session, so
+        /// dragging, splitting, deleting or reassigning the second block of a
+        /// day silently operated on the first one.
         var id: String
         var start: Date
         var end: Date

@@ -41,26 +41,63 @@ final class ProjectDetector {
     }
 
     /// Tier 2: parse the project name out of Resolve's focused window title.
+    /// Is Resolve running at all? Cheap: no disk, no scripting, just the
+    /// running-app list. `resolveEdition()` also stats a support directory,
+    /// which is far too much to do on every tick.
+    var isResolveRunning: Bool {
+        NSWorkspace.shared.runningApplications.contains {
+            DetectionInput.resolveBundleIDs.contains($0.bundleIdentifier ?? "")
+        }
+    }
+
+    /// A FRESH window-title read, or nil. Never the cached name.
+    ///
+    /// `detectProjectName()` answers with the last known name when a read
+    /// fails, which is right for "what project are we on" and badly wrong for
+    /// "what is Resolve showing right now" — a failed read would present a
+    /// stale project as observed truth, and the mismatch guard would clear
+    /// itself against a name nobody had seen.
+    func freshProjectName() -> String? {
+        let before = lastDetectedName
+        let answer = detectProjectName()
+        return answer == before && !titleReadSucceeded ? nil : answer
+    }
+
+    /// Set by the last `detectProjectName()` call: did the AX read actually
+    /// produce a title this time?
+    private(set) var titleReadSucceeded = false
+
     /// Titles look like "DaVinci Resolve - <Project>" (or just "DaVinci
     /// Resolve" on some screens → nil, keep last known).
     func detectProjectName() -> String? {
+        titleReadSucceeded = false
         guard accessibilityGranted,
               let app = NSWorkspace.shared.runningApplications.first(where: {
                   DetectionInput.resolveBundleIDs.contains($0.bundleIdentifier ?? "")
               }) else { return lastDetectedName }
 
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
+        // A synchronous AX call into another process blocks THIS one until
+        // that process answers. Resolve mid-render can take its time, and the
+        // default timeout is generous enough to be felt as a beachball in a
+        // menu-bar app that reads every five seconds.
+        AXUIElementSetMessagingTimeout(axApp, 1.0)
         var windowRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &windowRef) == .success,
-              let window = windowRef else { return lastDetectedName }
+              let windowValue = windowRef,
+              CFGetTypeID(windowValue) == AXUIElementGetTypeID() else { return lastDetectedName }
+        // `as!` here was a crash waiting for the day AX answers with anything
+        // else — an AXValue, a string, nil wrapped in a CFType.
+        let window = unsafeDowncast(windowValue, to: AXUIElement.self)
 
         var titleRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(window as! AXUIElement, kAXTitleAttribute as CFString, &titleRef) == .success,
+        guard AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef) == .success,
               let title = titleRef as? String else { return lastDetectedName }
 
         if let name = Self.projectName(fromWindowTitle: title) {
             lastDetectedName = name
             activeTier = .windowTitle
+            titleReadSucceeded = true
         }
         return lastDetectedName
     }

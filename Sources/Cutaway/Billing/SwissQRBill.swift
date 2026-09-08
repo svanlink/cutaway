@@ -29,6 +29,35 @@ enum SwissQRBill {
         }
     }
 
+    /// Split a Swiss address block — street and number on one line, postcode
+    /// and town on the next — into the structured fields the scheme requires.
+    ///
+    /// The payload carried an empty postal code and the street in the town
+    /// field until 2026-09-08 — a bill that looks right on paper and is
+    /// rejected by the scheme. Anything this cannot parse returns nil, and
+    /// the caller prints no payment part at all: an invalid QR-bill is worse
+    /// than none, because the client tries to pay it.
+    static func address(name: String, block: String, country: String = "CH") -> Address? {
+        let lines = block.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+                         .filter { !$0.isEmpty }
+        guard lines.count >= 2, !name.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+        // Last line: a postcode, a space, then a town.
+        let townLine = lines[lines.count - 1]
+        let townParts = townLine.split(separator: " ", maxSplits: 1).map(String.init)
+        guard townParts.count == 2, townParts[0].allSatisfy(\.isNumber) else { return nil }
+        // Line before it: a street name, a space, then a number.
+        let streetLine = lines[lines.count - 2]
+        let streetParts = streetLine.split(separator: " ")
+        guard streetParts.count >= 2, let number = streetParts.last,
+              number.contains(where: \.isNumber) else { return nil }
+        return Address(name: name,
+                       street: streetParts.dropLast().joined(separator: " "),
+                       buildingNumber: String(number),
+                       postalCode: townParts[0],
+                       town: townParts[1],
+                       country: country)
+    }
+
     enum ReferenceType: String {
         /// QR-IBAN with a 27-digit QR reference.
         case qrr = "QRR"

@@ -147,7 +147,8 @@ final class PaymentPartTests: XCTestCase {
     private func issue(_ p: Project, iban: String) throws -> Invoice {
         try store.issueInvoice(for: p, from: cal.date(from: DateComponents(year: 2026, month: 9, day: 1))!,
                                to: cal.date(from: DateComponents(year: 2026, month: 9, day: 30))!,
-                               taxMode: .notRegistered, supplier: "S\nZürich",
+                               taxMode: .notRegistered,
+                               supplier: "Sebastian van Eickelen\nBadenerstrasse 12\n8004 Zürich",
                                supplierVATNumber: "", clientBlock: p.clientBlock,
                                iban: iban, now: Date(), calendar: cal)
     }
@@ -183,6 +184,25 @@ final class PaymentPartTests: XCTestCase {
         let unwrapped = try XCTUnwrap(image)
         XCTAssertEqual(unwrapped.size.width, side, accuracy: 0.5, "46 mm at 72 dpi")
         XCTAssertEqual(unwrapped.size.height, side, accuracy: 0.5)
+    }
+
+    /// An address the scheme would reject prints NO payment part. A bill
+    /// that looks right and cannot be paid is worse than no bill.
+    func testAnUnparseableSupplierAddressPrintsNoPaymentPart() throws {
+        let p = try project()
+        let invoice = try store.issueInvoice(
+            for: p, from: cal.date(from: DateComponents(year: 2026, month: 9, day: 1))!,
+            to: cal.date(from: DateComponents(year: 2026, month: 9, day: 30))!,
+            taxMode: .notRegistered, supplier: "Sebastian\nZürich",
+            supplierVATNumber: "", clientBlock: p.clientBlock,
+            iban: "CH93 0076 2011 6238 5295 7", now: Date(), calendar: cal)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("noqr-\(UUID().uuidString).pdf")
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        try InvoicePDF.write(invoice, to: url)
+        let text = try XCTUnwrap(PDFDocument(url: url)?.string)
+        XCTAssertFalse(text.contains("Payment part"),
+                       "no structured address, no payment part")
     }
 
     func testThePaymentPartReachesThePage() throws {

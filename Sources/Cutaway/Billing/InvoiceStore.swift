@@ -26,6 +26,14 @@ extension SessionStore {
         }
     }
 
+    /// What this project has already been invoiced, excluding voided
+    /// documents — a void keeps its number but claims nothing.
+    func invoicedTotal(for project: Project) throws -> Decimal {
+        try invoices()
+            .filter { $0.projectName == project.name && $0.status != .void }
+            .reduce(Decimal(0)) { $0 + $1.subtotal }
+    }
+
     func invoices() throws -> [Invoice] {
         try context.fetch(FetchDescriptor<Invoice>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)]))
     }
@@ -81,14 +89,20 @@ extension SessionStore {
             let day = calendar.startOfDay(for: session.start)
             uidsByDay[day, default: []].append(session.ensureUID())
         }
-        let days = dayTotals(for: project, calendar: calendar)
-            .filter { uidsByDay[$0.day] != nil }
+        // Over the BILLABLE sessions only. Grouping the project's whole
+        // history here billed a partly-invoiced day again in full.
+        let days = Self.dayTotals(from: sessions, projectRate: project.hourlyRate, calendar: calendar)
 
         let built = InvoiceBuilder.lines(for: days, sessionUIDsByDay: uidsByDay,
                                          currency: project.currency, calendar: calendar)
         var draft = InvoiceBuilder.totals(built, taxMode: taxMode, currency: project.currency)
         if project.mode == .budget {
-            draft = InvoiceBuilder.budgetCapped(draft, budget: Money.decimal(project.budget),
+            // What is LEFT of the budget, not the whole budget again. Capping
+            // each invoice at the full figure let a CHF 4'500 job bill 4'500
+            // and then 2'400 on top.
+            let alreadyBilled = try invoicedTotal(for: project)
+            draft = InvoiceBuilder.budgetCapped(draft,
+                                                budget: Money.decimal(project.budget) - alreadyBilled,
                                                 currency: project.currency)
         }
 

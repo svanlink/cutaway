@@ -8,7 +8,8 @@ import Foundation
 nonisolated(unsafe) let Prefs: UserDefaults = {
     let env = ProcessInfo.processInfo.environment
     if let suite = PrefsPolicy.suiteName(scenario: env["CUTAWAY_SCENARIO"] != nil,
-                                         dataDir: env["CUTAWAY_DATA_DIR"]) {
+                                         dataDir: env["CUTAWAY_DATA_DIR"],
+                                         isTestRun: env["XCTestConfigurationFilePath"] != nil) {
         return UserDefaults(suiteName: suite)!
     }
     return .standard
@@ -18,9 +19,16 @@ enum PrefsPolicy {
     /// A quarantined store means quarantined prefs: a demo/capture launch with
     /// CUTAWAY_DATA_DIR once wrote its selected project and "primer shown"
     /// into the user's real defaults, so the real first run never showed it.
-    static func suiteName(scenario: Bool, dataDir: String?) -> String? {
+    static func suiteName(scenario: Bool, dataDir: String?, isTestRun: Bool = false) -> String? {
         if scenario { return "com.vaneickelen.cutaway.scenario" }
         if dataDir != nil { return "com.vaneickelen.cutaway.harness" }
+        // The unit-test HOST is this app, and it was writing to the owner's
+        // real preferences: measured on 2026-09-08, one test class rewrote
+        // `lastBackupAt` — disarming the live backup for 24 hours — and
+        // DELETED the running app's crash snapshot for a 770-second session
+        // in progress. StorePath and SessionLogger have quarantined on this
+        // signal for weeks; Prefs was the hole left in that wall.
+        if isTestRun { return "com.vaneickelen.cutaway.tests" }
         return nil
     }
 }

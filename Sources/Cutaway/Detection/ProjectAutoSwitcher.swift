@@ -61,10 +61,18 @@ final class ProjectAutoSwitcher {
     /// prompt, no second opinion to disagree with Resolve.
 
     func tick() {
-        // Detection runs while recording AND while paused for lack of a
-        // project — that is how a zero-state install bootstraps itself from
-        // whatever is already open in Resolve.
-        let active = engine.state == .recording || engine.state == .paused(.noProject)
+        // Detection runs while recording, while paused for lack of a project
+        // — that is how a zero-state install bootstraps itself from whatever
+        // is open in Resolve — and, critically, WHILE HELD FOR A MISMATCH.
+        //
+        // Leaving `.projectMismatch` out of this set was a deadlock: the
+        // pause stopped the detection that was the only way to learn Resolve
+        // had moved back, so the clock stayed held until Cutaway was
+        // relaunched. A guard that cannot observe its own release condition
+        // is a trap, not a guard.
+        let active = engine.state == .recording
+            || engine.state == .paused(.noProject)
+            || engine.state == .paused(.projectMismatch)
         guard active else { return }
         schedule.advance()
 

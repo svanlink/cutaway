@@ -2,6 +2,12 @@
 # Cutaway release: verify → build → zip → publish → bump the cask.
 # Usage: scripts/release.sh 1.0.1
 set -euo pipefail
+
+# The zip must contain what the tag says. A dirty tree shipped code that is
+# in no commit — invisible in the release, unreproducible afterwards.
+if [ -n "$(git status --porcelain)" ]; then
+  echo "working tree is dirty — commit or stash before releasing"; git status --short; exit 1
+fi
 V="${1:?usage: release.sh <version>}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
