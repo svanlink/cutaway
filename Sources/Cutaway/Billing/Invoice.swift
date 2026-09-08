@@ -51,6 +51,9 @@ final class Invoice {
     /// without this, reopening the document elsewhere regroups it.
     var timeZoneIdentifier: String = TimeZone.current.identifier
     var qrReference: String?
+    /// The account the payment part prints. Copied like everything else on
+    /// the page: changing bank must not restate a document already sent.
+    var creditorIBAN: String = ""
     var createdAt: Date = Date()
 
     @Relationship(deleteRule: .cascade, inverse: \InvoiceLine.invoice)

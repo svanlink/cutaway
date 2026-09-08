@@ -18,11 +18,14 @@ enum InvoicePDF {
     /// enough to overflow needs pagination, and the guard below says so
     /// rather than silently cropping a client's invoice.
     static let maxLinesPerPage = 34
+    /// A payment part takes the bottom 105 mm of the page — a third of it.
+    static let maxLinesWithPaymentPart = 16
 
     @discardableResult
     static func write(_ invoice: Invoice, to url: URL) throws -> URL {
-        guard invoice.orderedLines.count <= maxLinesPerPage else {
-            throw RenderError(what: String(localized: "This period has \(invoice.orderedLines.count) lines — more than one page holds. Invoice a shorter period."))
+        let limit = invoice.creditorIBAN.isEmpty ? maxLinesPerPage : maxLinesWithPaymentPart
+        guard invoice.orderedLines.count <= limit else {
+            throw RenderError(what: String(localized: "This period has \(invoice.orderedLines.count) lines — more than one page holds alongside the payment part. Invoice a shorter period."))
         }
         let view = InvoiceDocumentView(invoice: invoice)
         let renderer = ImageRenderer(content: view)

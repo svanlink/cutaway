@@ -120,3 +120,80 @@ final class InvoicePDFTests: XCTestCase {
 private func pageText(url: URL) -> String? {
     PDFDocument(url: url)?.string
 }
+
+/// The payment part: the payload is exact and testable even though the
+/// layout is not.
+@MainActor
+final class PaymentPartTests: XCTestCase {
+
+    private var store: SessionStore!
+    private var cal: Calendar!
+
+    override func setUpWithError() throws {
+        store = try SessionStore(inMemory: true)
+        cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Zurich")!
+    }
+
+    private func project() throws -> Project {
+        let p = try store.createProject(name: "Maisons", client: "Richemont",
+                                        mode: .hourly, hourlyRate: 120, currency: .chf)
+        let start = cal.date(from: DateComponents(year: 2026, month: 9, day: 4, hour: 9))!
+        try store.record(SessionRecord(start: start, end: start.addingTimeInterval(14_400),
+                                       activeSeconds: 14_400), to: p, calendar: cal)
+        return p
+    }
+
+    private func issue(_ p: Project, iban: String) throws -> Invoice {
+        try store.issueInvoice(for: p, from: cal.date(from: DateComponents(year: 2026, month: 9, day: 1))!,
+                               to: cal.date(from: DateComponents(year: 2026, month: 9, day: 30))!,
+                               taxMode: .notRegistered, supplier: "S\nZürich",
+                               supplierVATNumber: "", clientBlock: p.clientBlock,
+                               iban: iban, now: Date(), calendar: cal)
+    }
+
+    func testAnInvoiceWithAnIBANCarriesAReference() throws {
+        let invoice = try issue(try project(), iban: "CH93 0076 2011 6238 5295 7")
+        XCTAssertEqual(invoice.creditorIBAN, "CH9300762011623852957", "stored without spaces")
+        XCTAssertTrue((invoice.qrReference ?? "").hasPrefix("RF"), "an ISO 11649 creditor reference")
+    }
+
+    /// Cutaway cannot invent a QR reference, so it refuses rather than
+    /// printing a bill that bounces.
+    func testAQRIBANIsRefusedWithAReason() throws {
+        let p = try project()
+        XCTAssertThrowsError(try issue(p, iban: "CH44 3199 9123 0008 8901 2")) { error in
+            XCTAssertTrue("\(error)".contains("QR-IBAN"))
+        }
+    }
+
+    func testAUSDInvoiceCannotCarryAPaymentPart() throws {
+        let p = try store.createProject(name: "US", client: "C", mode: .hourly,
+                                        hourlyRate: 100, currency: .usd)
+        let start = cal.date(from: DateComponents(year: 2026, month: 9, day: 4, hour: 9))!
+        try store.record(SessionRecord(start: start, end: start.addingTimeInterval(3600),
+                                       activeSeconds: 3600), to: p, calendar: cal)
+        XCTAssertThrowsError(try issue(p, iban: "CH93 0076 2011 6238 5295 7"))
+    }
+
+    func testTheQRCodeIsGeneratedAtTheSpecifiedSize() throws {
+        let invoice = try issue(try project(), iban: "CH93 0076 2011 6238 5295 7")
+        let side = SwissQRCode.sideMM * PaymentPartView.mm
+        let image = SwissQRCode.image(payload: "SPC\r\n0200\r\n1\r\n\(invoice.creditorIBAN)", sidePoints: side)
+        let unwrapped = try XCTUnwrap(image)
+        XCTAssertEqual(unwrapped.size.width, side, accuracy: 0.5, "46 mm at 72 dpi")
+        XCTAssertEqual(unwrapped.size.height, side, accuracy: 0.5)
+    }
+
+    func testThePaymentPartReachesThePage() throws {
+        let invoice = try issue(try project(), iban: "CH93 0076 2011 6238 5295 7")
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("qr-\(UUID().uuidString).pdf")
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        try InvoicePDF.write(invoice, to: url)
+        let text = try XCTUnwrap(PDFDocument(url: url)?.string)
+        XCTAssertTrue(text.contains("Payment part"))
+        XCTAssertTrue(text.contains("CH93 0076"), "the IBAN, grouped as a human reads it")
+        XCTAssertTrue(text.contains(invoice.qrReference ?? "—"))
+    }
+}

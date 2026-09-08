@@ -23,6 +23,10 @@ struct InvoiceDocumentView: View {
             totals
             notes
             Spacer(minLength: 0)
+            if !invoice.creditorIBAN.isEmpty, let payload = qrPayload {
+                PaymentPartView(invoice: invoice, payload: payload,
+                                iban: formattedIBAN, reference: invoice.qrReference ?? "")
+            }
         }
         .padding(56)
         .frame(width: Self.pageSize.width, height: Self.pageSize.height, alignment: .topLeading)
@@ -150,6 +154,38 @@ struct InvoiceDocumentView: View {
             }
         }
         .foregroundStyle(Color.black.opacity(0.7))
+    }
+
+    /// Built from the SAME frozen fields the page prints, so the code and
+    /// the text beside it can never disagree.
+    private var qrPayload: String? {
+        let creditor = SwissQRBill.Address(name: line(invoice.supplierBlock, 0),
+                                           street: "", buildingNumber: "",
+                                           postalCode: "", town: line(invoice.supplierBlock, 1),
+                                           country: "CH")
+        let debtor = SwissQRBill.Address(name: line(invoice.clientBlock, 0),
+                                         street: "", buildingNumber: "",
+                                         postalCode: "", town: line(invoice.clientBlock, 1),
+                                         country: "CH")
+        return try? SwissQRBill.payload(iban: invoice.creditorIBAN, creditor: creditor,
+                                        amount: invoice.total, currency: invoice.currency,
+                                        debtor: debtor, referenceType: .scor,
+                                        reference: invoice.qrReference ?? "",
+                                        message: invoice.number)
+    }
+
+    private func line(_ block: String, _ index: Int) -> String {
+        let parts = block.split(separator: "\n").map(String.init)
+        return index < parts.count ? parts[index] : ""
+    }
+
+    /// IBANs are read in fours by humans.
+    private var formattedIBAN: String {
+        stride(from: 0, to: invoice.creditorIBAN.count, by: 4).map {
+            let start = invoice.creditorIBAN.index(invoice.creditorIBAN.startIndex, offsetBy: $0)
+            let end = invoice.creditorIBAN.index(start, offsetBy: min(4, invoice.creditorIBAN.count - $0))
+            return String(invoice.creditorIBAN[start..<end])
+        }.joined(separator: " ")
     }
 
     private func hours(_ value: Decimal) -> String {

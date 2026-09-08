@@ -53,9 +53,25 @@ extension SessionStore {
     func issueInvoice(for project: Project, from: Date, to: Date,
                       taxMode: TaxMode, supplier: String, supplierVATNumber: String,
                       clientBlock: String, dueInDays: Int = 30,
+                      iban: String = "",
                       now: Date = Date(), calendar: Calendar = .current) throws -> Invoice {
         if let refusal = taxMode.issueRefusal(supplierVATNumber: supplierVATNumber) {
             throw InvoiceError.taxRefused(refusal)
+        }
+        // Refuse before anything is written: a payment part that a bank
+        // rejects is worse than no payment part.
+        if !iban.isEmpty {
+            try SwissQRBill.assertSupported(project.currency)
+            guard SwissQRBill.isValidIBAN(iban) else {
+                throw InvoiceError.taxRefused(String(localized: "That IBAN is not a valid Swiss or Liechtenstein IBAN."))
+            }
+            guard !SwissQRBill.isQRIBAN(iban) else {
+                // A QR-IBAN demands a 27-digit QR reference with a recursive
+                // mod-10 check digit, issued per-customer by the bank.
+                // Cutaway cannot invent one, and a wrong one is a bill that
+                // bounces — so it says so instead of guessing.
+                throw InvoiceError.taxRefused(String(localized: "That is a QR-IBAN, which needs a bank-issued QR reference. Use your ordinary IBAN instead."))
+            }
         }
         let sessions = billableSessions(for: project, from: from, to: to, calendar: calendar)
         guard !sessions.isEmpty else { throw InvoiceError.nothingToBill }
@@ -96,6 +112,8 @@ extension SessionStore {
         invoice.taxAmountString = "\(draft.taxAmount)"
         invoice.totalString = "\(draft.total)"
         invoice.timeZoneIdentifier = calendar.timeZone.identifier
+        invoice.creditorIBAN = iban.isEmpty ? "" : SwissQRBill.normalisedIBAN(iban)
+        invoice.qrReference = iban.isEmpty ? nil : SwissQRBill.creditorReference(from: number)
         context.insert(invoice)
 
         for (i, line) in draft.lines.enumerated() {

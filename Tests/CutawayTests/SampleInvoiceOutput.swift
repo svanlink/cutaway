@@ -25,7 +25,6 @@ final class SampleInvoiceOutput: XCTestCase {
                                            activeSeconds: hours * 3600),
                              to: p, calendar: cal)
         }
-        try day(31, 9, hours: 7.6)
         try day(2, 9, hours: 3.1)
         try day(3, 10, hours: 5.2)
         try day(4, 9, hours: 6.9)
@@ -41,6 +40,7 @@ final class SampleInvoiceOutput: XCTestCase {
             supplier: "Sebastian van Eickelen\nBadenerstrasse 12\n8004 Zürich",
             supplierVATNumber: "CHE-123.456.789",
             clientBlock: p.clientBlock,
+            iban: "CH93 0076 2011 6238 5295 7",
             now: cal.date(from: DateComponents(year: 2026, month: 9, day: 8))!,
             calendar: cal)
         try InvoicePDF.write(invoice, to: URL(fileURLWithPath: path))

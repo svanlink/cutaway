@@ -121,6 +121,26 @@
         }
       }
     },
+    "A QR reference needs a QR-IBAN. Use a Creditor Reference or none.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine QR-Referenz braucht eine QR-IBAN. Verwende eine Creditor Reference oder keine."
+          }
+        }
+      }
+    },
+    "A QR-IBAN requires a QR reference.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine QR-IBAN erfordert eine QR-Referenz."
+          }
+        }
+      }
+    },
     "A Swiss VAT invoice must print your UID. Add it in Settings, or choose a different tax mode.": {
       "localizations": {
         "de": {
@@ -137,6 +157,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein neuer Satz gilt ab jetzt. Bereits erfasste Arbeit behält den Satz, zu dem sie geleistet wurde."
+          }
+        }
+      }
+    },
+    "A payment part with a QR code will be printed. Validate the first one at validation.iso-payments.ch before sending it to a client.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Zahlteil mit QR-Code wird gedruckt. Prüfe den ersten auf validation.iso-payments.ch, bevor du ihn einem Kunden schickst."
           }
         }
       }
@@ -181,12 +211,32 @@
         }
       }
     },
+    "Account / Payable to": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto / Zahlbar an"
+          }
+        }
+      }
+    },
     "Add time for a day": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Zeit für einen Tag hinzufügen"
+          }
+        }
+      }
+    },
+    "Additional information": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusätzliche Informationen"
           }
         }
       }
@@ -387,6 +437,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Budget"
+          }
+        }
+      }
+    },
+    "CH93 0076 2011 6238 5295 7": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CH93 0076 2011 6238 5295 7"
           }
         }
       }
@@ -981,6 +1041,16 @@
         }
       }
     },
+    "IBAN": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IBAN"
+          }
+        }
+      }
+    },
     "INVOICE": {
       "localizations": {
         "de": {
@@ -1371,6 +1441,26 @@
         }
       }
     },
+    "Payable by": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahlbar durch"
+          }
+        }
+      }
+    },
+    "Payment part": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahlteil"
+          }
+        }
+      }
+    },
     "Period": {
       "localizations": {
         "de": {
@@ -1451,12 +1541,32 @@
         }
       }
     },
+    "Receipt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empfangsschein"
+          }
+        }
+      }
+    },
     "Redo": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wiederholen"
+          }
+        }
+      }
+    },
+    "Reference": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referenz"
           }
         }
       }
@@ -1791,12 +1901,32 @@
         }
       }
     },
+    "That IBAN is not a valid Swiss or Liechtenstein IBAN.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese IBAN ist keine gültige Schweizer oder Liechtensteiner IBAN."
+          }
+        }
+      }
+    },
     "That folder does not hold a readable Cutaway backup.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Dieser Ordner enthält kein lesbares Cutaway-Backup."
+          }
+        }
+      }
+    },
+    "That is a QR-IBAN, which needs a bank-issued QR reference. Use your ordinary IBAN instead.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist eine QR-IBAN; sie braucht eine von der Bank vergebene QR-Referenz. Verwende stattdessen deine gewöhnliche IBAN."
           }
         }
       }
@@ -2047,6 +2177,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ja, fortsetzen"
+          }
+        }
+      }
+    },
+    "Your IBAN": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine IBAN"
           }
         }
       }

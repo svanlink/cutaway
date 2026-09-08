@@ -46,6 +46,17 @@ struct InvoiceSheet: View {
                         .accessibilityLabel("Your address")
                     TextField("UID", text: $supplier.vatNumber, prompt: Text("CHE-123.456.789"))
                         .accessibilityLabel("Your VAT number")
+                    TextField("IBAN", text: $supplier.iban, prompt: Text("CH93 0076 2011 6238 5295 7"))
+                        .accessibilityLabel("Your IBAN")
+                    if !supplier.iban.isEmpty {
+                        // Said before the first one is printed, not after a
+                        // bank rejects it: the payload is exact and tested,
+                        // the LAYOUT is a faithful arrangement rather than a
+                        // certified one, and only the scheme's own validator
+                        // can settle that.
+                        Text("A payment part with a QR code will be printed. Validate the first one at validation.iso-payments.ch before sending it to a client.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 Section("To") {
                     LabeledContent("Client") { Text(project.client.isEmpty ? "—" : project.client) }
@@ -146,7 +157,8 @@ struct InvoiceSheet: View {
                 for: project, from: span.from, to: span.to,
                 taxMode: taxMode, supplier: supplier.block,
                 supplierVATNumber: supplier.vatNumber,
-                clientBlock: project.clientBlock)
+                clientBlock: project.clientBlock,
+                iban: supplier.iban)
         } catch {
             refusal = error.localizedDescription
             return
