@@ -56,6 +56,7 @@ DE = {
  "New Project…": "Neues Projekt …", "New Project": "Neues Projekt", "Create Project": "Projekt anlegen",
  "Create your first project": "Erstes Projekt anlegen",
  "Create a project to see stats": "Lege ein Projekt an, um Statistiken zu sehen", "Project name": "Projektname",
+ "1 session": "1 Sitzung",
  ", running": ", läuft",
  ", tracked": ", erfasst",
  "Day timeline": "Tagesverlauf",

@@ -55,10 +55,14 @@ struct DayTimelineView: View {
                 let t = timeline
                 ZStack(alignment: .topLeading) {
                     RoundedRectangle(cornerRadius: DT.rMd).fill(DT.card2)
-                    ticks(t, width: geo.size.width)
                     ForEach(t.blocks) { block in
                         blockView(block, timeline: t, width: geo.size.width)
                     }
+                    // ABOVE the blocks, not beneath them. A full day is one
+                    // block covering the whole track, and ticks underneath it
+                    // vanish precisely when the strip most needs to say what
+                    // hour anything happened at.
+                    ticks(t, width: geo.size.width)
                 }
             }
             .frame(height: Self.height)
@@ -75,15 +79,20 @@ struct DayTimelineView: View {
     private func ticks(_ t: DayTimeline, width: CGFloat) -> some View {
         ForEach(t.ticks(), id: \.self) { tick in
             let x = CGFloat(t.fraction(of: tick)) * width
-            Rectangle().fill(DT.strokeSubtle)
-                .frame(width: 1, height: Self.height)
-                .offset(x: x)
-                .overlay(alignment: .topLeading) {
-                    Text(tick.formatted(.dateTime.hour()))
-                        .font(DT.tag).foregroundStyle(DT.text3)
-                        .offset(x: x + 3, y: 2)
-                }
+            ZStack(alignment: .topLeading) {
+                // Dark enough to read over a filled block, light enough to
+                // stay out of the way over an empty track.
+                Rectangle().fill(Color.black.opacity(0.28))
+                    .frame(width: 1, height: Self.height)
+                    .offset(x: x)
+                Text(tick.formatted(.dateTime.hour()))
+                    .font(DT.tag)
+                    .foregroundStyle(DT.text2)
+                    .shadow(color: .black.opacity(0.55), radius: 1.5)
+                    .offset(x: x + 3, y: 1)
+            }
         }
+        .allowsHitTesting(false)      // the axis is scenery; blocks take the clicks
         .accessibilityHidden(true)
     }
 
@@ -138,8 +147,18 @@ struct DayTimelineView: View {
 
     private var caption: some View {
         let s = DayTimeline.summary(blocks)
-        return Text("\(s.sessions) sessions · \(AppModel.hoursText(s.tracked)) tracked · \(AppModel.hoursText(s.gaps)) in gaps")
+        return Text(Self.captionText(sessions: s.sessions, tracked: s.tracked, gaps: s.gaps))
             .font(DT.tag).foregroundStyle(DT.text3).monospacedDigit()
+    }
+
+    /// "1 session", not "1 sessions".
+    static func captionText(sessions: Int, tracked: TimeInterval, gaps: TimeInterval) -> String {
+        let count = sessions == 1
+            ? String(localized: "1 session")
+            : String(localized: "\(sessions) sessions")
+        let worked = String(localized: "\(AppModel.hoursText(tracked)) tracked")
+        guard gaps > 0 else { return "\(count) · \(worked)" }
+        return "\(count) · \(worked) · \(AppModel.hoursText(gaps)) in gaps"
     }
 
     // MARK: - Gestures

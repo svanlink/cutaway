@@ -129,3 +129,23 @@ final class DayTimelineTests: XCTestCase {
         XCTAssertEqual(max(raw, 6), 6, "so the view floors it at 6 pt")
     }
 }
+
+/// The caption under the strip.
+final class DayTimelineCaptionTests: XCTestCase {
+
+    func testOneSessionIsNotOneSessions() {
+        XCTAssertTrue(DayTimelineView.captionText(sessions: 1, tracked: 3600, gaps: 0)
+            .hasPrefix("1 session ·"), "no plural s on one")
+        XCTAssertTrue(DayTimelineView.captionText(sessions: 2, tracked: 3600, gaps: 0)
+            .hasPrefix("2 sessions"))
+    }
+
+    /// A day with no gaps should not advertise "0:00 in gaps" — an absence
+    /// stated is noise, and this caption sits under every unfolded day.
+    func testNoGapsIsNotMentioned() {
+        XCTAssertFalse(DayTimelineView.captionText(sessions: 1, tracked: 43_200, gaps: 0)
+            .contains("gaps"))
+        XCTAssertTrue(DayTimelineView.captionText(sessions: 3, tracked: 43_200, gaps: 900)
+            .contains("in gaps"))
+    }
+}
