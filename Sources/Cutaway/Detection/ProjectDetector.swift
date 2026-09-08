@@ -9,10 +9,12 @@ enum DetectionTier: String, Sendable {
     case manual         // Tier 3 — always available
 }
 
-/// Three-tier Resolve project detection. Tier 2 reads the frontmost Resolve
-/// window title via Accessibility; Tier 3 is the guaranteed fallback.
-/// Tier 1 (scripting API) is stubbed for the pilot — the hook is here, the
-/// wire-up to Resolve's Python IPC is a post-pilot task.
+/// Three-tier Resolve project detection. Tier 1 asks Resolve's own scripting
+/// API (fuscript) for the current project name and is the source of truth;
+/// Tier 2 reads the frontmost Resolve window title via Accessibility and may
+/// only select an existing project; Tier 3 is the guaranteed manual fallback.
+/// Tier 1 returns nil whenever Resolve is not running — that is the early
+/// return in detectViaScriptingAPI, not a stub.
 @MainActor
 final class ProjectDetector {
 
@@ -123,8 +125,9 @@ final class ProjectDetector {
             .first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
-    /// Asks the running Resolve for its current project name. ~3s timeout,
-    /// never blocks the main thread, nil on any failure.
+    /// Asks the running Resolve for its current project name. 8s timeout
+    /// (see below), never blocks the main thread, nil on any failure —
+    /// including the common one: Resolve is not running.
     func detectViaScriptingAPI() async -> String? {
         guard let path = Self.fuscriptPath(),
               NSWorkspace.shared.runningApplications.contains(where: {
