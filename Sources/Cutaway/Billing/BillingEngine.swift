@@ -120,9 +120,9 @@ enum BillingCurrency: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    private var decimals: Int {
-        self == .cop ? 0 : 2
-    }
+    /// One answer for the whole app — the exporter, the formatter and the
+    /// invoice all ask Money, so none of them can drift.
+    private var decimals: Int { Money.minorUnits(self) }
 
     func format(_ amount: Double) -> String {
         "\(symbol) \(number(amount, decimals: decimals))"

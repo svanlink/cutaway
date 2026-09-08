@@ -45,3 +45,50 @@ final class MoneyRoundingTests: XCTestCase {
         XCTAssertEqual(BillingCurrency.chf.format(days.reduce(0, +)), "CHF 135.36")
     }
 }
+
+/// Decimal is what a frozen invoice line is made of. It has to agree with the
+/// Double path to the rappen, or the PDF and the Stats window disagree again —
+/// the bug this whole rule exists to close.
+final class DecimalMoneyTests: XCTestCase {
+
+    func testDecimalAndDoubleAgreeOnTheTieThatStartedThis() {
+        let seconds: TimeInterval = 3_610
+        let rate = 45.0
+        let exact = Money.amount(activeSeconds: seconds, hourlyRate: rate)
+        XCTAssertEqual(exact, Decimal(string: "45.125"))
+        XCTAssertEqual(Money.rounded(exact, currency: .chf), Decimal(string: "45.12"))
+        XCTAssertEqual(NSDecimalNumber(decimal: Money.rounded(exact, currency: .chf)).doubleValue,
+                       CSVExporter.round2(BillingEngine.earnings(activeSeconds: seconds, hourlyRate: rate)),
+                       accuracy: 1e-9)
+    }
+
+    /// The reason Decimal is here at all.
+    func testADecimalRateIsNotAnApproximation() {
+        XCTAssertEqual(Money.decimal(45.55), Decimal(string: "45.550000"))
+        let ten = Money.amount(activeSeconds: 36_000, hourlyRate: 45.55)
+        XCTAssertEqual(Money.rounded(ten, currency: .chf), Decimal(string: "455.50"))
+    }
+
+    func testMinorUnitsFollowTheCurrency() {
+        XCTAssertEqual(Money.minorUnits(.chf), 2)
+        XCTAssertEqual(Money.minorUnits(.eur), 2)
+        XCTAssertEqual(Money.minorUnits(.usd), 2)
+        XCTAssertEqual(Money.minorUnits(.cop), 0, "no centavos on a Colombian invoice")
+        // Nearest, not truncation — 1'234.56 really is nearer to 1'235.
+        XCTAssertEqual(Money.rounded(Decimal(string: "1234.56")!, currency: .cop), Decimal(1235))
+        XCTAssertEqual(Money.rounded(Decimal(string: "1234.44")!, currency: .cop), Decimal(1234))
+        XCTAssertEqual(Money.rounded(Decimal(string: "1234.50")!, currency: .cop), Decimal(1234),
+                       "a tie goes down here too")
+    }
+
+    func testAnOverrunIsNeverFlattered() {
+        XCTAssertEqual(Money.rounded(Decimal(string: "-45.125")!, currency: .chf), Decimal(string: "-45.13"))
+    }
+
+    func testTotalIsTheSumOfRoundedParts() {
+        let parts = [3_610.0, 3_610.0, 3_610.0].map {
+            Money.rounded(Money.amount(activeSeconds: $0, hourlyRate: 45), currency: .chf)
+        }
+        XCTAssertEqual(Money.total(parts), Decimal(string: "135.36"))
+    }
+}
