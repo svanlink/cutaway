@@ -13,16 +13,17 @@ protocol SystemProbing: Sendable {
     /// LAZILY — only when an idle warning is otherwise about to show — so the
     /// window-list walk is not a per-second cost.
     func frontmostWindowIsFullScreen() -> Bool
-    /// CUMULATIVE cpu time burned by every running anchor app, in nanoseconds.
-    /// Cumulative rather than a percentage so the probe stays stateless — the
-    /// engine owns the two samples it takes to make a rate.
+    /// Is any workflow app running at all? Cheap: the running-app list, no
+    /// disk, no scripting.
+    @MainActor func anchorAppRunning(matching prefixes: [String]) -> Bool
 }
 
 extension SystemProbing {
-    /// Probes that don't care about render detection (test fakes, the
-    /// scenario driver) read as "nothing is burning cpu".
-    /// And as "no window is full-screen".
+    /// Fakes and the scenario driver read as "no window is full-screen"...
     func frontmostWindowIsFullScreen() -> Bool { false }
+    /// ...and as "a workflow app is running", which is what every test that
+    /// predates this rule assumed without saying so.
+    @MainActor func anchorAppRunning(matching prefixes: [String]) -> Bool { true }
 }
 
 protocol FrontmostApplication { var bundleIdentifier: String? { get } }
@@ -51,6 +52,17 @@ final class FrontmostTracker {
 /// A class, not a struct: it owns the tracker's subscription. The engine
 /// ticks on the main actor, so the nonisolated protocol read is safe.
 final class SystemProbes: SystemProbing {
+    /// Is any workflow app still open? The running-app list only — no disk,
+    /// no scripting, cheap enough for the tick that asks it.
+    @MainActor
+    func anchorAppRunning(matching prefixes: [String]) -> Bool {
+        let all = prefixes + DetectionInput.resolveBundleIDs
+        return NSWorkspace.shared.runningApplications.contains { app in
+            guard let id = app.bundleIdentifier else { return false }
+            return all.contains { id.hasPrefix($0) }
+        }
+    }
+
     private let frontmost: FrontmostTracker
 
     @MainActor init() {

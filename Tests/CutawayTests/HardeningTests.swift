@@ -182,3 +182,56 @@ final class QRAddressTests: XCTestCase {
         XCTAssertEqual(lines[9], "Zürich")
     }
 }
+
+/// Research sustains work that is still in progress. With every workflow app
+/// closed, there is no work in progress.
+///
+/// Observed 2026-09-08: Resolve was quit at 16:37 and the clock kept running
+/// until 16:44 — recording against Claude and then Safari, because the
+/// twenty-minute research window was still open. From the owner's chair that
+/// is the app billing an evening of reading as editing.
+final class ResearchWindowNeedsAnAnchorTests: XCTestCase {
+
+    private func input(frontmost: String, windowOpen: Bool, anchorRunning: Bool) -> DetectionInput {
+        DetectionInput(frontmostBundleID: frontmost,
+                       secondsSinceInput: 0,
+                       idleThreshold: 120,
+                       manuallyPaused: false,
+                       isAsleep: false,
+                       hasActiveProject: true,
+                       workAppPrefixes: DetectionInput.defaultWorkAppPrefixes,
+                       anchorAppRunning: anchorRunning,
+                       satellitePrefixes: DetectionInput.defaultSatellitePrefixes,
+                       satelliteWindowOpen: windowOpen)
+    }
+
+    func testABrowserSustainsNothingOnceEveryWorkflowAppIsClosed() {
+        let state = DetectionState.evaluate(
+            input(frontmost: "com.apple.Safari", windowOpen: true, anchorRunning: false))
+        XCTAssertEqual(state, .paused(.notFrontmost),
+                       "Resolve closed, After Effects closed — a browser is just a browser")
+    }
+
+    /// The window still works while a workflow app is open behind it: looking
+    /// something up mid-edit is the case it exists for.
+    func testABrowserStillSustainsWhileAWorkflowAppIsOpen() {
+        let state = DetectionState.evaluate(
+            input(frontmost: "com.apple.Safari", windowOpen: true, anchorRunning: true))
+        XCTAssertEqual(state, .recording)
+    }
+
+    /// An anchor in front records whether or not anything else is open — it
+    /// IS the work.
+    func testAnAnchorInFrontIsAlwaysWork() {
+        let state = DetectionState.evaluate(
+            input(frontmost: DetectionInput.resolveBundleIDs[0], windowOpen: false, anchorRunning: true))
+        XCTAssertEqual(state, .recording)
+    }
+
+    /// And a closed window is still closed, whatever is running.
+    func testAClosedWindowIsStillClosed() {
+        let state = DetectionState.evaluate(
+            input(frontmost: "com.apple.Safari", windowOpen: false, anchorRunning: true))
+        XCTAssertEqual(state, .paused(.notFrontmost))
+    }
+}

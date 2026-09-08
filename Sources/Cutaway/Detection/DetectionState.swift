@@ -62,6 +62,11 @@ struct DetectionInput: Sendable {
     /// ANCHOR apps (prefix-matched): the toolchain that proves a work block —
     /// they can START recording and refresh the research window.
     var workAppPrefixes: [String] = []
+    /// Is any workflow app still RUNNING? Not frontmost — running.
+    ///
+    /// Defaults to true so a caller that does not know keeps the behaviour it
+    /// had; the engine always knows.
+    var anchorAppRunning: Bool = true
     /// SATELLITE apps (browsers, LLMs, mail, files): research/comms that
     /// SUSTAIN recording, but only while the research window is open.
     var satellitePrefixes: [String] = []
@@ -138,7 +143,17 @@ struct DetectionInput: Sendable {
     }
 
     var isWorkContext: Bool {
-        frontmostIsAnchor || (frontmostIsSatellite && satelliteWindowOpen)
+        // Research sustains work that is still IN PROGRESS somewhere. With
+        // every workflow app closed there is no work in progress, so a
+        // browser sustains nothing.
+        //
+        // Observed 2026-09-08: Resolve was quit at 16:37 and the clock kept
+        // running until 16:44 — recording against Claude and then Safari,
+        // because the twenty-minute research window was still open. From the
+        // owner's chair that is the app billing an evening of reading as
+        // editing, and the honest reading of the rule is that the window
+        // belongs to a session of work, not to a wall clock.
+        frontmostIsAnchor || (frontmostIsSatellite && satelliteWindowOpen && anchorAppRunning)
     }
 }
 
