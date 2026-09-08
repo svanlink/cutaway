@@ -17,10 +17,23 @@ struct StatsView: View {
                 statRows(p).accessibilityIdentifier("stats.rows")
                 daysCard(p).accessibilityIdentifier("stats.days")
             } else {
+                // An empty state that names the next action and then hands
+                // it to you. "Create a project to see stats" was true, and a
+                // dead end: it told a first-time user what was missing while
+                // leaving them to find the way to fix it.
                 Spacer()
-                Text("Create a project to see stats")
-                    .font(DT.body)
-                    .foregroundStyle(DT.text3)
+                VStack(spacing: DT.s3) {
+                    Text("No project yet")
+                        .font(DT.title)
+                        .foregroundStyle(DT.text2)
+                    Text("Cutaway follows DaVinci Resolve. Make a project here, or just open one in Resolve and Cutaway will ask.")
+                        .font(DT.body)
+                        .foregroundStyle(DT.text3)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 320)
+                    Button("New project…") { model.showNewProjectSheet = true }
+                        .buttonStyle(DayActionButtonStyle())
+                }
                 Spacer()
             }
         }
@@ -95,6 +108,10 @@ struct StatsView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Edit project: rate, budget, currency…")
+                // A bare glyph between two worded buttons is a guess. Tooltips
+                // are for the curious; the label is for everyone, and it is
+                // what VoiceOver reads.
+                .accessibilityLabel("Edit project")
                 .accessibilityLabel("Edit project")
             }
             InvoiceButton(model: model)
@@ -237,6 +254,25 @@ struct StatsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     let maxDay = days.map(\.activeSeconds).max() ?? 1
+                    if days.isEmpty {
+                        // A new project renders an empty box otherwise, which
+                        // reads as "something failed" rather than "nothing has
+                        // happened yet".
+                        VStack(spacing: DT.s2) {
+                            Text("Nothing tracked yet")
+                                .font(DT.smallSemibold).foregroundStyle(DT.text2)
+                            Text("Open this project in Resolve and the clock starts on its own. Days you worked before Cutaway can be typed in.")
+                                .font(DT.captionMedium).foregroundStyle(DT.text3)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 300)
+                            Button("Add time for a day…") {
+                                model.editDay = DayEditTarget(day: nil, project: p)
+                            }
+                            .buttonStyle(DayActionButtonStyle())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DT.s5)
+                    }
                     ForEach(days, id: \.day) { d in
                         let isToday = cal.isDateInToday(d.day)
                         dayRow(d, project: p, isToday: isToday, maxSeconds: maxDay)

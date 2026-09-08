@@ -311,6 +311,16 @@
         }
       }
     },
+    "Add time for a day…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit für einen Tag hinzufügen …"
+          }
+        }
+      }
+    },
     "Additional information": {
       "localizations": {
         "de": {
@@ -721,16 +731,6 @@
         }
       }
     },
-    "Create a project to see stats": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lege ein Projekt an, um Statistiken zu sehen"
-          }
-        }
-      }
-    },
     "Create an invoice": {
       "localizations": {
         "de": {
@@ -787,6 +787,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway kann Resolves Fenstertitel lesen und Projekte im selben Moment wechseln wie du. Es funktioniert auch ohne — der Wechsel ist nur langsamer."
+          }
+        }
+      }
+    },
+    "Cutaway follows DaVinci Resolve. Make a project here, or just open one in Resolve and Cutaway will ask.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cutaway folgt DaVinci Resolve. Lege hier ein Projekt an, oder öffne einfach eines in Resolve — Cutaway fragt dann nach."
           }
         }
       }
@@ -1421,6 +1431,16 @@
         }
       }
     },
+    "New project…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Projekt …"
+          }
+        }
+      }
+    },
     "No VAT — not registered for Swiss VAT (below the CHF 100'000 threshold).": {
       "localizations": {
         "de": {
@@ -1477,6 +1497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kein Projekt ausgewählt"
+          }
+        }
+      }
+    },
+    "No project yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch kein Projekt"
           }
         }
       }
@@ -1571,6 +1601,16 @@
         }
       }
     },
+    "Nothing tracked yet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nichts erfasst"
+          }
+        }
+      }
+    },
     "Nothing unbilled": {
       "localizations": {
         "de": {
@@ -1627,6 +1667,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cutaway öffnen"
+          }
+        }
+      }
+    },
+    "Open this project in Resolve and the clock starts on its own. Days you worked before Cutaway can be typed in.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne dieses Projekt in Resolve, dann läuft die Uhr von selbst. Tage vor Cutaway kannst du eintippen."
           }
         }
       }

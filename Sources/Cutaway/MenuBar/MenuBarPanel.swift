@@ -193,7 +193,9 @@ struct MenuBarPanel: View {
                 }
             }
         }
-        .frame(maxHeight: 176)
+        // As tall as the rows need. A ScrollView claims every point it is
+        // offered, so this used to reserve 176 for two projects.
+        .frame(height: PanelLayout.listHeight(rowCount: model.projects.count))
     }
 
     // MARK: - Research window
@@ -474,7 +476,9 @@ private struct PanelRow: View {
                     .monospacedDigit()
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            // A stated height, so the list's own height is arithmetic rather
+            // than a guess. See PanelLayout.
+            .frame(height: PanelLayout.rowHeight)
             .background(
                 isRunning ? AnyShapeStyle(DT.recording.opacity(0.12)) :
                     hovering ? AnyShapeStyle(Color.white.opacity(0.04)) : AnyShapeStyle(.clear)

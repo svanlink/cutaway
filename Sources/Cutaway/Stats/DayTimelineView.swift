@@ -142,11 +142,22 @@ struct DayTimelineView: View {
             .accessibilityAction(named: Text("Delete")) { delete(block) }
     }
 
+    /// Three meanings, three fills — and only one of them is green.
+    ///
+    /// The strip used to paint every recorded block with DT.recording, the
+    /// colour that means "the clock is running now", while the day bars two
+    /// rows above painted the same quantity with DT.signal. The same thing in
+    /// two colours, and green spent on work that finished hours ago — so when
+    /// something WAS running there was nothing left to say it with.
+    ///
+    /// Worked time is DT.signal, like every other worked-time figure in the
+    /// app. Green now means exactly one thing: this block is growing as you
+    /// look at it. Typed time stays grey, because it was not observed.
     private func fill(_ block: DayTimeline.Block, typed: Bool) -> AnyShapeStyle {
         if typed { return AnyShapeStyle(DT.text3.opacity(0.35)) }
         if block.isLive { return AnyShapeStyle(DT.recording) }
         let strong = hovered == block.id || selected == block.id
-        return AnyShapeStyle(DT.recording.opacity(strong ? 1 : 0.8))
+        return AnyShapeStyle(DT.signal.opacity(strong ? 1 : 0.8))
     }
 
     private var caption: some View {
