@@ -32,7 +32,12 @@ final class SessionStore {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             config = ModelConfiguration(url: url)
         }
-        container = try ModelContainer(for: Project.self, WorkSession.self, configurations: config)
+        // The schema is DECLARED, with a migration plan, rather than inferred
+        // from an argument list — see Schema.swift for why that ordering is
+        // load-bearing rather than tidy.
+        container = try ModelContainer(for: Schema(versionedSchema: CutawaySchemaV1.self),
+                                       migrationPlan: CutawayMigrationPlan.self,
+                                       configurations: config)
     }
 
     // MARK: - Projects
