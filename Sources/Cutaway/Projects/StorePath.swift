@@ -74,6 +74,16 @@ enum StorePath {
         var db: OpaquePointer?
         let rc = sqlite3_open_v2(url.path, &db, SQLITE_OPEN_READONLY, nil)
         defer { sqlite3_close(db) }
+        // SQLite's default busy timeout is ZERO: the first lock conflict
+        // returns SQLITE_BUSY at once, which `classify` reads as "unreadable"
+        // and the launch then reports as a damaged store. That is not
+        // hypothetical — a Settings restore relaunches with
+        // createsNewApplicationInstance, so the outgoing process still holds
+        // the file while the incoming one probes it, and the launch that most
+        // needs a fresh backup skips it behind a red banner. It is also the
+        // intermittent StoreBootstrapTests failure: CoreData's WAL checkpoint
+        // has not finished when the probe runs.
+        sqlite3_busy_timeout(db, 3000)
         guard rc == SQLITE_OK else {
             let msg = db.map { String(cString: sqlite3_errmsg($0)) } ?? "code \(rc)"
             // NOTADB and CORRUPT are the file. Everything else — and anything
@@ -139,6 +149,7 @@ enum StorePath {
         var db: OpaquePointer?
         guard sqlite3_open_v2(url.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { return nil }
         defer { sqlite3_close(db) }
+        sqlite3_busy_timeout(db, 3000)   // same reason as verdict(): a live writer
         guard hasTable(db, "ZWORKSESSION") else { return nil }
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, "select count(*) from ZWORKSESSION", -1, &stmt, nil) == SQLITE_OK else { return nil }

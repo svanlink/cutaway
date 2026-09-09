@@ -123,6 +123,7 @@ extension SessionStore {
                 throw InvoiceError.budgetFullyInvoiced
             }
             draft = InvoiceBuilder.budgetCapped(draft, budget: remaining,
+                                                taxRate: taxMode.rate,
                                                 currency: project.currency)
         }
 

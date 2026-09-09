@@ -21,6 +21,33 @@ import Foundation
 /// worked so the caller can keep the crash snapshot as a last resort.
 struct UnsavedSessions {
 
+    /// One parked session, with everything needed to place it correctly
+    /// later. The first version of this file journalled a bare
+    /// `SessionRecord` — {start, end, activeSeconds} — which meant replay had
+    /// to guess the project (it used whatever was selected at launch, so an
+    /// auto-switch or a rename in between billed the wrong client), had no
+    /// way to tell a replay from a first write (SwiftData's save() can throw
+    /// after the row has landed, so the same hours could bill twice), and
+    /// re-priced the work at the rate in force at replay.
+    struct Entry: Codable, Equatable {
+        var record: SessionRecord
+        /// Whose work this is. Matched by name at replay, and HELD if no
+        /// project answers to it — the same ruling SessionRecovery.target
+        /// already makes for the crash snapshot.
+        var projectName: String
+        /// The rate it was worked at, not the rate at replay.
+        var hourlyRate: Double
+        /// Stable identity, so replaying work the store already holds is a
+        /// no-op rather than a second invoice line.
+        var uid: String
+    }
+
+    /// Which project, if any, should receive this entry. nil means hold it.
+    static func owner(of entry: Entry, among projects: [Project]) -> Project? {
+        projects.first { $0.name == entry.projectName }
+            ?? projects.first { $0.answersTo(entry.projectName) }
+    }
+
     let url: URL
 
     init(storeURL: URL = StorePath.url()) {
@@ -31,8 +58,16 @@ struct UnsavedSessions {
     /// Appends one record. Returns false if it could not be written — the
     /// caller must then keep whatever other copy it has.
     @discardableResult
-    func append(_ record: SessionRecord) -> Bool {
-        guard let line = try? JSONEncoder().encode(record) else { return false }
+    func append(_ entry: Entry) -> Bool {
+        guard let line = try? JSONEncoder().encode(entry) else { return false }
+        // Never overwrite what could not be read. `.atomic` is temp-file plus
+        // rename, which needs DIRECTORY permission — so a file that fails to
+        // read can still be replaced, and `existingData()` swallowing that
+        // failure into empty Data meant an append silently destroyed every
+        // record already parked here, then reported success, at which point
+        // the caller released the crash snapshot too.
+        if FileManager.default.fileExists(atPath: url.path),
+           (try? Data(contentsOf: url)) == nil { return false }
         var blob = existingData()
         blob.append(line)
         blob.append(0x0A)
@@ -44,19 +79,24 @@ struct UnsavedSessions {
 
     /// Every record still waiting, oldest first. A malformed line is skipped
     /// rather than throwing the rest away.
-    func pending() -> [SessionRecord] {
+    func pending() -> [Entry] {
         existingData().split(separator: 0x0A).compactMap {
-            try? JSONDecoder().decode(SessionRecord.self, from: Data($0))
+            try? JSONDecoder().decode(Entry.self, from: Data($0))
         }
     }
 
     /// Rewrites the file with whatever is still unsaved. Called after a
     /// replay so a record is dropped only once its own save has returned.
     @discardableResult
-    func replace(with records: [SessionRecord]) -> Bool {
+    func replace(with records: [Entry]) -> Bool {
         guard !records.isEmpty else {
+            // Report the truth. This returned true unconditionally, so a
+            // delete that failed — an immutable flag from a backup tool, a
+            // momentarily unwritable directory — left every record in place
+            // to be replayed again on the NEXT launch, and the one after
+            // that, silently.
             try? FileManager.default.removeItem(at: url)
-            return true
+            return !FileManager.default.fileExists(atPath: url.path)
         }
         let encoder = JSONEncoder()
         var blob = Data()

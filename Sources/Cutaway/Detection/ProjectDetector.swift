@@ -143,8 +143,16 @@ final class ProjectDetector {
         let outcome = await Task.detached(priority: .utility) { () -> (ran: Bool, name: String?) in
             let proc = Process()
             proc.executableURL = URL(fileURLWithPath: path)
+            // Two sentinels, because "the process exited" proves nothing.
+            // fuscript exits 0 and prints only its banner when Resolve() is
+            // nil — verified on this Mac — so inferring reachability from a
+            // clean exit marked a Resolve Free machine, or one with External
+            // Scripting off, as "can be asked". `anchorCanNameProjects` then
+            // latched true, was persisted, and the clock was held for a
+            // project name that could never arrive. REACHED proves the
+            // connection; NAME carries the answer.
             proc.arguments = ["-l", "lua", "-x",
-                "resolve = Resolve(); if resolve then local pm = resolve:GetProjectManager(); if pm then local p = pm:GetCurrentProject(); if p then print(p:GetName()) end end end"]
+                "resolve = Resolve(); if resolve then print('CUTAWAY-REACHED'); local pm = resolve:GetProjectManager(); if pm then local p = pm:GetCurrentProject(); if p then print('CUTAWAY-NAME\\t'..p:GetName()) end end end"]
             let pipe = Pipe()
             proc.standardOutput = pipe
             proc.standardError = Pipe()
@@ -173,17 +181,10 @@ final class ProjectDetector {
             }
             guard finished else { return (false, nil) }
             // fuscript prints a banner ("DaVinci Resolve Script Interpreter",
-            // copyright line) before the result — the project name is the
-            // LAST non-empty line.
-            guard let raw = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else { return (true, nil) }
-            let lines = raw.split(separator: "\n")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-                .filter { !$0.contains("Blackmagic Design") && !$0.contains("Script Interpreter") }
-            // hasPrefix, not contains: a project called "Terror Doc"
-            // contains "error", and was silently undetectable forever.
-            guard let name = lines.last, !name.lowercased().hasPrefix("error") else { return (true, nil) }
-            return (true, name)
+            // copyright line) before anything of ours, so the answer is
+            // identified by its sentinel rather than by position.
+            guard let raw = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else { return (false, nil) }
+            return Self.parse(raw)
         }.value
         scriptingReachable = outcome.ran
         if let name = outcome.name {
@@ -191,6 +192,24 @@ final class ProjectDetector {
             activeTier = .scriptingAPI
         }
         return outcome.name
+    }
+
+    /// What fuscript's output means. Pure, so it is testable on a Mac with
+    /// no Resolve at all.
+    ///
+    /// - Returns: `ran` is true only when Resolve answered — the banner alone
+    ///   is not an answer. `name` is the project, or nil for "connected, with
+    ///   nothing open", which is a reason to wait rather than to bill.
+    nonisolated static func parse(_ raw: String) -> (ran: Bool, name: String?) {
+        let lines = raw.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard lines.contains("CUTAWAY-REACHED") else { return (false, nil) }
+        guard let line = lines.first(where: { $0.hasPrefix("CUTAWAY-NAME\t") }) else { return (true, nil) }
+        let name = String(line.dropFirst("CUTAWAY-NAME\t".count))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        // hasPrefix, not contains: a project called "Terror Doc" contains
+        // "error", and was silently undetectable forever.
+        guard !name.isEmpty, !name.lowercased().hasPrefix("error") else { return (true, nil) }
+        return (true, name)
     }
 
     /// A name, or nil when the anchor is telling us it has nothing open.

@@ -124,3 +124,60 @@ final class AdobeWorkStillRecordsTests: XCTestCase {
                        "the app that CAN name a project still has to")
     }
 }
+
+/// "The process exited" is not "Resolve answered".
+///
+/// fuscript exits 0 and prints only its banner when `Resolve()` returns nil —
+/// verified against the real binary on this Mac. Inferring reachability from
+/// a clean exit marked a Resolve Free machine, or one with External Scripting
+/// switched off, as "can be asked"; `anchorCanNameProjects` then latched
+/// true, was persisted, and every launch afterwards held the clock waiting
+/// for a project name that could never arrive. The escape hatch built for
+/// exactly those machines was defeated by its own probe.
+final class ScriptingReachabilityTests: XCTestCase {
+
+    private let banner = """
+
+        DaVinci Resolve Script Interpreter
+        Copyright (C) 2005 - 2026 Blackmagic Design Pty. Ltd.
+
+        """
+
+    func testTheBannerAloneIsNotAnAnswer() {
+        let out = ProjectDetector.parse(banner)
+        XCTAssertFalse(out.ran, "no connection was made — this Mac cannot be asked")
+        XCTAssertNil(out.name)
+    }
+
+    func testConnectedWithNothingOpenIsAnAnswerWithNoName() {
+        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\n")
+        XCTAssertTrue(out.ran, "Resolve replied — waiting for a project is correct here")
+        XCTAssertNil(out.name)
+    }
+
+    func testConnectedWithAProject() {
+        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\t26_08_RichemontEC\n")
+        XCTAssertTrue(out.ran)
+        XCTAssertEqual(out.name, "26_08_RichemontEC")
+    }
+
+    /// The sentinel also fixes the old positional parse: a project name is
+    /// whatever follows the tag, not whatever happens to be printed last.
+    func testAProjectNamedLikeTheBannerIsStillRead() {
+        let out = ProjectDetector.parse(
+            banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\tBlackmagic Design promo\n")
+        XCTAssertEqual(out.name, "Blackmagic Design promo",
+                       "the old parser filtered this line out as banner text")
+    }
+
+    func testAnErrorIsNotAProjectName() {
+        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\tError: no project\n")
+        XCTAssertTrue(out.ran)
+        XCTAssertNil(out.name)
+    }
+
+    func testATerrorDocIsStillDetectable() {
+        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\tTerror Doc\n")
+        XCTAssertEqual(out.name, "Terror Doc", "contains 'error', is not an error")
+    }
+}

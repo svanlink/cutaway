@@ -60,20 +60,29 @@ final class ProjectAutoSwitcher {
     /// in After Effects belongs to A — no document name, no Automation
     /// prompt, no second opinion to disagree with Resolve.
 
+    /// Detection observes the world unless the owner has switched it off.
+    ///
+    /// This used to enumerate the states detection was allowed to run in, and
+    /// that list trapped itself TWICE. First `.projectMismatch` was missing:
+    /// the pause stopped the only mechanism that could learn Resolve had
+    /// moved back, so the clock stayed held until Cutaway was relaunched.
+    /// The comment written at that fix — "a guard that cannot observe its own
+    /// release condition is a trap, not a guard" — was then proved right
+    /// again the next day by `.awaitingProject`, whose ONLY writer lives
+    /// inside this guard, so Resolve-only work after a restart billed zero.
+    ///
+    /// So the list is gone. Deny two states, allow the rest: a manual pause
+    /// is sacred, and there is nothing to observe while the Mac is asleep.
+    /// Any state added later is observable by default, which is the safe
+    /// direction — the failure mode of watching too often is a 40 ms
+    /// subprocess every 30 seconds; the failure mode of watching too rarely
+    /// is a clock that cannot unstick itself.
+    nonisolated static func observes(_ state: DetectionState) -> Bool {
+        state != .paused(.manual) && state != .paused(.systemSleep)
+    }
+
     func tick() {
-        // Detection runs while recording, while paused for lack of a project
-        // — that is how a zero-state install bootstraps itself from whatever
-        // is open in Resolve — and, critically, WHILE HELD FOR A MISMATCH.
-        //
-        // Leaving `.projectMismatch` out of this set was a deadlock: the
-        // pause stopped the detection that was the only way to learn Resolve
-        // had moved back, so the clock stayed held until Cutaway was
-        // relaunched. A guard that cannot observe its own release condition
-        // is a trap, not a guard.
-        let active = engine.state == .recording
-            || engine.state == .paused(.noProject)
-            || engine.state == .paused(.projectMismatch)
-        guard active else { return }
+        guard Self.observes(engine.state) else { return }
         schedule.advance()
 
         // freshProjectName, not detectProjectName. The latter answers with
@@ -115,8 +124,12 @@ final class ProjectAutoSwitcher {
                 // project. Both are needed: the first stops the clock being
                 // held hostage on a machine where scripting is off, the
                 // second stops it running before Resolve has said anything.
+                // Both directions. This only ever wrote `true`, so a Mac that
+                // stopped being able to answer — scripting switched off, a
+                // downgrade to the free edition — kept a latched flag that
+                // held the clock for an answer that could no longer come.
+                self.engine.anchorCanNameProjects = self.detector.scriptingReachable
                 if self.detector.scriptingReachable {
-                    self.engine.anchorCanNameProjects = true
                     // Remembered, because it is a fact about this Mac, not
                     // about this launch. Otherwise every start has a window
                     // between "Resolve is frontmost" and the first Tier-1
@@ -124,6 +137,8 @@ final class ProjectAutoSwitcher {
                     // assumption — smaller than the thirty seconds that
                     // caused this, but the same bug.
                     Prefs.set(true, forKey: "anchorCanNameProjects")
+                } else if Prefs.bool(forKey: "anchorCanNameProjects") {
+                    Prefs.set(false, forKey: "anchorCanNameProjects")
                 }
                 self.engine.anchorNamedAProject = named != nil
                 guard !self.intent().hasMovedSince(startedAt) else { return }

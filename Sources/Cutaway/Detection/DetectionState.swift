@@ -1,7 +1,7 @@
 import Foundation
 
 /// Why the timer is not recording.
-enum PauseReason: String, Sendable, Codable {
+enum PauseReason: String, Sendable, Codable, CaseIterable {
     case manual
     case systemSleep
     case noProject

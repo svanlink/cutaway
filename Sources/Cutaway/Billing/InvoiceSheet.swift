@@ -21,6 +21,10 @@ struct InvoiceSheet: View {
     @State private var clientVAT = ""
     @State private var refusal: String?
     @State private var preview: InvoiceBuilder.Draft?
+    /// The budget is spent, so issuing will refuse. Known at preview time —
+    /// the sheet used to show a figure and a live Issue button for money that
+    /// could not exist.
+    @State private var budgetSpent = false
     /// Bumped after a status change so the list re-reads the store.
     @State private var bump = 0
 
@@ -117,7 +121,11 @@ struct InvoiceSheet: View {
                 Button("Issue & Save PDF…") { issue() }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(preview.map { $0.lines.isEmpty } ?? true)
+                    // Also disabled when the budget is spent: issuing throws
+                    // budgetFullyInvoiced, and a live button for an amount
+                    // that cannot be invoiced is a promise the app breaks on
+                    // the click.
+                    .disabled(budgetSpent || (preview.map { $0.lines.isEmpty } ?? true))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -220,6 +228,11 @@ struct InvoiceSheet: View {
 
     /// A live preview built from the same pure code that will freeze the
     /// document, so what is agreed to here is what gets issued.
+    ///
+    /// That sentence was aspirational until 2026-09-09: the preview grouped
+    /// the whole history rather than the billable sessions, capped a budget
+    /// at the full figure rather than the remainder, and offered an Issue
+    /// button for a budget that issuing would refuse.
     private func refresh() {
         let span = range()
         let sessions = model.store.billableSessions(for: project, from: span.from, to: span.to)
@@ -227,11 +240,24 @@ struct InvoiceSheet: View {
         for s in sessions {
             uidsByDay[Calendar.current.startOfDay(for: s.start), default: []].append(s.uid)
         }
-        let days = model.store.dayTotals(for: project).filter { uidsByDay[$0.day] != nil }
+        // Over the BILLABLE sessions, exactly as issueInvoice does. This used
+        // to call dayTotals(for:), which groups the project's WHOLE history —
+        // so a day with two invoiced hours and one unbilled hour previewed as
+        // a three-hour line and issued as a one-hour line. The store-side
+        // caller was corrected when that was found; this one was not, and the
+        // preview is the number the owner reads out to a client.
+        let days = SessionStore.dayTotals(from: sessions, projectRate: project.hourlyRate)
         let lines = InvoiceBuilder.lines(for: days, sessionUIDsByDay: uidsByDay, currency: project.currency)
         var draft = InvoiceBuilder.totals(lines, taxMode: taxMode, currency: project.currency)
         if project.mode == .budget {
-            draft = InvoiceBuilder.budgetCapped(draft, budget: Money.decimal(project.budget),
+            // What is LEFT of the budget, not the whole budget again — the
+            // second invoice on a budget job previewed uncapped and issued
+            // capped, with an adjustment line the owner had never seen.
+            let alreadyBilled = (try? model.store.invoicedTotal(for: project)) ?? 0
+            let remaining = Money.decimal(project.budget) - alreadyBilled
+            budgetSpent = project.budget > 0 && remaining <= 0
+            draft = InvoiceBuilder.budgetCapped(draft, budget: remaining,
+                                                taxRate: taxMode.rate,
                                                 currency: project.currency)
         }
         preview = draft

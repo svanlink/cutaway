@@ -147,7 +147,11 @@ final class AppModel {
             // first checkpoint overwrites the single slot this used to live
             // in and the hours are gone. If the journal cannot be written
             // either, keep the snapshot: it is the last copy left.
-            return self.unsaved.append(record)
+            return self.unsaved.append(UnsavedSessions.Entry(
+                record: record,
+                projectName: project.name,
+                hourlyRate: project.hourlyRate,
+                uid: UUID().uuidString))
         }
         engine.onManualPauseLifted = { [weak self] in self?.resumePromptOpen = false }
         replayUnsavedSessions()

@@ -169,6 +169,7 @@ DE = {
  "\u2016 paused \u00b7 working?": "\u2016 pausiert \u00b7 arbeitest du?",
  "\u2016 still paused": "\u2016 immer noch pausiert",
  "\u2016 which project?": "\u2016 welches Projekt?",
+ "clear the record of unsaved work": "die Liste ungespeicherter Arbeit zu leeren",
  "Project name": "Projektname",
  "No project yet": "Noch kein Projekt",
  "New project…": "Neues Projekt …",

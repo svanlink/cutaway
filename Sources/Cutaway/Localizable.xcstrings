@@ -2711,6 +2711,16 @@
         }
       }
     },
+    "clear the record of unsaved work": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "die Liste ungespeicherter Arbeit zu leeren"
+          }
+        }
+      }
+    },
     "e.g. Nyx Fashion Film": {
       "localizations": {
         "de": {

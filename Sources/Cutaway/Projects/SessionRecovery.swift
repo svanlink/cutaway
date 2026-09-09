@@ -40,15 +40,33 @@ extension AppModel {
     /// returned, so a still-full volume simply leaves it for next time.
     func replayUnsavedSessions() {
         let pending = unsaved.pending()
-        guard !pending.isEmpty, let project = selectedProject else { return }
-        var stillUnsaved: [SessionRecord] = []
-        for record in pending {
+        guard !pending.isEmpty else { return }
+        let projects = (try? store.projects()) ?? []
+        var stillUnsaved: [UnsavedSessions.Entry] = []
+        for entry in pending {
+            // Whose work it is, not whose turn it is. This used to write every
+            // parked record to `selectedProject` — whatever happened to be
+            // chosen at launch — so an auto-switch or a rename in between
+            // billed another client. A name nobody answers to is HELD, which
+            // is the ruling `target(snapshotProject:existing:)` already makes
+            // twenty lines above for the crash snapshot.
+            guard let project = UnsavedSessions.owner(of: entry, among: projects) else {
+                stillUnsaved.append(entry)
+                continue
+            }
             let saved = storeErrors.attempt("save session") {
-                try store.record(record, to: project)
+                // uid makes a replay idempotent: save() can throw after the
+                // row has landed, so this record may already be stored.
+                try store.record(entry.record, to: project,
+                                 uid: entry.uid, rate: entry.hourlyRate)
             } != nil
-            if !saved { stillUnsaved.append(record) }
+            if !saved { stillUnsaved.append(entry) }
         }
-        unsaved.replace(with: stillUnsaved)
+        if !unsaved.replace(with: stillUnsaved) {
+            // A journal that cannot be rewritten replays the same hours on
+            // every launch, forever, and used to do it silently.
+            storeErrors.flag(String(localized: "clear the record of unsaved work"))
+        }
     }
 
     func recoverCrashedSession() {

@@ -204,6 +204,13 @@ final class DetectionEngine {
         )
         input.anchorNamedAProject = anchorNamedAProject
         input.anchorCanNameProjects = anchorCanNameProjects
+        // Ask. `isWorkContext` has required this for satellites since the day
+        // "closing Resolve stops the clock" shipped — but the engine never
+        // assigned it, DetectionInput defaults it to true, and so the
+        // requirement was inert from the moment it was written. Reported
+        // live on 2026-09-09: Resolve closed, no Adobe app running, a
+        // satellite in front, and the clock still accumulating.
+        input.anchorAppRunning = probes.anchorAppRunning(matching: workAppPrefixes)
         input.satellitePrefixes = satellitePrefixes
         reactToWorkWhilePaused(&input)
         // Anchor activity (anchor app frontmost + fresh input) refreshes the

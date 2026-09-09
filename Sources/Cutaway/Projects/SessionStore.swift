@@ -94,13 +94,31 @@ final class SessionStore {
     // MARK: - Sessions
 
     /// Persists a closed session, splitting at midnight so day totals stay true.
-    func record(_ record: SessionRecord, to project: Project, calendar: Calendar = .current) throws {
+    /// - Parameters:
+    ///   - uid: a stable identity for work that may be written more than
+    ///     once. SwiftData's `save()` can throw AFTER the row has landed, so
+    ///     the failed-save journal can hold work the store already has —
+    ///     replaying it without this billed the same hours twice.
+    ///   - rate: the rate it was WORKED at. Defaults to the project's current
+    ///     rate, which is right for a session closing now and wrong for one
+    ///     replayed from the journal after a raise.
+    func record(_ record: SessionRecord, to project: Project,
+                uid: String? = nil, rate: Double? = nil,
+                calendar: Calendar = .current) throws {
+        if let uid, project.sessions.contains(where: { $0.uid.hasPrefix(uid) }) {
+            return   // already stored; a replay is not a second piece of work
+        }
         // Stamp the rate NOW. A raise next month must not reprice this work.
-        let rate = project.hourlyRate
-        for part in DaySplitter.split(record, calendar: calendar) where part.activeSeconds > 0 {
-            context.insert(WorkSession(start: part.start, end: part.end,
-                                       activeSeconds: part.activeSeconds,
-                                       hourlyRate: rate, project: project))
+        let rate = rate ?? project.hourlyRate
+        for (index, part) in DaySplitter.split(record, calendar: calendar)
+            .filter({ $0.activeSeconds > 0 }).enumerated() {
+            let session = WorkSession(start: part.start, end: part.end,
+                                      activeSeconds: part.activeSeconds,
+                                      hourlyRate: rate, project: project)
+            // A span across midnight becomes several rows; they share the
+            // journal's identity so the whole span is replay-safe together.
+            if let uid { session.uid = "\(uid)-\(index)" }
+            context.insert(session)
         }
         try context.save()
         invalidateTodayCache()

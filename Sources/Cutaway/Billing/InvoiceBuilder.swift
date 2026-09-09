@@ -86,7 +86,8 @@ enum InvoiceBuilder {
     /// LESS — a fixed price is a ceiling, and under-billing is the direction
     /// this app resolves toward. Overrun is the owner's problem to raise, not
     /// something the app quietly adds to an invoice.
-    static func budgetCapped(_ draft: Draft, budget: Decimal, currency: BillingCurrency) -> Draft {
+    static func budgetCapped(_ draft: Draft, budget: Decimal, taxRate: Double,
+                             currency: BillingCurrency) -> Draft {
         guard budget > 0, draft.subtotal > budget else { return draft }
         var capped = draft
         let cap = Money.rounded(budget, currency: currency)
@@ -97,8 +98,14 @@ enum InvoiceBuilder {
                                  amount: cap - draft.subtotal,
                                  adjustedHours: 0, sessionUIDs: []))
         capped.subtotal = cap
+        // The rate applied to the subtotal the page PRINTS. This used to
+        // prorate `draft.taxAmount`, which is already rounded — dividing a
+        // rounded figure and rounding again is the "never sum rounded values"
+        // rule in its division form, and it put the printed VAT a rappen away
+        // from what the printed subtotal times the printed rate gives. A
+        // client with a calculator, or an auditor, checks exactly that.
         capped.taxAmount = draft.taxAmount > 0
-            ? Money.rounded(cap * draft.taxAmount / draft.subtotal, currency: currency) : 0
+            ? Money.rounded(cap * Money.decimal(taxRate) / 100, currency: currency) : 0
         capped.total = capped.subtotal + capped.taxAmount
         return capped
     }

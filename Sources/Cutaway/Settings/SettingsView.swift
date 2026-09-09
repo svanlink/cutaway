@@ -5,8 +5,14 @@ import ServiceManagement
 /// identity lives in the pill, the panel and Stats.
 struct SettingsView: View {
     @Bindable var model: AppModel
-    @AppStorage("idleThreshold") private var idleThreshold: Double = 120
-    @AppStorage("defaultCurrency") private var defaultCurrency = AppModel.defaultCurrency.rawValue
+    // `store: Prefs`, not the default. Bare @AppStorage binds
+    // UserDefaults.standard — the LIVE domain — in every run including
+    // scenario and test-host launches, while the engine reads the same
+    // key through the quarantined Prefs. Idle threshold is the single
+    // lever that decides how much time gets billed; a test tabbing
+    // through this form would rewrite the owner's real one.
+    @AppStorage("idleThreshold", store: Prefs) private var idleThreshold: Double = 120
+    @AppStorage("defaultCurrency", store: Prefs) private var defaultCurrency = AppModel.defaultCurrency.rawValue
     @State private var editingWorkApps = false
     @State private var editingSatellites = false
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
