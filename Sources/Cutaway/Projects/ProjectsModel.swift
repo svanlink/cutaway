@@ -211,6 +211,16 @@ final class ProjectsModel {
                 rate: Double, budget: Double, currency: BillingCurrency, apps: [String]) {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return }
+        // Bank the open session BEFORE the rate moves. record() stamps the
+        // rate at the moment a session closes, so a raise at 15:00 used to
+        // reprice the whole day back to 09:00 — over-billing, and the exact
+        // opposite of the sentence printed above the field: "Work already
+        // recorded keeps the rate it was worked at." Only on a real change,
+        // and only for the project actually being tracked.
+        if Self.clampedRate(rate) != project.hourlyRate,
+           project.persistentModelID == selectedProjectID {
+            engine.bankOpenSession(reason: "rate-change")
+        }
         errors.attempt("save the project", recovery: false) { try store.update(project) {
             $0.name = name
             $0.client = client.trimmingCharacters(in: .whitespaces)

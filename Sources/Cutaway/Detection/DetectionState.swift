@@ -159,6 +159,20 @@ struct DetectionInput: Sendable {
         return workAppPrefixes.contains { front.hasPrefix($0) }
     }
 
+    /// Is the frontmost app the one that can NAME a project?
+    ///
+    /// Only Resolve can. Every Adobe app is an anchor too — After Effects,
+    /// Photoshop, Premiere, Illustrator, Audition, InDesign — and none of
+    /// them is ever asked what project it is on, by deliberate design: only
+    /// Resolve names projects. So the "has it named a project yet" rule must
+    /// key on Resolve specifically. Keyed on `frontmostIsAnchor` instead, it
+    /// holds the clock forever in After Effects whenever Resolve is closed,
+    /// which trades thirty mis-billed seconds for entire unbilled days.
+    var frontmostCanNameProject: Bool {
+        guard let front = frontmostBundleID else { return false }
+        return Self.resolveBundleIDs.contains { front.hasPrefix($0) }
+    }
+
     var frontmostIsSatellite: Bool {
         guard let front = frontmostBundleID else { return false }
         return satellitePrefixes.contains { front.hasPrefix($0) }
@@ -197,7 +211,7 @@ extension DetectionState {
         // specific than an unknown one — and above everything about frontmost
         // apps and idleness, because none of those matter when there is no
         // project to bill to.
-        if input.frontmostIsAnchor, input.anchorCanNameProjects, !input.anchorNamedAProject {
+        if input.frontmostCanNameProject, input.anchorCanNameProjects, !input.anchorNamedAProject {
             return .paused(.awaitingProject)
         }
         guard input.isWorkContext else { return .paused(.notFrontmost) }

@@ -424,6 +424,17 @@ final class DetectionEngine {
         closeSessionIfOpen(reason: reason)
     }
 
+    /// Bank whatever is open, now, under the terms that applied until now.
+    ///
+    /// The one caller is a rate change: the money attached to an open session
+    /// is decided when it CLOSES, so raising a rate at 15:00 repriced the
+    /// whole day back to 09:00. Closing first means the hours already worked
+    /// keep the rate they were worked at — which is what the rate sheet
+    /// promises in so many words.
+    func bankOpenSession(reason: String) {
+        closeSessionIfOpen(reason: reason)
+    }
+
     private func closeSessionIfOpen(reason: String) {
         // The engine's clock decides when a session ended — and therefore,
         // through DaySplitter, which DAY it bills to. This was the one moment

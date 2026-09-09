@@ -79,3 +79,48 @@ final class AnchorWithoutAProjectTests: XCTestCase {
         XCTAssertEqual(ProjectDetector.meaningfulName("26_08_RichemontEC"), "26_08_RichemontEC")
     }
 }
+
+/// The regression the awaitingProject rule nearly shipped with.
+///
+/// Every Adobe app is an anchor by default, and none of them is ever asked
+/// what project it is on — only Resolve names projects. Keyed on "any
+/// anchor", the rule held the clock forever in After Effects whenever
+/// Resolve was closed: thirty mis-billed seconds traded for entire unbilled
+/// days, which is the wrong direction twice over.
+final class AdobeWorkStillRecordsTests: XCTestCase {
+
+    private func frontmost(_ bundle: String) -> DetectionInput {
+        var input = DetectionInput(
+            frontmostBundleID: bundle,
+            secondsSinceInput: 0,
+            idleThreshold: 120,
+            manuallyPaused: false,
+            isAsleep: false,
+            hasActiveProject: true)
+        input.workAppPrefixes = DetectionInput.defaultWorkAppPrefixes
+        // Resolve has answered before on this Mac, but is not running now, so
+        // it has named nothing this launch.
+        input.anchorCanNameProjects = true
+        input.anchorNamedAProject = false
+        return input
+    }
+
+    func testAfterEffectsWithResolveClosedStillRecords() {
+        XCTAssertEqual(DetectionState.evaluate(frontmost("com.adobe.AfterEffects")), .recording,
+                       "an Adobe-only day is billable; only Resolve is asked to name projects")
+    }
+
+    func testEveryDefaultAdobeAnchorStillRecords() {
+        for bundle in DetectionInput.defaultWorkAppPrefixes
+        where !DetectionInput.resolveBundleIDs.contains(bundle) {
+            XCTAssertEqual(DetectionState.evaluate(frontmost(bundle)), .recording,
+                           "\(bundle) must not wait for a project name it is never asked for")
+        }
+    }
+
+    func testResolveItselfStillWaits() {
+        XCTAssertEqual(DetectionState.evaluate(frontmost("com.blackmagic-design.DaVinciResolve")),
+                       .paused(.awaitingProject),
+                       "the app that CAN name a project still has to")
+    }
+}
