@@ -114,7 +114,7 @@ struct MenuBarPanel: View {
                     .fill(isRecording ? accent : DT.ringPaused)
                     .frame(width: 4)
 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: DT.s1) {
                     elapsedText
                     Text(model.todayMoney)
                         .font(DT.moneyFont)
@@ -134,12 +134,16 @@ struct MenuBarPanel: View {
                         .minimumScaleFactor(0.75)
                         .truncationMode(.tail)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                .padding(.horizontal, DT.rowInset)
+                .padding(.vertical, DT.s3)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 .background(isRecording ? accent.opacity(0.12) : Color.white.opacity(0.04))
             }
-            .frame(height: 92)
+            // 92 was the height of the ring that used to sit beside this.
+            // With the ring gone the hero is four stacked lines in a box
+            // sized for a circle, so the clock sat hard against the popover's
+            // top edge. Let it size to its content with real margins.
+            .fixedSize(horizontal: false, vertical: true)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -161,7 +165,7 @@ struct MenuBarPanel: View {
         let s = Int(model.todaySeconds)
         let main = String(format: "%d:%02d", s / 3600, (s % 3600) / 60)
         let sec = String(format: ":%02d", s % 60)
-        return HStack(alignment: .firstTextBaseline, spacing: 2) {
+        return HStack(alignment: .firstTextBaseline, spacing: DT.s1) {
             Text(main).font(DT.panelHero).foregroundStyle(DT.text)
             Text(sec).font(DT.panelHeroSeconds).foregroundStyle(DT.text2)
         }
@@ -173,7 +177,13 @@ struct MenuBarPanel: View {
     private var projectList: some View {
         ScrollView {
             VStack(spacing: 0) {
-                ForEach(model.projects, id: \.persistentModelID) { p in
+                // The OTHER projects. The one being tracked is the hero
+                // directly above — showing it again as the first row repeated
+                // its name and its time thirty points apart, which is most of
+                // what made the panel feel stacked. A list under a "now"
+                // readout is a list of what you could switch to.
+                ForEach(model.projects.filter { $0.persistentModelID != model.selectedProjectID },
+                        id: \.persistentModelID) { p in
                     PanelRow(
                         project: p,
                         isRunning: p.persistentModelID == model.selectedProjectID && isRecording,
@@ -195,7 +205,7 @@ struct MenuBarPanel: View {
         }
         // As tall as the rows need. A ScrollView claims every point it is
         // offered, so this used to reserve 176 for two projects.
-        .frame(height: PanelLayout.listHeight(rowCount: model.projects.count))
+        .frame(height: PanelLayout.listHeight(rowCount: max(model.projects.count - 1, 0)))
     }
 
     // MARK: - Research window
@@ -205,10 +215,10 @@ struct MenuBarPanel: View {
     @ViewBuilder
     private var mismatchBanner: some View {
         if model.projectMismatch, let onScreen = model.resolveProject {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(DT.glyph)
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: DT.s1) {
                     (model.heldNameIsIgnored
                         ? Text("Not recording — you marked this project not billable")
                         : Text("Not recording — Resolve is on another project"))
@@ -249,7 +259,7 @@ struct MenuBarPanel: View {
     @ViewBuilder
     private var researchWindow: some View {
         if let label = model.engine.recordingSource?.label {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "hourglass")
                     .font(DT.glyph)
                 Text(label)
@@ -314,7 +324,7 @@ struct MenuBarPanel: View {
     @ViewBuilder
     private var receipt: some View {
         if let line = model.lastSessionLine {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "checkmark")
                     .font(DT.glyph)
                 Text(line)
@@ -340,7 +350,7 @@ struct MenuBarPanel: View {
         // two things and shows one number; this is a quiet second line under
         // an existing one, not a third surface.
         if let unbilled = model.unbilledLine {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "tray.full").font(DT.glyph)
                 Text("\(unbilled) unbilled")
                     .font(DT.captionMedium).monospacedDigit().lineLimit(1)
@@ -430,7 +440,7 @@ private struct PanelRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: DT.s3) {
                 ZStack {
                     Circle().fill(isRunning ? AnyShapeStyle(DT.recording) : AnyShapeStyle(Color.white.opacity(0.08)))
                     if isRunning {
@@ -447,7 +457,7 @@ private struct PanelRow: View {
                 }
                 .frame(width: 26, height: 26)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: DT.s1) {
                     Text(project.name)
                         .font(isRunning ? DT.panelRowActive : DT.body)
                         .foregroundStyle(isRunning ? DT.text : DT.text2)
@@ -465,8 +475,8 @@ private struct PanelRow: View {
                         .font(DT.panelChip)
                         .foregroundStyle(DT.recording)
                         .monospacedDigit()
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, DT.within)
+                        .padding(.vertical, DT.s1)
                         .background(Color.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 5))
                 }
 
@@ -475,7 +485,7 @@ private struct PanelRow: View {
                     .foregroundStyle(isRunning ? DT.text : DT.text2)
                     .monospacedDigit()
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, DT.rowInset)
             // A stated height, so the list's own height is arithmetic rather
             // than a guess. See PanelLayout.
             .frame(height: PanelLayout.rowHeight)

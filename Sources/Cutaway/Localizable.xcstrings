@@ -1,16 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    " active": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " aktiv"
-          }
-        }
-      }
-    },
     "%@ / day": {
       "localizations": {
         "de": {
@@ -237,16 +227,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eine Sitzung muss an dem Tag enden, an dem sie begonnen hat. Trage nach Mitternacht eine zweite ein."
-          }
-        }
-      }
-    },
-    "AVG PER DAY": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ø PRO TAG"
           }
         }
       }
@@ -485,7 +465,7 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "BUDGET"
           }
         }
@@ -975,8 +955,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "VERDIENT"
+            "state": "needs_review",
+            "value": "EARNED"
           }
         }
       }
@@ -1717,16 +1697,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "PDF …"
-          }
-        }
-      }
-    },
-    "PROJECT TOTAL": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PROJEKT GESAMT"
           }
         }
       }
@@ -2485,8 +2455,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Heute"
+            "state": "needs_review",
+            "value": "Today"
           }
         }
       }
@@ -2825,8 +2795,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "läuft"
+            "state": "needs_review",
+            "value": "running"
           }
         }
       }

@@ -18,7 +18,19 @@ struct DayTimelineView: View {
     @State private var dragging: Drag?
     @State private var hovered: String?
 
-    private static let height: CGFloat = 44
+    /// The track the blocks live in. Shorter than it was: 44 points of
+    /// saturated fill for a single unbroken working day read as a slab
+    /// rather than as a measurement.
+    private static let height: CGFloat = 34
+    /// The hour axis, in its own row ABOVE the track.
+    ///
+    /// The labels used to sit inside the track at y=1, over the blocks, with
+    /// a drop shadow to survive them. A label that needs a shadow to be
+    /// readable against its own background is in the wrong place — and the
+    /// shadow is what made the strip read as the busiest thing in the
+    /// window. Above the track they need no shadow, no dark tick to sit on,
+    /// and the fill underneath can go back to being a measurement.
+    private static let axisHeight: CGFloat = 13
     private static let minimumBlock: CGFloat = 6
 
     private struct Drag {
@@ -54,47 +66,64 @@ struct DayTimelineView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: DT.s1) {
             GeometryReader { geo in
                 let t = timeline
-                ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: DT.rMd).fill(DT.card2)
-                    ForEach(t.blocks) { block in
-                        blockView(block, timeline: t, width: geo.size.width)
+                VStack(alignment: .leading, spacing: 0) {
+                    axis(t, width: geo.size.width)
+                        .frame(height: Self.axisHeight, alignment: .bottom)
+                    ZStack(alignment: .topLeading) {
+                        RoundedRectangle(cornerRadius: DT.rMd).fill(DT.card2)
+                        ForEach(t.blocks) { block in
+                            blockView(block, timeline: t, width: geo.size.width)
+                        }
+                        // Still above the blocks: a full day is one block
+                        // covering the whole track, and ticks underneath it
+                        // vanish precisely when the strip most needs to say
+                        // what hour anything happened at. They can be faint
+                        // now that they carry no text.
+                        ticks(t, width: geo.size.width)
                     }
-                    // ABOVE the blocks, not beneath them. A full day is one
-                    // block covering the whole track, and ticks underneath it
-                    // vanish precisely when the strip most needs to say what
-                    // hour anything happened at.
-                    ticks(t, width: geo.size.width)
+                    .frame(height: Self.height)
                 }
             }
-            .frame(height: Self.height)
+            .frame(height: Self.height + Self.axisHeight)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Day timeline")
             caption
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, DT.rowInset)
         .padding(.bottom, DT.s2)
     }
 
     // MARK: - Pieces
 
-    private func ticks(_ t: DayTimeline, width: CGFloat) -> some View {
-        ForEach(t.ticks(), id: \.self) { tick in
-            let x = CGFloat(t.fraction(of: tick)) * width
-            ZStack(alignment: .topLeading) {
-                // Dark enough to read over a filled block, light enough to
-                // stay out of the way over an empty track.
-                Rectangle().fill(Color.black.opacity(0.28))
-                    .frame(width: 1, height: Self.height)
-                    .offset(x: x)
+    /// The hour labels, in their own row above the track.
+    private func axis(_ t: DayTimeline, width: CGFloat) -> some View {
+        // ZStack, not a bare ForEach: these are positioned by offset, and in
+        // the enclosing VStack a loose ForEach lays each label out as its own
+        // ROW — the hours cascade diagonally across the window.
+        ZStack(alignment: .topLeading) {
+            ForEach(t.ticks(), id: \.self) { tick in
                 Text(tick.formatted(.dateTime.hour()))
                     .font(DT.tag)
-                    .foregroundStyle(DT.text2)
-                    .shadow(color: .black.opacity(0.55), radius: 1.5)
-                    .offset(x: x + 3, y: 1)
+                    .foregroundStyle(DT.text3)
+                    .offset(x: CGFloat(t.fraction(of: tick)) * width + 3)
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func ticks(_ t: DayTimeline, width: CGFloat) -> some View {
+        ForEach(t.ticks(), id: \.self) { tick in
+            // Faint. These marked the hours AND carried a label that needed a
+            // drop shadow; with the label moved out they only have to divide
+            // the track, which a hairline does.
+            Rectangle().fill(Color.black.opacity(0.18))
+                .frame(width: 1, height: Self.height)
+                .offset(x: CGFloat(t.fraction(of: tick)) * width)
         }
         .allowsHitTesting(false)      // the axis is scenery; blocks take the clicks
         .accessibilityHidden(true)

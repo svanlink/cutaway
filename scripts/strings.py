@@ -212,8 +212,6 @@ DE = {
  "Daily Breakdown": "Tagesübersicht", "＋ Add": "＋ Hinzufügen", "Add time for a day": "Zeit für einen Tag hinzufügen",
  "Includes manual adjustment": "Enthält manuelle Anpassung", "includes manual adjustment": "enthält manuelle Anpassung",
  "Export CSV": "CSV exportieren", "Export project data as CSV": "Projektdaten als CSV exportieren", "Export failed": "Export fehlgeschlagen",
- "EARNED": "VERDIENT", "BUDGET": "BUDGET", "PROJECT TOTAL": "PROJEKT GESAMT", "AVG PER DAY": "Ø PRO TAG",
- "Today": "Heute", "running": "läuft", " active": " aktiv",
  "Tracking": "Erfassung",
  "1 minute": "1 Minute", "2 minutes": "2 Minuten", "5 minutes": "5 Minuten", "10 minutes": "10 Minuten", "Time in these counts toward the project": "Zeit in diesen Apps zählt für das Projekt",
  "Research & comms": "Recherche & Kommunikation",

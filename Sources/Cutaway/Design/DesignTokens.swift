@@ -175,13 +175,33 @@ enum DT {
     static let ringPaused: Color = contrastAware(normal: ringPausedAlphas.normal,
                                                  increased: ringPausedAlphas.increased)
 
-    // spacing (4pt grid)
+    // ── Space ─────────────────────────────────────────────────────────
+    //
+    // Apple's HIG, macOS layout: 20pt window margins, 8pt between related
+    // controls, 20pt between groups. The ratio is the point — a group reads
+    // as a group because the gap around it is two and a half times the gap
+    // inside it.
+    //
+    // The views used thirteen different values: 1, 2, 3, 4, 5, 6, 7, 8, 9,
+    // 10, 12, 14, 20. With 2 inside a group and 3 around it, nothing was
+    // grouped, and "too many elements stacked into very little space" is
+    // exactly what that looks like. These six are the whole vocabulary.
     static let s1: CGFloat = 4, s2: CGFloat = 8, s3: CGFloat = 12
     static let s4: CGFloat = 16, s5: CGFloat = 24, s6: CGFloat = 32
-    /// Documented exception to the 4pt grid: horizontal inset for list rows
-    /// and cards (14pt reads tighter than 16 against the 480pt canvas —
-    /// audit #3 ruling).
-    static let rowInset: CGFloat = 14
+
+    /// Inside a group: a label and the value it belongs to, a row and the
+    /// row under it. HIG's "between related controls".
+    static let within: CGFloat = s2
+    /// Between groups: one card and the next, the header and the content.
+    /// HIG's "between groups" — 2.5x `within`, which is what makes the
+    /// grouping legible without a single line or box being drawn.
+    static let between: CGFloat = 20
+    /// The window's own margin. HIG: 20pt.
+    static let margin: CGFloat = 20
+    /// Horizontal inset for list rows and cards. On the grid now: 14 was a
+    /// documented exception, and an exception that appears seven times is
+    /// not an exception, it is a second scale.
+    static let rowInset: CGFloat = s4
 
     // radius
     static let rSm: CGFloat = 6, rMd: CGFloat = 8, rLg: CGFloat = 12
@@ -191,51 +211,82 @@ enum DT {
     // and Light font weights". The hero readout — the number the whole app
     // exists to show — was 48pt Thin, which renders as hairlines in a dark
     // room and is the standard tell of a design that reached for elegant.
+    // ── Type ──────────────────────────────────────────────────────────
+    //
+    // ONE ladder, eight steps, no fractions. There were sixteen distinct
+    // sizes here — 8, 9, 10, 10.5, 11, 11.5, 12, 12.5, 13, 15, 16, 17, 19,
+    // 20, 25, 36 — three of them fractional, which is the tell of sizes
+    // nudged until something fit rather than chosen.
+    //
+    // Sixteen sizes is why the app read as busy. Hierarchy is carried by
+    // CONSISTENT difference: when 12 and 12.5 both appear, neither says
+    // anything, and the eye gives up and reads the whole panel as one mass.
+    // Every step below is a size macOS itself uses (HIG Typography, macOS
+    // type sizes), so the app sits in the same rhythm as the menus around it.
+    enum Step {
+        /// The hero clock. The one number the app exists to show.
+        static let display: CGFloat = 36
+        /// The lead figure on a card.
+        static let xl: CGFloat = 26
+        /// Section titles, money, the seconds beside the hero. HIG Title 2.
+        static let l: CGFloat = 17
+        /// A project name — a proper noun, one step above running text.
+        static let m: CGFloat = 15
+        /// Body. HIG Body/Headline.
+        static let base: CGFloat = 13
+        /// Dense rows and secondary controls. HIG Callout.
+        static let s: CGFloat = 12
+        /// Labels above values, metadata. HIG Subheadline.
+        static let xs: CGFloat = 11
+        /// Glyphs, tags, column headers. HIG Caption.
+        static let xxs: CGFloat = 10
+    }
+
     /// Currency figures. Monospaced: a money column that shifts as digits
     /// change is the tell of a timer, not a ledger.
-    static let moneyFont = Font.system(size: 17, weight: .semibold).monospacedDigit()
-    /// Supporting figures — one step DOWN in weight from the lead, so size
-    /// and weight say the same thing instead of cancelling.
-    static let statValue = Font.system(size: 16, weight: .medium)
-    /// The lead figure in Stats: the money. Semibold at 25 so it wins on both
-    /// axes; it used to be 25 Light against 16 Semibold supports, which is
-    /// why three cards claiming "one lead, two supports" read as equals.
-    static let statLead = Font.system(size: 25, weight: .semibold)
-    static let title = Font.system(size: 16, weight: .bold)
-    static let body = Font.system(size: 13, weight: .medium)
-    static let bodyBold = Font.system(size: 13, weight: .bold)
-    static let small = Font.system(size: 12, weight: .medium)
-    static let smallSemibold = Font.system(size: 12, weight: .semibold)
-    static let caption = Font.system(size: 11, weight: .semibold)
-    static let captionMedium = Font.system(size: 11, weight: .medium)
-    static let tag = Font.system(size: 10.5, weight: .semibold)
-    /// Inline leading glyph (checkmark, hourglass) — sits a step below
-    /// caption so the symbol reads as punctuation, not as a second voice.
-    static let glyph = Font.system(size: 9, weight: .bold)
+    static let moneyFont = Font.system(size: Step.l, weight: .semibold).monospacedDigit()
+    /// Supporting figures — one step DOWN from the lead, so size and weight
+    /// say the same thing instead of cancelling.
+    static let statValue = Font.system(size: Step.m, weight: .medium)
+    /// The lead figure in Stats: the money.
+    static let statLead = Font.system(size: Step.xl, weight: .semibold)
+    static let title = Font.system(size: Step.l, weight: .bold)
+    static let body = Font.system(size: Step.base, weight: .medium)
+    static let bodyBold = Font.system(size: Step.base, weight: .bold)
+    static let small = Font.system(size: Step.s, weight: .medium)
+    static let smallSemibold = Font.system(size: Step.s, weight: .semibold)
+    static let caption = Font.system(size: Step.xs, weight: .semibold)
+    static let captionMedium = Font.system(size: Step.xs, weight: .medium)
+    static let tag = Font.system(size: Step.xxs, weight: .semibold)
+    /// Inline leading glyph (checkmark, hourglass) — punctuation, not a
+    /// second voice.
+    static let glyph = Font.system(size: Step.xxs, weight: .bold)
     /// Unweighted glyph — a chevron or a play triangle, where bold would
     /// read as emphasis the mark does not carry.
-    static let glyphLight = Font.system(size: 9)
-    /// Smallest glyph in the system: the play mark inside a 26pt panel row.
-    static let glyphTiny = Font.system(size: 8)
+    static let glyphLight = Font.system(size: Step.xxs)
+    static let glyphTiny = Font.system(size: Step.xxs)
     /// Leading icon inside a compact button (Export CSV).
-    static let buttonGlyph = Font.system(size: 10, weight: .bold)
-    static let smallBold = Font.system(size: 12, weight: .bold)
+    static let buttonGlyph = Font.system(size: Step.xxs, weight: .bold)
+    static let smallBold = Font.system(size: Step.s, weight: .bold)
 
-    // menu-bar pill — read at a glance, at menu-bar scale
-    static let pillTime = Font.system(size: 12.5, weight: .bold)
+    // menu-bar pill — read at a glance, at menu-bar scale. 13 is the size
+    // the system's own menu bar uses, so the pill sits level with it.
+    static let pillTime = Font.system(size: Step.base, weight: .bold)
     /// Banked confirmation and the forgotten-pause hint, which replace the
     /// time readout rather than sitting beside it.
-    static let pillMessage = Font.system(size: 12, weight: .bold)
+    static let pillMessage = Font.system(size: Step.s, weight: .bold)
 
-    // menu-bar panel — its own scale, one step down from the main window
-    static let panelHero = Font.system(size: 36, weight: .medium)
-    static let panelHeroSeconds = Font.system(size: 19, weight: .regular)
-    static let panelClient = Font.system(size: 10.5, weight: .bold)
-    static let panelProject = Font.system(size: 15, weight: .semibold)
-    static let panelRowActive = Font.system(size: 13, weight: .semibold)
-    static let panelTotal = Font.system(size: 12.5, weight: .semibold)
-    static let panelTotalActive = Font.system(size: 12.5, weight: .bold)
-    static let panelChip = Font.system(size: 11.5, weight: .bold)
+    // menu-bar panel — the same ladder, not a private one. It used to run
+    // 10.5 / 11.5 / 12.5 / 15 / 19 / 36, a parallel scale that shared no
+    // step with the window it opens.
+    static let panelHero = Font.system(size: Step.display, weight: .medium)
+    static let panelHeroSeconds = Font.system(size: Step.l, weight: .regular)
+    static let panelClient = Font.system(size: Step.xs, weight: .bold)
+    static let panelProject = Font.system(size: Step.m, weight: .semibold)
+    static let panelRowActive = Font.system(size: Step.base, weight: .semibold)
+    static let panelTotal = Font.system(size: Step.base, weight: .semibold)
+    static let panelTotalActive = Font.system(size: Step.base, weight: .bold)
+    static let panelChip = Font.system(size: Step.xs, weight: .bold)
 
     // canvas
     static let windowSize = CGSize(width: 480, height: 660)

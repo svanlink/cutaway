@@ -37,8 +37,8 @@ struct StatsView: View {
                 Spacer()
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, DT.s4)
+        .padding(.horizontal, DT.margin)
+        .padding(.bottom, DT.margin)
     }
 
     // MARK: - Header (title = switcher)
@@ -53,12 +53,12 @@ struct StatsView: View {
                 // billed; it is the last thing that may be abbreviated. The
                 // panel already stacks client-over-name, so this is the
                 // pattern the app has, not a new one.
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: DT.s1) {
                     // The client and the app icons share the small line. Both
                     // are context; neither is the name, and on a 480 pt
                     // window the icon row plus the arrow was exactly the
                     // width that pushed "Nyx Fashion Film" into "Nyx Fash…".
-                    HStack(spacing: 6) {
+                    HStack(spacing: DT.within) {
                         if let c = project?.client, !c.isEmpty {
                             Text(c.uppercased())
                                 .font(DT.panelClient)
@@ -135,51 +135,64 @@ struct StatsView: View {
         let avg = model.store.avgDailySeconds(for: p)
         let avgEarned = days.isEmpty ? 0 : earned / Double(days.count)
 
-        VStack(spacing: DT.s2) {
+        VStack(spacing: DT.within) {
             if p.mode == .budget {
                 budgetRow(p, used: earned)
+                summaryLine(p, total: total, dayCount: dayCount, avg: avg, avgEarned: avgEarned)
+                    .padding(.horizontal, DT.s1)
             } else {
-                earnedLead(p, earned: earned)
-            }
-            HStack(spacing: DT.s2) {
-                supportStat(key: "PROJECT TOTAL", value: hours(total),
-                            sub: dayCount == 1 ? String(localized: "1 day") : String(localized: "\(dayCount) days"))
-                supportStat(key: "AVG PER DAY", value: hours(avg),
-                            sub: avg > 0
-                                ? String(localized: "\(p.currency.formatWhole(avgEarned)) / day")
-                                : "—")
+                earnedLead(p, earned: earned, total: total, dayCount: dayCount,
+                           avg: avg, avgEarned: avgEarned)
             }
         }
     }
 
+    /// Five facts, one line, no boxes.
+    ///
+    /// These were three cards — EARNED, PROJECT TOTAL, AVG PER DAY — which is
+    /// three backgrounds, three borders, three padding boxes and three
+    /// label-over-value pairs to carry five numbers. Cards are for things you
+    /// act on separately; these are one thought: what the project has earned
+    /// and the evidence behind it. Boxes around each made the window read as
+    /// a dashboard of unrelated readouts.
+    private func summaryLine(_ p: Project, total: TimeInterval, dayCount: Int,
+                             avg: TimeInterval, avgEarned: Double) -> some View {
+        let days = dayCount == 1 ? String(localized: "1 day") : String(localized: "\(dayCount) days")
+        return HStack(spacing: DT.within) {
+            Text(hours(total)).foregroundStyle(DT.text2)
+            Text(verbatim: "·").foregroundStyle(DT.text3)
+            Text(days).foregroundStyle(DT.text3)
+            if avg > 0 {
+                Text(verbatim: "·").foregroundStyle(DT.text3)
+                Text("\(hours(avg)) / day").foregroundStyle(DT.text3)
+            }
+            Spacer(minLength: 0)
+        }
+        .font(DT.captionMedium)
+        .monospacedDigit()
+        .lineLimit(1)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("\(hours(total)) over \(days)"))
+    }
+
     /// The lead figure — hourly projects. (Budget projects lead with
     /// `budgetRow`, which already carries the visual weight of its bar.)
-    private func earnedLead(_ p: Project, earned: Double) -> some View {
+    private func earnedLead(_ p: Project, earned: Double, total: TimeInterval,
+                            dayCount: Int, avg: TimeInterval, avgEarned: Double) -> some View {
         VStack(alignment: .leading, spacing: DT.s1) {
             Text("EARNED").font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-            HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
+            HStack(alignment: .firstTextBaseline, spacing: DT.within) {
                 Text(p.currency.formatWhole(earned))
                     .font(DT.statLead).foregroundStyle(DT.text).monospacedDigit()
                 Text("@ \(String(format: "%.2f", p.hourlyRate)) / h")
                     .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
             }
+            summaryLine(p, total: total, dayCount: dayCount, avg: avg, avgEarned: avgEarned)
+                .padding(.top, DT.s1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .statCard()
         .accessibilityIdentifier("stats.earned")
-    }
-
-    /// Supporting figure — stacked, half width, one step down in type.
-    private func supportStat(key: LocalizedStringKey, value: String, sub: String) -> some View {
-        VStack(alignment: .leading, spacing: DT.s1) {
-            Text(key).font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
-            Text(value).font(DT.statValue).foregroundStyle(DT.text).monospacedDigit()
-            Text(sub).font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
-                .lineLimit(1).truncationMode(.tail)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .statCard()
-        .accessibilityIdentifier("stats.support")
     }
 
     @ViewBuilder
@@ -197,7 +210,7 @@ struct StatsView: View {
             daysWorked: model.store.dayTotals(for: p).count
         )
 
-        VStack(spacing: 6) {
+        VStack(spacing: DT.within) {
             HStack(alignment: .firstTextBaseline, spacing: DT.s2) {
                 Text("BUDGET").font(DT.caption).kerning(0.55).foregroundStyle(DT.text3)
                 Spacer()
@@ -229,7 +242,6 @@ struct StatsView: View {
     @ViewBuilder
     private func daysCard(_ p: Project) -> some View {
         let days = model.dayTotalsIncludingLive(for: p)
-        let total = days.reduce(0.0) { $0 + $1.activeSeconds }
         let cal = Calendar.current
 
         VStack(spacing: 0) {
@@ -239,16 +251,15 @@ struct StatsView: View {
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
                 Button { model.editDay = DayEditTarget(day: nil, project: p) } label: {
                     Text("＋ Add").font(DT.captionMedium).foregroundStyle(DT.text2)
-                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .padding(.horizontal, DT.within).padding(.vertical, DT.s1)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
                 }
                 .buttonStyle(.plain)
                 .help("Add time for a day")
                 .accessibilityLabel("Add time for a day")
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 10)
+            .padding(.horizontal, DT.rowInset)
+            .padding(.vertical, DT.s3)
             Rectangle().fill(DT.strokeSubtle).frame(height: 1)
 
             ScrollView {
@@ -293,19 +304,11 @@ struct StatsView: View {
             }
 
             Spacer(minLength: 0)
-            Rectangle().fill(DT.strokeSubtle).frame(height: 1)
-            HStack {
-                (Text("\(days.count) days").font(DT.captionMedium).foregroundStyle(DT.text)
-                 + Text(" · ").foregroundStyle(DT.text2)
-                 + Text(hours(total)).font(DT.captionMedium).foregroundStyle(DT.text)
-                 + Text(" active").foregroundStyle(DT.text2))
-                    .font(DT.captionMedium)
-                Spacer()
-                Text("Total  \(p.currency.format(days.reduce(0) { $0 + $1.earned }))")
-                    .font(DT.bodyBold).foregroundStyle(DT.text).monospacedDigit()
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            // The footer that stood here said "5 days · 27.4 h active" and
+            // "Total CHF 2'329.00" — the same two figures as the PROJECT
+            // TOTAL and EARNED cards at the top of the same window, a
+            // hundred points away. Restating a number does not reinforce it;
+            // it makes the reader check whether the two agree.
         }
         .background(DT.card)
         .clipShape(RoundedRectangle(cornerRadius: DT.rLg))
@@ -362,7 +365,7 @@ struct StatsView: View {
                 .monospacedDigit()
                 .frame(minWidth: 96, alignment: .trailing)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, DT.within)
         .padding(.leading, isToday ? 12 : 14)
         .padding(.trailing, 14)
         .background(isToday ? DT.signal.opacity(0.06) : .clear)
@@ -419,7 +422,7 @@ struct StatsView: View {
                 Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
                     .buttonStyle(DayActionButtonStyle())
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, DT.rowInset)
             .padding(.bottom, DT.s2)
         }
         .background(Color.white.opacity(0.02))

@@ -38,7 +38,7 @@ struct AccessibilityOfferCard: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: DT.s3) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: DT.s1) {
                 Text("Follow project switches instantly")
                     .font(DT.smallSemibold)
                     .foregroundStyle(DT.text)
