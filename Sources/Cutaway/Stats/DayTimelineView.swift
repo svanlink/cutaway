@@ -137,6 +137,13 @@ struct DayTimelineView: View {
             .accessibilityElement()
             .accessibilityLabel(spoken(shown))
             .accessibilityAddTraits(.isButton)
+            // The DEFAULT action, not only the named ones. The trait above
+            // promises something activatable, and VoiceOver's activate did
+            // nothing — the audit calls this "Action is missing". It went
+            // unseen because the strip only appeared after expanding a day,
+            // so the audit never had a block on screen until today opened by
+            // default. Mirrors the single click: select the block.
+            .accessibilityAction { selected = block.id }
             .accessibilityAction(named: Text("Edit")) { edit(block) }
             .accessibilityAction(named: Text("Split in the middle")) { split(block, at: middle(shown)) }
             .accessibilityAction(named: Text("Delete")) { delete(block) }
