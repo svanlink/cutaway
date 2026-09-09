@@ -153,6 +153,10 @@ final class AppModel {
         replayUnsavedSessions()
         recoverCrashedSession()
         engine.projectNameForSnapshot = { [weak self] in self?.selectedProject?.name }
+        // Whether Resolve can be asked is a property of this Mac. Knowing it
+        // at launch is what closes the gap between Resolve coming forward and
+        // the first scripting reply.
+        engine.anchorCanNameProjects = Prefs.bool(forKey: "anchorCanNameProjects")
         autoSwitcher = ProjectAutoSwitcher(
             detector: detector, engine: engine,
             intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },

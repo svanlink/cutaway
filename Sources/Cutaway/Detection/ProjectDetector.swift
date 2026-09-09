@@ -20,6 +20,13 @@ final class ProjectDetector {
 
     private(set) var lastDetectedName: String?
     private(set) var activeTier: DetectionTier = .manual
+    /// Did the scripting call actually reach Resolve and come back?
+    ///
+    /// Distinct from "did it name a project". A machine with External
+    /// Scripting off, or a free edition, can never answer — and the clock
+    /// must not wait forever for an answer that will not come. A machine that
+    /// CAN answer, saying "nothing is open", is a reason to wait.
+    private(set) var scriptingReachable = false
 
     var accessibilityGranted: Bool {
         AXIsProcessTrusted()
@@ -133,7 +140,7 @@ final class ProjectDetector {
               NSWorkspace.shared.runningApplications.contains(where: {
                   DetectionInput.resolveBundleIDs.contains($0.bundleIdentifier ?? "")
               }) else { return nil }
-        let name = await Task.detached(priority: .utility) { () -> String? in
+        let outcome = await Task.detached(priority: .utility) { () -> (ran: Bool, name: String?) in
             let proc = Process()
             proc.executableURL = URL(fileURLWithPath: path)
             proc.arguments = ["-l", "lua", "-x",
@@ -141,7 +148,7 @@ final class ProjectDetector {
             let pipe = Pipe()
             proc.standardOutput = pipe
             proc.standardError = Pipe()
-            do { try proc.run() } catch { return nil }
+            do { try proc.run() } catch { return (false, nil) }
             // 8s, not 3: fuscript answers in 0.04s WARM, but the first live
             // end-to-end run (2026-08-23) produced no project inside a 14s
             // window, and a cold spawn blowing a 3s deadline — with the retry
@@ -164,23 +171,39 @@ final class ProjectDetector {
                 }
                 if !proc.isRunning { resumeOnce(true) }
             }
-            guard finished else { return nil }
+            guard finished else { return (false, nil) }
             // fuscript prints a banner ("DaVinci Resolve Script Interpreter",
             // copyright line) before the result — the project name is the
             // LAST non-empty line.
-            guard let raw = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else { return nil }
+            guard let raw = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else { return (true, nil) }
             let lines = raw.split(separator: "\n")
                 .map { $0.trimmingCharacters(in: .whitespaces) }
                 .filter { !$0.isEmpty }
                 .filter { !$0.contains("Blackmagic Design") && !$0.contains("Script Interpreter") }
-            guard let name = lines.last, !name.lowercased().contains("error") else { return nil }
-            return name
+            // hasPrefix, not contains: a project called "Terror Doc"
+            // contains "error", and was silently undetectable forever.
+            guard let name = lines.last, !name.lowercased().hasPrefix("error") else { return (true, nil) }
+            return (true, name)
         }.value
-        if let name {
+        scriptingReachable = outcome.ran
+        if let name = outcome.name {
             lastDetectedName = name
             activeTier = .scriptingAPI
         }
-        return name
+        return outcome.name
+    }
+
+    /// A name, or nil when the anchor is telling us it has nothing open.
+    ///
+    /// Resolve reports "Untitled Project" when no project is loaded. Treating
+    /// that as a project name is how a stray project called "Untitled
+    /// Project" was created once already, and it is what turned "Resolve is
+    /// open with nothing in it" into a billable mismatch instead of a wait.
+    nonisolated static func meaningfulName(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty,
+              trimmed.lowercased() != "untitled project" else { return nil }
+        return trimmed
     }
 
     /// Pure, testable title parser.

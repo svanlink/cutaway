@@ -29,8 +29,9 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             isRecording: model.engine.state == .recording,
             seconds: model.pillSeconds,
             banked: model.bankedFlash,
-            pausedHint: model.engine.workDetectedWhilePaused ? "paused, working?"
-                        : model.engine.pausedLong ? "still paused" : nil)
+            pausedHint: model.engine.state == .paused(.awaitingProject) ? String(localized: "waiting for a project in Resolve")
+                        : model.engine.workDetectedWhilePaused ? String(localized: "paused, working?")
+                        : model.engine.pausedLong ? String(localized: "still paused") : nil)
         guard spoken != lastSpokenValue else { return }
         lastSpokenValue = spoken
         statusItem.button?.setAccessibilityValue(spoken)
@@ -256,15 +257,17 @@ struct PillView: View {
                  showsPauseGlyph: model.selectedProject != nil && !isRecording,
                  seconds: model.pillSeconds,
                  bankedText: model.bankedFlash,
-                 pausedHint: model.engine.workDetectedWhilePaused ? "‖ paused · working?"
-                             : model.engine.pausedLong ? "‖ still paused" : nil)
+                 pausedHint: model.engine.state == .paused(.awaitingProject) ? String(localized: "‖ which project?")
+                 : model.engine.workDetectedWhilePaused ? String(localized: "‖ paused · working?")
+                             : model.engine.pausedLong ? String(localized: "‖ still paused") : nil)
             .accessibilityLabel(Self.accessibilityLabel(
                 project: model.selectedProject?.name,
                 isRecording: isRecording,
                 seconds: model.pillSeconds,
                 banked: model.bankedFlash,
-                pausedHint: model.engine.workDetectedWhilePaused ? "paused, working?"
-                            : model.engine.pausedLong ? "still paused" : nil))
+                pausedHint: model.engine.state == .paused(.awaitingProject) ? String(localized: "waiting for a project in Resolve")
+                            : model.engine.workDetectedWhilePaused ? String(localized: "paused, working?")
+                            : model.engine.pausedLong ? String(localized: "still paused") : nil))
     }
 }
 

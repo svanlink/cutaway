@@ -15,6 +15,13 @@ enum PauseReason: String, Sendable, Codable {
     /// lands nowhere: the second is a gap you notice, the first is a lie you
     /// send.
     case projectMismatch
+    /// The anchor is open but has not said which project it is on.
+    ///
+    /// Not the same as `.noProject` (nothing selected in Cutaway) and not the
+    /// same as `.projectMismatch` (Resolve is on a DIFFERENT project). This
+    /// is "Resolve is up, nothing loaded" — the state on every launch, before
+    /// a project is opened.
+    case awaitingProject
     case notFrontmost
     case inputIdle
 }
@@ -67,6 +74,21 @@ struct DetectionInput: Sendable {
     /// Defaults to true so a caller that does not know keeps the behaviour it
     /// had; the engine always knows.
     var anchorAppRunning: Bool = true
+    /// Has the anchor told us which project it is on?
+    ///
+    /// Launching Resolve is not opening a project. The clock used to start
+    /// the moment Resolve became frontmost, against whatever was selected
+    /// last — so a launch with no project open billed the previous client
+    /// until the mismatch card caught it half a minute later.
+    ///
+    /// Defaults to true so a caller that does not know keeps the behaviour it
+    /// had; the engine always knows.
+    var anchorNamedAProject: Bool = true
+    /// CAN the anchor be asked at all? False on a Resolve that has External
+    /// Scripting off, or a free edition. Waiting for an answer that can never
+    /// come would make the app useless rather than careful, so there the old
+    /// behaviour stands.
+    var anchorCanNameProjects: Bool = true
     /// SATELLITE apps (browsers, LLMs, mail, files): research/comms that
     /// SUSTAIN recording, but only while the research window is open.
     var satellitePrefixes: [String] = []
@@ -170,6 +192,14 @@ extension DetectionState {
         // a different project than the one being recorded, there is no
         // correct project to record TO.
         if input.projectMismatch { return .paused(.projectMismatch) }
+        // An anchor that has not named a project has not established a work
+        // context. Ranked BELOW mismatch — a known wrong project is more
+        // specific than an unknown one — and above everything about frontmost
+        // apps and idleness, because none of those matter when there is no
+        // project to bill to.
+        if input.frontmostIsAnchor, input.anchorCanNameProjects, !input.anchorNamedAProject {
+            return .paused(.awaitingProject)
+        }
         guard input.isWorkContext else { return .paused(.notFrontmost) }
         if input.secondsSinceInput >= input.idleThreshold {
             return .paused(.inputIdle)

@@ -103,12 +103,32 @@ final class ProjectAutoSwitcher {
             await MainActor.run {
                 guard let self else { return }
                 self.tier1InFlight = false
+                // "Untitled Project" means Resolve has nothing loaded. It is
+                // not a name, and treating it as one is what turned "Resolve
+                // is open and empty" into a billable mismatch.
+                let named = ProjectDetector.meaningfulName(name)
                 self.engine.logDetection("tier1",
                     detail: "name=\(name ?? "nil") took="
                           + String(format: "%.2f", Date().timeIntervalSince(requestStarted)) + "s")
+                // A reply of any kind proves the anchor CAN be asked on this
+                // Mac; the content of the reply says whether it is on a
+                // project. Both are needed: the first stops the clock being
+                // held hostage on a machine where scripting is off, the
+                // second stops it running before Resolve has said anything.
+                if self.detector.scriptingReachable {
+                    self.engine.anchorCanNameProjects = true
+                    // Remembered, because it is a fact about this Mac, not
+                    // about this launch. Otherwise every start has a window
+                    // between "Resolve is frontmost" and the first Tier-1
+                    // reply in which the clock would run on the old
+                    // assumption — smaller than the thirty seconds that
+                    // caused this, but the same bug.
+                    Prefs.set(true, forKey: "anchorCanNameProjects")
+                }
+                self.engine.anchorNamedAProject = named != nil
                 guard !self.intent().hasMovedSince(startedAt) else { return }
                 // Tier 1 is the exact API name — it may create.
-                if let name { self.onDetected(name, true) }
+                if let named { self.onDetected(named, true) }
             }
         }
     }

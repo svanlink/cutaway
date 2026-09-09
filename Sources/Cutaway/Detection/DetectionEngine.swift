@@ -202,6 +202,8 @@ final class DetectionEngine {
             projectMismatch: projectMismatch,
             workAppPrefixes: workAppPrefixes
         )
+        input.anchorNamedAProject = anchorNamedAProject
+        input.anchorCanNameProjects = anchorCanNameProjects
         input.satellitePrefixes = satellitePrefixes
         reactToWorkWhilePaused(&input)
         // Anchor activity (anchor app frontmost + fresh input) refreshes the
@@ -309,6 +311,14 @@ final class DetectionEngine {
     /// Set by the app: Resolve is on a project other than the recorded one.
     /// The engine does not look this up; it obeys it.
     var projectMismatch = false
+    /// Has the anchor named the project it is on? Set by the app from Tier 1.
+    /// Starts false: on a fresh launch nothing has been confirmed yet, and
+    /// assuming otherwise is what billed a stale project for thirty seconds.
+    var anchorNamedAProject = false
+    /// Can the anchor be asked at all on this Mac? Set once Tier 1 has ever
+    /// answered — until then the app must not hold the clock hostage to a
+    /// question that may never be answerable.
+    var anchorCanNameProjects = false
     var onTick: (() -> Void)?
 
     /// Resume from the notification / panel — a no-op unless paused by hand.

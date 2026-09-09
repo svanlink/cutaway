@@ -2791,6 +2791,16 @@
         }
       }
     },
+    "paused, working?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pausiert, arbeitest du?"
+          }
+        }
+      }
+    },
     "postcode": {
       "localizations": {
         "de": {
@@ -2807,6 +2817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "still paused": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "immer noch pausiert"
           }
         }
       }
@@ -2841,12 +2861,52 @@
         }
       }
     },
+    "waiting for a project in Resolve": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "wartet auf ein Projekt in Resolve"
+          }
+        }
+      }
+    },
     "—": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "—"
+          }
+        }
+      }
+    },
+    "‖ paused · working?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‖ pausiert · arbeitest du?"
+          }
+        }
+      }
+    },
+    "‖ still paused": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‖ immer noch pausiert"
+          }
+        }
+      }
+    },
+    "‖ which project?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‖ welches Projekt?"
           }
         }
       }
