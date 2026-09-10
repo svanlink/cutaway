@@ -95,7 +95,7 @@ struct SwitcherList: View {
                 .padding(.vertical, 4)
             Button(action: newProject) {
                 HStack(spacing: DT.s3) {
-                    Text("＋").font(DT.body)
+                    Image(systemName: "plus").font(DT.body)
                     Text("New Project…").font(DT.body)
                     Spacer(minLength: 0)
                 }

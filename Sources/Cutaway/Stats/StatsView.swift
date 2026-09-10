@@ -76,7 +76,7 @@ struct StatsView: View {
                             .foregroundStyle(DT.text)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
-                        Text("▼").font(DT.glyphLight).foregroundStyle(DT.text3)
+                        Image(systemName: "chevron.down").font(DT.glyphLight).foregroundStyle(DT.text3)
                     }
                 }
                 // The identity wins the row. Actions are verbs you can find
@@ -260,7 +260,8 @@ struct StatsView: View {
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
                 Button { model.editDay = DayEditTarget(day: nil, project: p) } label: {
-                    Text("＋ Add").font(DT.captionMedium).foregroundStyle(DT.text2)
+                    Label("Add", systemImage: "plus").labelStyle(.titleAndIcon)
+                        .font(DT.captionMedium).foregroundStyle(DT.text2)
                         .padding(.horizontal, DT.within).padding(.vertical, DT.s1)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
                 }

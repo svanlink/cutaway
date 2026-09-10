@@ -20,12 +20,13 @@ struct PermissionsView: View {
                         labelled("Accessibility",
                             "Reads Resolve's window title so the project switches when you do. Never controls your Mac.")
                     }
-                    LabeledContent {
-                        Text("Not needed yet").foregroundStyle(.secondary)
-                    } label: {
-                        labelled("Automation",
-                            "Coming with Adobe project names: asks once per app, reads the document name only.")
-                    }
+                    // No Automation row. This promised "Coming with Adobe
+                    // project names: asks once per app, reads the document
+                    // name only" — a feature cancelled on 2026-09-08 by the
+                    // ruling that ONLY Resolve names projects. A welcome
+                    // screen is the first thing a new owner reads, and this
+                    // one was promising that the app would one day interrogate
+                    // their Adobe applications. It will not.
                 } header: {
                     Text("Permissions")
                 } footer: {

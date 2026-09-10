@@ -285,8 +285,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Zeit für einen Tag hinzufügen"
+            "state": "needs_review",
+            "value": "Add time for a day"
           }
         }
       }
@@ -421,16 +421,6 @@
         }
       }
     },
-    "Asked per app": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro App gefragt"
-          }
-        }
-      }
-    },
     "At launch, daily and at quit — kept on this Mac": {
       "localizations": {
         "de": {
@@ -447,16 +437,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Automatisch erkannte Projekte starten mit diesem Satz"
-          }
-        }
-      }
-    },
-    "Automation": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatisierung"
           }
         }
       }
@@ -631,22 +611,12 @@
         }
       }
     },
-    "Coming with Adobe project names: asks once per app, reads the document name only.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kommt mit Adobe-Projektnamen: fragt einmal pro App, liest nur den Dokumentnamen."
-          }
-        }
-      }
-    },
     "Continue": {
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Weiter"
+            "state": "needs_review",
+            "value": "Continue"
           }
         }
       }
@@ -845,8 +815,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Tagesübersicht"
+            "state": "needs_review",
+            "value": "Daily Breakdown"
           }
         }
       }
@@ -1225,8 +1195,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Ich arbeite noch"
+            "state": "needs_review",
+            "value": "I'm still working"
           }
         }
       }
@@ -1531,16 +1501,6 @@
         }
       }
     },
-    "Not needed yet": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Noch nicht nötig"
-          }
-        }
-      }
-    },
     "Not now": {
       "localizations": {
         "de": {
@@ -1807,16 +1767,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Berechtigungen"
-          }
-        }
-      }
-    },
-    "Photoshop, Illustrator, InDesign and After Effects are asked for the name of the open document, once each, when you switch to them. Premiere cannot answer and is never asked.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photoshop, Illustrator, InDesign und After Effects werden je einmal nach dem Namen des geöffneten Dokuments gefragt, wenn du zu ihnen wechselst. Premiere kann nicht antworten und wird nie gefragt."
           }
         }
       }
@@ -2125,8 +2075,8 @@
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Einstellungen"
+            "state": "needs_review",
+            "value": "Settings"
           }
         }
       }
@@ -2171,22 +2121,12 @@
         }
       }
     },
-    "Stats ↗": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Statistik ↗"
-          }
-        }
-      }
-    },
     "Still working?": {
       "localizations": {
         "de": {
           "stringUnit": {
-            "state": "translated",
-            "value": "Noch dabei?"
+            "state": "needs_review",
+            "value": "Still working?"
           }
         }
       }
@@ -2937,16 +2877,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "✂ Vor der Einzahlung abzutrennen"
-          }
-        }
-      }
-    },
-    "＋ Add": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "＋ Hinzufügen"
           }
         }
       }

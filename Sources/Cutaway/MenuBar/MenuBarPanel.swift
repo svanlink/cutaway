@@ -390,12 +390,15 @@ struct MenuBarPanel: View {
     private var footer: some View {
         HStack(spacing: 8) {
             pauseButton
-            footBtn("＋", help: "New Project") {
+            footBtn("plus", help: "New Project") {
                 model.showNewProjectSheet = true
                 model.openMainWindow?()
             }
             Button { model.openMainWindow?() } label: {
-                Text("Stats ↗")
+                // A Label, not "Stats ↗". U+2197 is NORTH EAST ARROW, and
+                // that is what VoiceOver said out loud.
+                Label("Stats", systemImage: "arrow.up.forward.square")
+                    .labelStyle(.titleAndIcon)
                     .font(DT.smallSemibold)
                     .foregroundStyle(DT.text2)
                     .frame(maxWidth: .infinity)
@@ -403,7 +406,8 @@ struct MenuBarPanel: View {
                     .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
             }
             .buttonStyle(.plain)
-            footBtn("⚙", help: "Settings") {
+            .accessibilityLabel("Open Cutaway")
+            footBtn("gearshape", help: "Settings") {
                 // showSettingsWindow: was removed in macOS 14 — the old
                 // silent-no-op bug. Settings is a real window we open.
                 model.openSettingsWindow?()
@@ -414,9 +418,18 @@ struct MenuBarPanel: View {
         .background(Color.black.opacity(0.35))
     }
 
-    private func footBtn(_ label: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+    /// An SF Symbol, not a typographic character.
+    ///
+    /// These were "＋" (U+FF0B FULLWIDTH PLUS SIGN) and "⚙" (U+2699 GEAR) —
+    /// text pretending to be iconography, in a footer sitting under a toolbar
+    /// that uses real symbols. Apple's guidance is SF Symbols for icons, and
+    /// the practical difference is that a symbol aligns optically with text,
+    /// takes a weight, and scales with the type; a character takes whatever
+    /// the font happens to give it, which is why these two never quite
+    /// matched each other or anything else.
+    private func footBtn(_ symbol: String, help: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label)
+            Image(systemName: symbol)
                 .font(DT.smallSemibold)
                 .foregroundStyle(DT.text2)
                 .frame(width: 32, height: 26)

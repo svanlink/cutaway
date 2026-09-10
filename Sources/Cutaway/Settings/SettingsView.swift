@@ -123,12 +123,16 @@ struct SettingsView: View {
                     labelled("Accessibility",
                              "Reads Resolve's window title so the project switches when you do. Never controls your Mac.")
                 }
-                LabeledContent {
-                    Text("Asked per app").foregroundStyle(.secondary)
-                } label: {
-                    labelled("Automation",
-                             "Photoshop, Illustrator, InDesign and After Effects are asked for the name of the open document, once each, when you switch to them. Premiere cannot answer and is never asked.")
-                }
+                // No Automation row. The app asked Photoshop, Illustrator,
+                // InDesign and After Effects for their open document until
+                // 2026-09-08, when that was removed on the ruling that only
+                // Resolve names projects — but this row kept describing it.
+                // There is no AppleScript anywhere in the source and no
+                // automation entitlement in the build, so the permissions
+                // screen was claiming the app interrogates four applications
+                // it never speaks to. Of every screen to be wrong on, this is
+                // the one whose whole job is saying what the app does to your
+                // Mac.
                 LabeledContent {
                     // Crash reports stay here. "Copy report" pasted MetricKit
                     // JSON into a bug tracker that does not exist — the owner
