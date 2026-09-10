@@ -49,7 +49,8 @@ struct DayTimelineView: View {
             DayTimeline.Block(id: Self.blockID(session, index: index),
                               start: session.start, end: session.end,
                               activeSeconds: session.activeSeconds,
-                              isAdjusted: session.isAdjusted)
+                              isAdjusted: session.isAdjusted,
+                              hourlyRate: session.hourlyRate)
         }
         if let live {
             result.append(DayTimeline.Block(id: "live", start: live.start, end: Date(),
@@ -90,7 +91,7 @@ struct DayTimelineView: View {
             .frame(height: Self.height + Self.axisHeight)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Day timeline")
-            caption
+            sessionList
         }
         .padding(.horizontal, DT.rowInset)
         .padding(.bottom, DT.s2)
@@ -134,7 +135,7 @@ struct DayTimelineView: View {
         let shown = dragging?.id == block.id
             ? DayTimeline.Block(id: block.id, start: dragging!.start, end: dragging!.end,
                                 activeSeconds: block.activeSeconds, isAdjusted: block.isAdjusted,
-                                isLive: block.isLive)
+                                isLive: block.isLive, hourlyRate: block.hourlyRate)
             : block
         // Typed time has no span and must not pretend to one: a fixed, hatched
         // width says "entered" rather than drawing an hour nobody sat through.
@@ -196,10 +197,64 @@ struct DayTimelineView: View {
         return AnyShapeStyle(DT.signal.opacity(strong ? 1 : 0.8))
     }
 
-    private var caption: some View {
+    /// The day, in words.
+    ///
+    /// The strip shows the SHAPE of a day — where the gaps are, how the work
+    /// clusters — and it is good at that. It is bad at "from what hour to
+    /// what hour did I work", which is the question actually asked when a day
+    /// looks wrong, because reading a bar against an axis is estimation.
+    ///
+    /// "10:00 – 14:36" already existed in this file, twice: in the hover
+    /// tooltip and in the VoiceOver label. So a screen-reader user was TOLD
+    /// when the work happened and a sighted user had to hover a rectangle to
+    /// find out. The accessible path was the better one, which is the wrong
+    /// way round.
+    ///
+    /// Each row is the session, and clicking it edits that session — which
+    /// also retires the old way of editing one, which was to hit the right
+    /// block on a bar where a four-minute session is four pixels wide.
+    private var sessionList: some View {
         let s = DayTimeline.summary(blocks)
-        return Text(Self.captionText(sessions: s.sessions, tracked: s.tracked, gaps: s.gaps))
-            .font(DT.tag).foregroundStyle(DT.text3).monospacedDigit()
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(blocks) { block in
+                Button { if !block.isLive { edit(block) } } label: {
+                    HStack(spacing: DT.within) {
+                        Text(AppModel.sessionTimeRange(start: block.start, end: block.end))
+                            .foregroundStyle(DT.text2)
+                        if block.isAdjusted {
+                            Image(systemName: "pencil")
+                                .font(DT.glyphTiny).foregroundStyle(DT.text3)
+                                .help("Entered by hand")
+                        }
+                        if block.isLive {
+                            Text("running").foregroundStyle(DT.recording)
+                        }
+                        Spacer(minLength: DT.s1)
+                        Text(AppModel.hoursText(block.activeSeconds)).foregroundStyle(DT.text)
+                    }
+                    .font(DT.tag)
+                    .monospacedDigit()
+                    .padding(.vertical, DT.s1)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(block.isLive)
+                // The full reading — what it earned, and how much idle was
+                // taken off — lives here rather than in a second line of
+                // text. It is also the only place the difference between the
+                // span on the left and the hours on the right is explained.
+                .help(tooltip(block))
+                .accessibilityLabel(spoken(block))
+                .accessibilityHint(block.isLive ? "" : "Edit this session")
+            }
+            // The count and the total are on the day row above and in each
+            // line here; the gap figure is the one thing neither says.
+            if s.gaps > 0 {
+                Text("\(AppModel.hoursText(s.gaps)) in gaps")
+                    .font(DT.tag).foregroundStyle(DT.text3).monospacedDigit()
+                    .padding(.top, DT.s1)
+            }
+        }
     }
 
     /// "1 session", not "1 sessions".
@@ -310,20 +365,26 @@ struct DayTimelineView: View {
 
     // MARK: - Words
 
+    /// At the rate the work was WORKED at — the same rule the day row, the
+    /// CSV and the invoice all use. See `DayTimeline.Block.hourlyRate`.
+    private func money(_ block: DayTimeline.Block) -> String {
+        project.currency.format(BillingEngine.earnings(
+            activeSeconds: block.activeSeconds,
+            hourlyRate: block.hourlyRate > 0 ? block.hourlyRate : project.hourlyRate))
+    }
+
     private func tooltip(_ block: DayTimeline.Block) -> String {
         let range = AppModel.sessionTimeRange(start: block.start, end: block.end)
-        let money = project.currency.format(BillingEngine.earnings(
-            activeSeconds: block.activeSeconds, hourlyRate: project.hourlyRate))
-        let idle = block.idleSeconds > 60
-            ? String(localized: " · \(AppModel.hoursText(block.idleSeconds)) idle excluded") : ""
-        return "\(range) · \(AppModel.hoursText(block.activeSeconds)) · \(money)\(idle)"
+        let money = money(block)
+        let unbilled = block.unbilledSeconds > 60
+            ? String(localized: " · \(AppModel.hoursText(block.unbilledSeconds)) of the span not billed") : ""
+        return "\(range) · \(AppModel.hoursText(block.activeSeconds)) · \(money)\(unbilled)"
     }
 
     private func spoken(_ block: DayTimeline.Block) -> String {
         let range = AppModel.sessionTimeRange(start: block.start, end: block.end)
         let worked = PillView.spokenDuration(block.activeSeconds)
-        let money = project.currency.format(BillingEngine.earnings(
-            activeSeconds: block.activeSeconds, hourlyRate: project.hourlyRate))
+        let money = money(block)
         let kind = block.isLive ? String(localized: ", running")
             : (block.isAdjusted ? String(localized: ", entered by hand") : String(localized: ", tracked"))
         return "\(range), \(worked), \(money)\(kind)"

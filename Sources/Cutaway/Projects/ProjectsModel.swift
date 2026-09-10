@@ -243,7 +243,13 @@ final class ProjectsModel {
             // The open span belongs to the project being deleted (or its heir).
             engine.closeSessionNow(reason: "project-delete")
         }
-        errors.attempt("delete the project", recovery: false) { try store.delete(project, reassignTo: target) }
+        // Only move on if the delete actually happened. `store.delete` refuses
+        // whenever sessions are invoiced and no heir was named — and the
+        // selection used to move anyway, to `projects.first`, silently
+        // retargeting every subsequent minute at whichever client was created
+        // earliest. The only signal was a generic banner in another window.
+        guard errors.attempt("delete the project", recovery: false,
+                             { try store.delete(project, reassignTo: target) }) != nil else { return }
         invalidateProjectCache()
         if wasSelected {
             selectedProjectID = (target ?? projects.first)?.persistentModelID

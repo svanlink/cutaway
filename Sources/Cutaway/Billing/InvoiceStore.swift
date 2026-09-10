@@ -32,18 +32,26 @@ extension SessionStore {
     /// What this project has already been invoiced, excluding voided
     /// documents — a void keeps its number but claims nothing.
     func invoicedTotal(for project: Project) throws -> Decimal {
-        let uid = project.uid
-        return try invoices()
-            .filter { invoice in
-                guard invoice.status != .void else { return false }
-                // Identity first; name only for documents issued before
-                // projects had one. Joining on the name alone meant a rename
-                // hid every invoice already issued and handed back a budget
-                // that was already spent.
-                if !uid.isEmpty, !invoice.projectUID.isEmpty { return invoice.projectUID == uid }
-                return invoice.projectName == project.name
-            }
+        try invoices(of: project)
+            .filter { $0.status != .void }
             .reduce(Decimal(0)) { $0 + $1.subtotal }
+    }
+
+    /// Every document belonging to this project, newest first — voids
+    /// included, because a void is still a document someone may need to see.
+    ///
+    /// Identity first; the name only for documents issued before projects had
+    /// one. This rule used to live inside `invoicedTotal` alone, so the
+    /// invoice sheet's own list joined on the name and a rename emptied it:
+    /// the documents still existed, still locked their days, still counted
+    /// against the budget, and could no longer be voided, marked paid or
+    /// re-saved from anywhere in the app. One predicate, one place.
+    func invoices(of project: Project) throws -> [Invoice] {
+        let uid = project.uid
+        return try invoices().filter { invoice in
+            if !uid.isEmpty, !invoice.projectUID.isEmpty { return invoice.projectUID == uid }
+            return invoice.projectName == project.name
+        }
     }
 
     func invoices() throws -> [Invoice] {
@@ -169,7 +177,7 @@ extension SessionStore {
         }
         // The lock, last: nothing is locked by a document that failed to build.
         for session in sessions { session.invoiceNumber = number }
-        try context.save()
+        try commit()
         invalidateTodayCache()
         return invoice
     }
@@ -187,14 +195,14 @@ extension SessionStore {
             }
         }
         invoice.status = .void
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
     func markPaid(_ invoice: Invoice, on date: Date = Date()) throws {
         guard invoice.status == .issued else { return }
         invoice.status = .paid
-        try context.save()
+        try commit()
     }
 
     /// The invoice locking a day, if any.

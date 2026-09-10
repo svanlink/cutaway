@@ -86,7 +86,20 @@ extension AppModel {
     }
 
     func persistRecovered(_ record: SessionRecord, to project: Project) {
-        if storeErrors.attempt("recover the last session", { try store.record(record, to: project) }) != nil {
+        // Derived from the session's own start, so it is the SAME identity on
+        // every relaunch. The snapshot is deliberately kept when a persist
+        // fails, and `save()` can throw with the row already on disk — so
+        // without a stable uid the retry inserted the crashed session a
+        // second time and billed it twice. Two sessions cannot start in the
+        // same second on one clock, so the start is identity enough.
+        //
+        // If the first attempt landed a shorter checkpoint than the final
+        // snapshot, the retry now skips instead of topping it up. That
+        // under-bills by the last few seconds, which is the direction this
+        // app resolves toward — unlike billing the whole session twice.
+        let uid = "crash-\(Int(record.start.timeIntervalSinceReferenceDate))"
+        if storeErrors.attempt("recover the last session",
+                               { try store.record(record, to: project, uid: uid) }) != nil {
             DetectionEngine.clearCrashedSessionSnapshot()
         }
     }

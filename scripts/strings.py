@@ -63,7 +63,6 @@ DE = {
  "Edit this project": "Dieses Projekt bearbeiten",
  "Not recording — Resolve is on another project": "Keine Aufzeichnung — Resolve ist auf einem anderen Projekt",
  "Entered by hand, and marked as such on the day, in the CSV and on the invoice.": "Von Hand eingetragen und als solche gekennzeichnet — am Tag, in der CSV und auf der Rechnung.",
- "Follows the span": "Folgt dem Zeitraum",
  "New invoice": "Neue Rechnung",
  "Street, postcode and town": "Strasse, PLZ und Ort",
  "New project": "Neues Projekt",
@@ -72,6 +71,14 @@ DE = {
  "Which project is this?": "Zu welchem Projekt gehört das?",
  "1 session": "1 Sitzung",
  ", running": ", läuft",
+ "running": "läuft", "Entered by hand": "Von Hand eingetragen",
+ "BUDGET": "BUDGET", "EARNED": "VERDIENT", "Today": "Heute", "Settings": "Einstellungen",
+ "Continue": "Weiter", "Daily Breakdown": "Tagesaufstellung", "Time worked": "Gearbeitete Zeit",
+ "Edit project": "Projekt bearbeiten", "Edit project…": "Projekt bearbeiten …",
+ "I'm still working": "Ich arbeite noch", "Still working?": "Noch dabei?",
+ "Try 1:30, 1.5 or 90m": "Zum Beispiel 1:30, 1.5 oder 90m",
+ "The running session alone is longer than that — pause first, then edit.":
+     "Allein die laufende Sitzung ist länger — pausiere zuerst, dann bearbeite.",
  ", tracked": ", erfasst",
  "Day timeline": "Tagesverlauf",
  "Edit": "Bearbeiten",
@@ -79,12 +86,13 @@ DE = {
  "Split at a moment inside the session.": "Teile an einem Zeitpunkt innerhalb der Sitzung.",
  "Split in the middle": "In der Mitte teilen",
  ", entered by hand": ", von Hand eingetragen",
+ "A session stays on its own day. Delete it and add one on the day you meant.":
+     "Eine Sitzung bleibt an ihrem eigenen Tag. Lösche sie und lege eine am gemeinten Tag an.",
  "A session has to end on the day it started. Add a second one after midnight.": "Eine Sitzung muss an dem Tag enden, an dem sie begonnen hat. Trage nach Mitternacht eine zweite ein.",
  "Add a session": "Sitzung hinzufügen",
  "Add session…": "Sitzung hinzufügen …",
  "Earns": "Ergibt",
  "Edit this session": "Diese Sitzung bearbeiten",
- "Length": "Dauer",
  "The end has to come after the start.": "Das Ende muss nach dem Beginn liegen.",
  "—": "—",
  "Issued": "Ausgestellt",
@@ -248,6 +256,7 @@ DE = {
 EXTRA = {
  "Couldn't %@. Quit and relaunch Cutaway — time since the last save is at risk.": "%@ nicht möglich. Beende Cutaway und starte es neu — die Zeit seit dem letzten Speichern ist gefährdet.",
  "Couldn't %@.": "%@ nicht möglich.",
+ "Couldn't %@. %@": "%@ nicht möglich. %@",
  "Research time · %lld min left": "Recherchezeit · noch %lld Min.",
  "Research time · under a minute left": "Recherchezeit · unter einer Minute",
  "Are you working? Cutaway is paused, but you're editing.": "Arbeitest du gerade? Cutaway ist pausiert, aber du schneidest.",
@@ -271,6 +280,12 @@ EXTRA = {
  "No project selected": "Kein Projekt ausgewählt",
  "%@ today on %@ — %@": "%@ heute an %@ — %@",
  "Total  %@": "Gesamt  %@",
+ "%@ in gaps": "%@ in Lücken",
+ "On invoice %@ — void it to make changes": "Auf Rechnung %@ — storniere sie, um zu ändern",
+ "Billable": "Abrechenbar", "The whole span": "Die ganze Spanne",
+ "Scales with the span; excluded idle stays excluded":
+     "Skaliert mit der Spanne; ausgeschlossene Leerlaufzeit bleibt ausgeschlossen",
+ " · %@ of the span not billed": " · %@ der Spanne nicht abgerechnet",
 }
 DE.update(EXTRA)
 

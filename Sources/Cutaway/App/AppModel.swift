@@ -149,9 +149,28 @@ final class AppModel {
         }
         engine.onSessionClosed = { [weak self] record in
             guard let self, let project = self.selectedProject else { return false }
-            let saved = self.storeErrors.attempt("save session") { try self.store.record(record, to: project) } != nil
-            self.flashBankedSession(record.activeSeconds)
-            if saved { return true }
+            // Minted BEFORE the write, and carried into the journal after it.
+            //
+            // `record` guards against replaying work the store already has by
+            // matching this uid — and the uid used to be created down in the
+            // journal entry, AFTER the store write had already happened
+            // without one. SwiftData's `save()` can throw with the row
+            // already on disk, which is the exact failure the journal exists
+            // for; the landed row then carried uid "", the replay matched
+            // nothing, and a three-hour afternoon was inserted a second time
+            // and invoiced twice. One identity, both paths.
+            let uid = UUID().uuidString
+            let saved = self.storeErrors.attempt("save session") {
+                try self.store.record(record, to: project, uid: uid)
+            } != nil
+            // Only a session that actually landed gets the "banked" flash and
+            // the VoiceOver announcement. It used to fire unconditionally, so
+            // a refused save told the owner their hours were safe on the one
+            // occasion they were not.
+            if saved {
+                self.flashBankedSession(record.activeSeconds)
+                return true
+            }
             // The store said no. Park the work in the journal, which holds
             // every failure rather than the most recent one, and only then
             // release the crash snapshot — otherwise the next session's
@@ -162,7 +181,7 @@ final class AppModel {
                 record: record,
                 projectName: project.name,
                 hourlyRate: project.hourlyRate,
-                uid: UUID().uuidString))
+                uid: uid))
         }
         engine.onManualPauseLifted = { [weak self] in self?.resumePromptOpen = false }
         replayUnsavedSessions()
@@ -373,7 +392,7 @@ final class AppModel {
         else { return }
         storeErrors.attempt("remember that name") {
             p.remember(name)
-            try store.context.save()
+            try store.commit()
         }
         if p.persistentModelID != selectedProjectID { projectsModel.select(p) }
     }
@@ -430,19 +449,40 @@ final class AppModel {
     /// growing, so only the persisted part is adjusted to meet the target.
     /// False when the request could not be honoured (the running session
     /// alone is longer than the total asked for).
+    /// nil on success; otherwise the sentence to put in front of the owner.
+    ///
+    /// This returned a bare `Bool` for two unrelated refusals, and the sheet
+    /// had one sentence for both: "The running session alone is longer than
+    /// that — pause first, then edit." So editing a day an invoice had locked
+    /// sent the owner to pause a clock that was not running, with no route to
+    /// the only thing that would work — voiding the invoice.
     @discardableResult
-    func setDaySeconds(_ seconds: TimeInterval, on day: Date, for p: Project) -> Bool {
+    func setDayRefusal(_ seconds: TimeInterval, on day: Date, for p: Project) -> String? {
         // The running session only belongs to the SELECTED project's today;
         // detection may have switched projects while the sheet was open.
         let live = Calendar.current.isDateInToday(day) && p.persistentModelID == selectedProject?.persistentModelID
             ? engine.accumulator.activeSeconds : 0
-        guard let target = Self.persistedTarget(requested: seconds, live: live) else { return false }
+        guard let target = Self.persistedTarget(requested: seconds, live: live) else {
+            return String(localized: "The running session alone is longer than that — pause first, then edit.")
+        }
         // Snapshot BEFORE the edit: shrinking a day deletes real sessions,
         // and this is the only thing that can bring them back.
         let before = store.dayEdit(day, for: p, named: Self.dayEditName(day))
-        let ok = storeErrors.attempt("save the day edit") { try store.setActiveSeconds(target, on: day, for: p) } != nil
-        if ok { registerUndo(of: before, for: p) }
-        return ok
+        guard storeErrors.attempt("save the day edit",
+                                  { try store.setActiveSeconds(target, on: day, for: p) }) != nil else {
+            // The reporter has the store's own words by now — an invoice
+            // number and the remedy — so show those rather than inventing a
+            // second, vaguer sentence beside them.
+            return storeErrors.banner
+        }
+        registerUndo(of: before, for: p)
+        return nil
+    }
+
+    /// Kept for callers that only need to know whether it worked.
+    @discardableResult
+    func setDaySeconds(_ seconds: TimeInterval, on day: Date, for p: Project) -> Bool {
+        setDayRefusal(seconds, on: day, for: p) == nil
     }
 
     nonisolated static func persistedTarget(requested: TimeInterval, live: TimeInterval) -> TimeInterval? {

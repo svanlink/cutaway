@@ -18,7 +18,18 @@ final class StoreErrorReporter {
 
     /// `recovery` adds the relaunch advice — right for a lost session, wrong
     /// for a failed project delete, where quitting would drop the open session.
-    static func message(for what: String, recovery: Bool = true) -> String {
+    static func message(for what: String, recovery: Bool = true,
+                        reason: String? = nil) -> String {
+        // A stated reason replaces the relaunch advice: relaunching does not
+        // void an invoice, and the sentence that names the remedy is the one
+        // worth the space.
+        if let reason, !reason.isEmpty {
+            return String(localized: "Couldn't \(what). \(reason)")
+        }
+        return plain(for: what, recovery: recovery)
+    }
+
+    private static func plain(for what: String, recovery: Bool) -> String {
         // String(localized:), not a bare literal. The FRAGMENTS were in the
         // catalog and the sentence around them was not, so a German build
         // would have wrapped a translated verb phrase in an English frame.
@@ -38,7 +49,16 @@ final class StoreErrorReporter {
             if problem != nil { problem = nil }
             return v
         } catch {
-            problem = Self.message(for: what, recovery: recovery)
+            // The reason, when the error has one written for a human.
+            //
+            // Every refusal in this app states its own cause — "That day is
+            // on invoice INV-2026-0004. Void the invoice to change it.",
+            // "This work is on invoice 2026-004." — and all of it was thrown
+            // away here in favour of "Couldn't save the day edit.". The owner
+            // was told an operation failed and never why, on the one class of
+            // failure that has a specific remedy.
+            problem = Self.message(for: what, recovery: recovery,
+                                   reason: (error as? LocalizedError)?.errorDescription)
             log("store-error what=\(what) error=\(error)")
             return nil
         }

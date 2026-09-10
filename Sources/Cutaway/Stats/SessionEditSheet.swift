@@ -30,14 +30,21 @@ struct SessionEditSheet: View {
                 DatePicker("From", selection: $start, displayedComponents: .hourAndMinute)
                 DatePicker("To", selection: $end, displayedComponents: .hourAndMinute)
                 LabeledContent {
-                    Text(lengthText).monospacedDigit()
+                    Text(billableText).monospacedDigit()
                 } label: {
-                    labelled("Length", "Follows the span")
+                    // Two branches, not a ternary inside `labelled`: the
+                    // parameter is a LocalizedStringKey and each literal has
+                    // to reach the catalog as its own key.
+                    if editing == nil {
+                        labelled("Billable", "The whole span")
+                    } else {
+                        labelled("Billable", "Scales with the span; excluded idle stays excluded")
+                    }
                 }
-                if project.hourlyRate > 0 {
+                if rate > 0 {
                     LabeledContent("Earns") {
                         Text(project.currency.format(BillingEngine.earnings(
-                            activeSeconds: max(seconds, 0), hourlyRate: project.hourlyRate)))
+                            activeSeconds: billableSeconds, hourlyRate: rate)))
                             .monospacedDigit()
                     }
                 }
@@ -71,9 +78,34 @@ struct SessionEditSheet: View {
 
     private var seconds: TimeInterval { combined(end).timeIntervalSince(combined(start)) }
 
-    private var lengthText: String {
-        guard seconds > 0 else { return String(localized: "—") }
-        return AppModel.hoursText(seconds)
+    /// What pressing Save will actually store — not the span.
+    ///
+    /// `updateSession` scales a session's active seconds by how much the span
+    /// changed, deliberately: a 13:00–17:00 session holding 2:30 of work must
+    /// not become four billable hours because it was nudged sideways. The
+    /// sheet printed the SPAN under "Length" and priced the span under
+    /// "Earns", so opening an idle-trimmed session showed 4:00 and CHF 340
+    /// before anything had been touched, and Save stored 2:30. Every number
+    /// on the correction surface was wrong, in the over-billing direction.
+    private var billableSeconds: TimeInterval {
+        let span = max(seconds, 0)
+        guard let editing else { return span }        // a typed span bills all of itself
+        let oldSpan = editing.end.timeIntervalSince(editing.start)
+        let ratio = oldSpan > 0 ? span / oldSpan : 1
+        return min(editing.activeSeconds * ratio, span)
+    }
+
+    /// The rate this work was WORKED at, like every other billing surface.
+    /// The project's current rate reprices history that a raise is promised
+    /// not to touch.
+    private var rate: Double {
+        if let editing, editing.hourlyRate > 0 { return editing.hourlyRate }
+        return project.hourlyRate
+    }
+
+    private var billableText: String {
+        guard billableSeconds > 0 else { return String(localized: "—") }
+        return AppModel.hoursText(billableSeconds)
     }
 
     /// The pickers edit a time; the day comes from the date field.

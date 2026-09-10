@@ -12,7 +12,9 @@ struct EditDaySheet: View {
     @State private var hoursText = ""
     @State private var amountText = ""
     @FocusState private var focus: Field?
-    @State private var refused = false
+    /// The sheet shows the store's actual refusal, not a guess at which of
+    /// two causes it was.
+    @State private var refusal: String?
 
     private enum Field { case hours, amount }
     private var isAdding: Bool { target.day == nil }
@@ -39,9 +41,9 @@ struct EditDaySheet: View {
                 if seconds == nil, !hoursText.isEmpty {
                     Text("Try 1:30, 1.5 or 90m").font(.caption).foregroundStyle(.orange)
                 }
-                if refused {
-                    Text("The running session alone is longer than that — pause first, then edit.")
-                        .font(.caption).foregroundStyle(.orange)
+                if let refusal {
+                    Text(refusal).font(.caption).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .formStyle(.grouped)
@@ -51,7 +53,8 @@ struct EditDaySheet: View {
                 Button("Save") {
                     guard let s = seconds else { return }
                     // A SET, never an add: refuse rather than clamp to zero.
-                    if model.setDaySeconds(s, on: day, for: project) { dismiss() } else { refused = true }
+                    refusal = model.setDayRefusal(s, on: day, for: project)
+                    if refusal == nil { dismiss() }
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
@@ -84,7 +87,7 @@ struct EditDaySheet: View {
             .first { Calendar.current.isDate($0.day, inSameDayAs: d) }?.activeSeconds ?? 0
         hoursText = AppModel.hoursText(current)
         amountText = money(current)
-        refused = false
+        refusal = nil
     }
 
     private var dayLabel: String {

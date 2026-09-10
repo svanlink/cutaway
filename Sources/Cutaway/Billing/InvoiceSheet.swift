@@ -166,8 +166,7 @@ struct InvoiceSheet: View {
     /// than in a window of their own: the app has three surfaces, and the
     /// place you think about invoices is the place you make them.
     private var issued: [Invoice] {
-        ((try? model.store.invoices()) ?? [])
-            .filter { $0.projectName == project.name }
+        (try? model.store.invoices(of: project)) ?? []
     }
 
     @ViewBuilder

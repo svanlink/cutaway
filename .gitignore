@@ -24,3 +24,6 @@ default.profraw
 # scheduler run state — churns on its own, belongs to the machine not the repo.
 # The six department charters under .claude/agents/ DO stay tracked.
 .claude/scheduled_tasks.lock
+
+# graphify knowledge graph — derived from the source tree, regenerate with `graphify .`
+graphify-out/

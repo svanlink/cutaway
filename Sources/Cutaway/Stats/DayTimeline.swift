@@ -21,11 +21,31 @@ struct DayTimeline: Equatable {
         var activeSeconds: TimeInterval
         var isAdjusted: Bool
         var isLive: Bool = false
+        /// The rate this session was WORKED at, stamped when it was recorded.
+        ///
+        /// Carried here because the strip used to price every block at the
+        /// project's CURRENT rate. Raise a project from 85 to 120 — which the
+        /// project sheet promises will not touch history — and hovering an
+        /// August block quoted 120/h money while the day row thirty points
+        /// above quoted 85/h, from the same session. The one the tooltip and
+        /// the screen reader gave was the one the invoice will not pay.
+        ///
+        /// Zero means "ask the project", matching `WorkSession.earned`: a
+        /// live block has no stamp yet, and neither does a pre-stamp row.
+        var hourlyRate: Double = 0
 
         var span: TimeInterval { max(end.timeIntervalSince(start), 0) }
-        /// Time inside the span that was NOT worked — the gap the idle rule
-        /// took out. Shown, never hidden: it is why hours and span differ.
-        var idleSeconds: TimeInterval { max(span - activeSeconds, 0) }
+        /// Time inside the span that is not billed. Shown, never hidden: it
+        /// is why the hours and the span differ.
+        ///
+        /// Usually the idle rule took it out — but not always, and the block
+        /// cannot tell which. Setting a day's total DOWN rewrites a tracked
+        /// session's `activeSeconds` and leaves its span alone, so a day
+        /// corrected from 4:36 to 2:00 arrives here looking like 2:36 of
+        /// idle. Naming a cause we do not know put a specific false claim on
+        /// a tooltip; the quantity is the true part, so only the quantity is
+        /// stated.
+        var unbilledSeconds: TimeInterval { max(span - activeSeconds, 0) }
     }
 
     let start: Date

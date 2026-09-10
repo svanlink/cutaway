@@ -433,7 +433,16 @@ struct StatsView: View {
         VStack(spacing: 0) {
             DayTimelineView(
                 model: model, project: p, day: d.day, sessions: sessions,
-                live: isToday && model.engine.accumulator.activeSeconds > 0
+                // The running session belongs to the SELECTED project, and to
+                // no other. Without this guard, switching the Stats view to
+                // another client and expanding today drew a green "running"
+                // block, listed it as a session, and folded it into that
+                // day's gap arithmetic — while the collapsed day row directly
+                // above said 0:00, because `dayTotalsIncludingLive` has the
+                // guard. Two figures for one day, one of them another
+                // client's time.
+                live: isToday && p.persistentModelID == model.selectedProjectID
+                    && model.engine.accumulator.activeSeconds > 0
                     ? model.engine.accumulator.sessionStart.map { ($0, model.engine.accumulator.activeSeconds) }
                     : nil)
             if sessions.isEmpty {
@@ -443,12 +452,24 @@ struct StatsView: View {
             }
             HStack {
                 Spacer()
-                Button("Add session…") {
-                    model.editSessionTarget = SessionEditTarget(session: nil, day: d.day, project: p)
-                }
-                .buttonStyle(DayActionButtonStyle())
-                Button("Set day total…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+                // A day an invoice claims is not editable, and the row's own
+                // context menu has always known that — it shows "On invoice
+                // …" instead of the button. The panel underneath it offered
+                // both buttons anyway, so the row drew a padlock and then
+                // handed over two ways to try. Both ended in a refusal, and
+                // "Set day total…" ended in a refusal that told the owner to
+                // pause a timer.
+                if let number = model.invoiceNumber(for: d.day, project: p) {
+                    Text("On invoice \(number) — void it to make changes")
+                        .font(DT.captionMedium).foregroundStyle(DT.text3)
+                } else {
+                    Button("Add session…") {
+                        model.editSessionTarget = SessionEditTarget(session: nil, day: d.day, project: p)
+                    }
                     .buttonStyle(DayActionButtonStyle())
+                    Button("Set day total…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+                        .buttonStyle(DayActionButtonStyle())
+                }
             }
             .padding(.horizontal, DT.rowInset)
             .padding(.bottom, DT.s2)

@@ -40,6 +40,25 @@ final class SessionStore {
                                        configurations: config)
     }
 
+    /// Save, or leave the context exactly as it was found.
+    ///
+    /// Every mutator here follows the shape *mutate the objects → save*, and
+    /// nothing used to roll back. A throwing `save()` therefore left the
+    /// in-memory graph holding the edit while the banner said the edit had
+    /// not been saved — and since every reading surface (day totals, the
+    /// strip, the unbilled figure, the invoice builder) reads those same
+    /// objects, the screen showed a state the disk did not have. The main
+    /// context autosaves, so the mutation the banner disclaimed could still
+    /// be committed a moment later, or lost at quit; which of the two
+    /// happened was invisible.
+    ///
+    /// `setActiveSeconds` was the sharp end: it calls `context.delete` on
+    /// real recorded sessions before saving, so a failed save left them
+    /// deleted on screen under a banner claiming nothing had happened.
+    func commit() throws {
+        do { try context.save() } catch { context.rollback(); throw error }
+    }
+
     // MARK: - Projects
 
     func projects() throws -> [Project] {
@@ -54,7 +73,7 @@ final class SessionStore {
                         hourlyRate: hourlyRate, budget: budget, currency: currency,
                         appBundleIDs: appBundleIDs)
         context.insert(p)
-        try context.save()
+        try commit()
         return p
     }
 
@@ -68,12 +87,12 @@ final class SessionStore {
 
     func rename(_ project: Project, to newName: String) throws {
         project.name = newName
-        try context.save()
+        try commit()
     }
 
     func update(_ project: Project, _ mutate: (Project) -> Void) throws {
         mutate(project)
-        try context.save()
+        try commit()
     }
 
     /// Deletes a project. Sessions either move to `reassignTo` or fall to the
@@ -87,7 +106,7 @@ final class SessionStore {
             for s in project.sessions { s.project = target }
         }
         context.delete(project)
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
@@ -120,7 +139,7 @@ final class SessionStore {
             if let uid { session.uid = "\(uid)-\(index)" }
             context.insert(session)
         }
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
@@ -161,7 +180,7 @@ final class SessionStore {
             context.insert(session)
             inserted.append(session)
         }
-        try context.save()
+        try commit()
         invalidateTodayCache()
         return inserted
     }
@@ -181,6 +200,32 @@ final class SessionStore {
         guard calendar.startOfDay(for: start) == calendar.startOfDay(for: end) else {
             throw SessionEditError.spansMidnight
         }
+        // …and on the day it was already on.
+        //
+        // The check above only asks that the new start and end share A day,
+        // not that it is the SAME day. The edit sheet cannot break that — its
+        // Day picker is disabled while editing — but the strip's drag has no
+        // day clamp, and a long enough drag walks a block into tomorrow.
+        // Undo is what makes that expensive: `dayEdit` snapshots exactly one
+        // day, so restoring the old day re-inserts the block while the moved
+        // copy sits untouched on the next day. One gesture and one Cmd-Z
+        // turned four billable hours into eight.
+        guard calendar.startOfDay(for: start) == calendar.startOfDay(for: session.start) else {
+            throw SessionEditError.leavesItsDay
+        }
+        // Nor on top of work that is already there.
+        //
+        // `addSession` has refused overlap since a typed 10:00–18:00 day was
+        // found sitting over two tracked sessions with the day billing all
+        // three. `updateSession` is the other way a span gets its times and
+        // had no such check: dragging a 3 h morning onto a 4 h afternoon left
+        // seven billable hours inside a four-hour window — on the CSV, on the
+        // invoice, and undefendable on a phone call.
+        if let clash = project.sessions.first(where: {
+            $0.persistentModelID != session.persistentModelID && $0.start < end && start < $0.end
+        }) {
+            throw SessionEditError.overlapsExisting(clash.start)
+        }
         // Active time SCALES with the span; it is not the span.
         //
         // Setting it to the new span invented money on every move: a session
@@ -197,7 +242,7 @@ final class SessionStore {
         // zero-length original.
         session.activeSeconds = min(session.activeSeconds * ratio, newSpan)
         session.isAdjusted = true
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
@@ -208,7 +253,7 @@ final class SessionStore {
             throw InvoiceError.dayIsInvoiced(number)
         }
         context.delete(session)
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
@@ -238,7 +283,7 @@ final class SessionStore {
                                  hourlyRate: session.hourlyRate, project: project,
                                  isAdjusted: session.isAdjusted)
         context.insert(second)
-        try context.save()
+        try commit()
         invalidateTodayCache()
         return second
     }
@@ -256,13 +301,14 @@ final class SessionStore {
         }
         if session.hourlyRate <= 0 { session.hourlyRate = project.hourlyRate }
         session.project = project
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
     enum SessionEditError: LocalizedError {
         case endBeforeStart
         case spansMidnight
+        case leavesItsDay
         case splitOutsideSession
         case overlapsExisting(Date)
 
@@ -280,6 +326,8 @@ final class SessionStore {
                 // owner's hands. Adding across midnight is fine — that path
                 // splits deliberately.
                 return String(localized: "A session has to end on the day it started. Add a second one after midnight.")
+            case .leavesItsDay:
+                return String(localized: "A session stays on its own day. Delete it and add one on the day you meant.")
             }
         }
     }
@@ -326,7 +374,7 @@ final class SessionStore {
             restored.invoiceNumber = s.invoiceNumber
             context.insert(restored)
         }
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
@@ -364,7 +412,7 @@ final class SessionStore {
                 if s.activeSeconds <= 0 { context.delete(s) }
             }
         }
-        try context.save()
+        try commit()
         invalidateTodayCache()
     }
 
