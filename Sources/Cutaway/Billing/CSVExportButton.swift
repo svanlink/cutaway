@@ -12,14 +12,14 @@ struct CSVExportButton: View {
                 Button(period.rawValue) { export(period) }
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "arrow.down.to.line")
                     .font(DT.buttonGlyph)
                 Text("Export CSV").font(DT.small)
             }
             .foregroundStyle(hovering ? DT.text : DT.text2)
             .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.vertical, DT.within)
             .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
             .overlay(
                 RoundedRectangle(cornerRadius: DT.rMd)

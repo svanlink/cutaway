@@ -286,7 +286,7 @@ struct PillBody: View {
     var pausedHint: String? = nil
 
     var body: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: DT.within) {
             // Bare state-colored circle — no chip background; the color IS
             // the state, matching the pill border.
             miniRing
@@ -306,8 +306,8 @@ struct PillBody: View {
                     .monospacedDigit()
             }
         }
-        .padding(.leading, 3)
-        .padding(.trailing, 9)
+        .padding(.leading, DT.s1)
+        .padding(.trailing, DT.s3)
         .frame(height: 24)
         .background(
             RoundedRectangle(cornerRadius: 7)
@@ -317,7 +317,7 @@ struct PillBody: View {
             RoundedRectangle(cornerRadius: 7)
                 .stroke(stateColor.opacity(0.6), lineWidth: 1)
         )
-        .padding(.horizontal, 3)
+        .padding(.horizontal, DT.s1)
     }
 
     private var miniRing: some View {

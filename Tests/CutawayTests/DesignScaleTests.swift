@@ -68,6 +68,54 @@ final class DesignScaleTests: XCTestCase {
         XCTAssertEqual(DT.margin, 20, "HIG: 20pt window margins")
     }
 
+    /// Gaps in app chrome come from the scale, not from a number typed at
+    /// the call site.
+    ///
+    /// The type ladder is enforced in one file because every font already
+    /// lives there. Spacing is not: it is written wherever a stack is, which
+    /// is how thirteen different values accumulated. This scans the views.
+    ///
+    /// The printed invoice is excluded, and on principle rather than for
+    /// convenience: it is typeset in millimetres for A4 by a payment scheme
+    /// that fixes its measurements, so a screen grid has no authority there.
+    func testAppChromeSpacesItselfFromTheScale() throws {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Sources/Cutaway")
+        let printed = ["PaymentPartView.swift", "InvoiceDocumentView.swift", "SwissQRCode.swift"]
+        let files = (FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil)?
+            .compactMap { $0 as? URL }
+            .filter { $0.pathExtension == "swift" && !printed.contains($0.lastPathComponent) }) ?? []
+        XCTAssertGreaterThan(files.count, 30, "the source tree was not found")
+
+        // What is flagged is a gap OFF the 4pt rhythm. A literal 8 where
+        // DT.within would do produces identical pixels — that is tidiness,
+        // and worth doing, but it is not what made the app look busy. A 3, a
+        // 5, a 7, a 9 is a gap that belongs to no scale, and enough of those
+        // is why nothing read as grouped.
+        //
+        // `spacing: 0` is "no gap", which is a decision, not a measurement.
+        let offender = try NSRegularExpression(
+            pattern: #"(spacing: [1-9][0-9]*\)|padding\(\.[a-zA-Z]+, [1-9][0-9]*\)|padding\([1-9][0-9]*\))"#)
+        var found: [String] = []
+        for file in files {
+            let text = try String(contentsOf: file, encoding: .utf8)
+            for line in text.split(separator: "\n") {
+                let s = String(line)
+                let range = NSRange(s.startIndex..., in: s)
+                guard let match = offender.firstMatch(in: s, range: range),
+                      let hit = Range(match.range, in: s) else { continue }
+                let digits = s[hit].filter(\.isNumber)
+                guard let value = Int(digits), value % 4 != 0 else { continue }
+                found.append("\(file.lastPathComponent): \(s.trimmingCharacters(in: .whitespaces))")
+            }
+        }
+        XCTAssertEqual(found, [], """
+            These gaps are typed numbers rather than steps on the scale. Use             DT.s1 (inside a unit), DT.within (inside a group), DT.between or             DT.margin (around one) — or argue for a new step.
+            \(found.joined(separator: "\n"))
+            """)
+    }
+
     /// Everything on the 4pt grid, which is what keeps unrelated views in
     /// the same rhythm.
     func testTheSpacingScaleIsOnTheGrid() {

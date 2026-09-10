@@ -46,7 +46,7 @@ struct PromptPrimaryButtonStyle: ButtonStyle {
             .font(DT.smallSemibold)
             .foregroundStyle(Color.white)
             .padding(.horizontal, 12)
-            .padding(.vertical, 5)
+            .padding(.vertical, DT.within)
             .background(tint.opacity(configuration.isPressed ? 0.75 : 1),
                         in: RoundedRectangle(cornerRadius: DT.rSm))
             .contentShape(RoundedRectangle(cornerRadius: DT.rSm))
@@ -78,7 +78,7 @@ struct PromptCard<Actions: View>: View {
                     .font(DT.body)
                     .foregroundStyle(tint)
                     .frame(width: 18)
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: DT.s1) {
                     Text(title)
                         .font(DT.bodyBold)
                         .foregroundStyle(DT.textPrimary)

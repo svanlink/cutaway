@@ -11,8 +11,8 @@ struct ModeTag: View {
         Text(mode == .hourly ? "HOURLY" : "BUDGET")
             .font(DT.tag)
             .foregroundStyle(prominent ? DT.signal : DT.text3)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, DT.within)
+            .padding(.vertical, DT.s1)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(prominent ? DT.signal.opacity(0.4) : DT.strokeSubtle, lineWidth: 1)
@@ -56,7 +56,7 @@ struct SwitcherList: View {
                         // a secret: nothing on screen said a project could be
                         // changed or removed at all. The buttons are visible
                         // now, and the menu stays for the right-click habit.
-                        HStack(spacing: 2) {
+                        HStack(spacing: DT.s1) {
                             SwitcherRow(project: p, isCurrent: p.persistentModelID == currentID) {
                                 select(p)
                             }
@@ -94,18 +94,18 @@ struct SwitcherList: View {
                 .frame(height: 1)
                 .padding(.vertical, 4)
             Button(action: newProject) {
-                HStack(spacing: 10) {
+                HStack(spacing: DT.s3) {
                     Text("＋").font(DT.body)
                     Text("New Project…").font(DT.body)
                     Spacer(minLength: 0)
                 }
                 .foregroundStyle(DT.text3)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
+                .padding(.horizontal, DT.s3)
+                .padding(.vertical, DT.within)
             }
             .buttonStyle(.plain)
         }
-        .padding(5)
+        .padding(DT.within)
         .frame(width: 300)
         .background(DT.popover)
     }
@@ -119,7 +119,7 @@ private struct SwitcherRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: DT.s3) {
                 Circle()
                     .fill(isCurrent ? DT.signal : DT.text3)
                     .frame(width: 7, height: 7)
@@ -131,8 +131,8 @@ private struct SwitcherRow: View {
                 Spacer(minLength: 8)
                 ModeTag(mode: project.mode)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, DT.s3)
+            .padding(.vertical, DT.within)
             .background(
                 isCurrent ? AnyShapeStyle(DT.signalSoft) :
                     hovering ? AnyShapeStyle(Color.white.opacity(0.06)) : AnyShapeStyle(.clear),

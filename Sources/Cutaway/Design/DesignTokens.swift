@@ -224,22 +224,33 @@ enum DT {
     // Every step below is a size macOS itself uses (HIG Typography, macOS
     // type sizes), so the app sits in the same rhythm as the menus around it.
     enum Step {
-        /// The hero clock. The one number the app exists to show.
+        /// Asked, not assumed. These were hand-typed numbers that happened to
+        /// match; reading them from the system means the app moves when macOS
+        /// moves, and it is honest about where they came from.
+        private static func system(_ style: NSFont.TextStyle) -> CGFloat {
+            NSFont.preferredFont(forTextStyle: style).pointSize
+        }
+
+        /// The hero clock — the one number the app exists to show, and the
+        /// only step deliberately above the system's largest text style.
         static let display: CGFloat = 36
-        /// The lead figure on a card.
-        static let xl: CGFloat = 26
-        /// Section titles, money, the seconds beside the hero. HIG Title 2.
-        static let l: CGFloat = 17
-        /// A project name — a proper noun, one step above running text.
-        static let m: CGFloat = 15
-        /// Body. HIG Body/Headline.
-        static let base: CGFloat = 13
-        /// Dense rows and secondary controls. HIG Callout.
-        static let s: CGFloat = 12
-        /// Labels above values, metadata. HIG Subheadline.
-        static let xs: CGFloat = 11
-        /// Glyphs, tags, column headers. HIG Caption.
-        static let xxs: CGFloat = 10
+        /// The lead figure on a card. macOS Large Title (26).
+        static let xl = system(.largeTitle)
+        /// Section titles, money, the seconds beside the hero. Title 2 (17).
+        static let l = system(.title2)
+        /// A project name — a proper noun, a step above running text.
+        /// Title 3 (15).
+        static let m = system(.title3)
+        /// Body and Headline share this size on macOS; weight separates
+        /// them, which is the platform's own answer to emphasis (13).
+        static let base = system(.body)
+        /// Dense rows and secondary controls. Callout (12).
+        static let s = system(.callout)
+        /// Labels above values, metadata. Subheadline (11).
+        static let xs = system(.subheadline)
+        /// Glyphs, tags, column headers. Footnote and Caption, which are the
+        /// same size on macOS (10).
+        static let xxs = system(.footnote)
     }
 
     /// Currency figures. Monospaced: a money column that shifts as digits
@@ -289,7 +300,19 @@ enum DT {
     static let panelChip = Font.system(size: Step.xs, weight: .bold)
 
     // canvas
-    static let windowSize = CGSize(width: 480, height: 660)
+    /// What the window opens at, and the smallest it may become.
+    ///
+    /// One value did both, which is why the window could not be made smaller
+    /// than its opening size — and why it opened a third taller than a
+    /// typical week of content, leaving a void inside the day list. Apple's
+    /// layout guidance is "extend content to fill the window"; the card does,
+    /// so the calibration belongs to the OPENING SIZE, not to the layout.
+    ///
+    /// 580 fits a week with today's strip open. More days scroll, and the
+    /// window is freely resizable — macOS remembers the frame either way.
+    static let windowSize = CGSize(width: 480, height: 580)
+    /// Small enough to be useful on a laptop beside a full-screen Resolve.
+    static let windowMinSize = CGSize(width: 420, height: 380)
 
     /// The invoice page.
     ///

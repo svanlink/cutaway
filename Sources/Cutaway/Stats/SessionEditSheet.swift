@@ -62,7 +62,7 @@ struct SessionEditSheet: View {
                     .disabled(seconds <= 0)
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.vertical, DT.s4)
             .background(.regularMaterial)
         }
         .frame(width: 460)

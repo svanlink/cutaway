@@ -27,13 +27,13 @@ struct InvoiceButton: View {
 
     private var custom: some View {
         Button { sheetOpen = true } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: DT.within) {
                 Image(systemName: "doc.text").font(DT.buttonGlyph)
                 Text("Invoice…").font(DT.small)
             }
             .foregroundStyle(hovering ? DT.text : DT.text2)
             .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.vertical, DT.within)
             .background(DT.card2, in: RoundedRectangle(cornerRadius: DT.rMd))
             .overlay(RoundedRectangle(cornerRadius: DT.rMd)
                 .stroke(hovering ? DT.signal.opacity(0.5) : DT.strokeSubtle, lineWidth: 1))

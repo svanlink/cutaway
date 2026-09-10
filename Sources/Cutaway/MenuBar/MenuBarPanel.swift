@@ -126,7 +126,7 @@ struct MenuBarPanel: View {
                         .font(DT.panelClient)
                         .kerning(0.84)
                         .foregroundStyle(isRecording ? accent : DT.text3)
-                        .padding(.top, 3)
+                        .padding(.top, DT.s1)
                     Text(model.selectedProject?.name ?? "No project")
                         .font(DT.panelProject)
                         .foregroundStyle(DT.text)
@@ -301,7 +301,7 @@ struct MenuBarPanel: View {
                     Text("Resume")
                         .font(DT.smallSemibold)
                         .foregroundStyle(DT.onSignal)
-                        .padding(.horizontal, 10)
+                        .padding(.horizontal, DT.s3)
                         .frame(height: 24)
                         .background(DT.signal, in: RoundedRectangle(cornerRadius: DT.rSm))
                 }
@@ -376,7 +376,7 @@ struct MenuBarPanel: View {
                 Text(paused ? "Resume" : "Pause").font(DT.smallSemibold)
             }
             .foregroundStyle(paused ? DT.text : DT.onSignal)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, DT.s3)
             .frame(height: 26)
             .background(paused ? AnyShapeStyle(Color.white.opacity(0.12)) : AnyShapeStyle(DT.signal),
                         in: RoundedRectangle(cornerRadius: 7))
@@ -410,7 +410,7 @@ struct MenuBarPanel: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .padding(.vertical, DT.s3)
         .background(Color.black.opacity(0.35))
     }
 

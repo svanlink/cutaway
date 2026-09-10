@@ -17,7 +17,7 @@ struct AppIconRow: View {
     var body: some View {
         // Real icons only: a prefix with no installed app draws nothing here.
         let s = AppIconRowPolicy.shown(prefixes.filter { InstalledApps.installed(matching: $0, in: installed) != nil })
-        HStack(spacing: 3) {
+        HStack(spacing: DT.s1) {
             ForEach(s.shown, id: \.self) { prefix in
                 AppIconView(app: InstalledApps.installed(matching: prefix, in: installed),
                             name: AppCatalog.allEntries.first { $0.prefix == prefix }?.name ?? prefix,

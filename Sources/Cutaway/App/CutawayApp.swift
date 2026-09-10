@@ -85,7 +85,7 @@ struct CutawayApp: App {
                 // and it was unavailable: the window could not be resized at
                 // all, leaving Zoom as the only option, which means panning a
                 // magnified viewport around a 480pt window.
-                .frame(minWidth: DT.windowSize.width, minHeight: DT.windowSize.height)
+                .frame(minWidth: DT.windowMinSize.width, minHeight: DT.windowMinSize.height)
                 .background(DT.window)
                 .sheet(isPresented: Bindable(model).showNewProjectSheet) {
                     ProjectSheet(model: model)

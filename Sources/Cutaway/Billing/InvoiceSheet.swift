@@ -32,7 +32,7 @@ struct InvoiceSheet: View {
         VStack(spacing: 0) {
             // A sheet with no title is a form someone has to infer. This one
             // creates a legal document; it can say so.
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: DT.s1) {
                 Text("New invoice").font(.headline)
                 Text(project.name)
                     .font(.caption).foregroundStyle(.secondary)
@@ -128,7 +128,7 @@ struct InvoiceSheet: View {
                     .disabled(budgetSpent || (preview.map { $0.lines.isEmpty } ?? true))
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.vertical, DT.s4)
             .background(.regularMaterial)
         }
         .frame(width: 560, height: 720)
@@ -177,7 +177,7 @@ struct InvoiceSheet: View {
             }
             .buttonStyle(.link)
         } label: {
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: DT.s1) {
                 Text(invoice.number).monospacedDigit()
                 Text(statusLine(invoice)).font(.caption).foregroundStyle(.secondary)
             }

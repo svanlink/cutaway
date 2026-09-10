@@ -377,7 +377,7 @@ struct StatsView: View {
         }
         .padding(.vertical, DT.within)
         .padding(.leading, isToday ? 12 : 14)
-        .padding(.trailing, 14)
+        .padding(.trailing, DT.s4)
         .background(isToday ? DT.signal.opacity(0.06) : .clear)
         .overlay(alignment: .leading) {
             if isToday { Rectangle().fill(DT.signal).frame(width: 2) }
@@ -496,7 +496,7 @@ struct DayActionButtonStyle: ButtonStyle {
         configuration.label
             .font(DT.captionMedium)
             .foregroundStyle(configuration.isPressed ? DT.text : DT.text2)
-            .padding(.horizontal, 9)
+            .padding(.horizontal, DT.s3)
             .padding(.vertical, 4)
             .background(Color.white.opacity(configuration.isPressed ? 0.14 : 0.08),
                         in: RoundedRectangle(cornerRadius: DT.rSm))
