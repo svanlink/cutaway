@@ -35,13 +35,24 @@ struct SettingsView: View {
                 }
                 .accessibilityLabel("Pause after no input for")
                 LabeledContent {
-                    Button("\(model.engine.workAppPrefixes.count) apps…") { editingWorkApps = true }
+                    // The count of the list this popover EDITS — the global
+                    // one. It used to count `engine.workAppPrefixes`, which is
+                    // the RESOLVED set: a project's own list whenever it has
+                    // one, and every project created by any route gets one.
+                    // So the number was the project's, the popover was the
+                    // global list, ticking three more apps changed nothing
+                    // about what was tracked, and the number did not even
+                    // move afterwards because `applyAnchors` recomputes back
+                    // to the project's list. The label claimed the opposite
+                    // of what the control did.
+                    Button("\(AppModel.globalWorkApps.count) apps…") { editingWorkApps = true }
                         .popover(isPresented: $editingWorkApps, arrowEdge: .bottom) {
                             AppPrefsPicker(title: "Apps that count", prefsKey: "workApps",
                                            defaults: DetectionInput.defaultWorkAppPrefixes) { _ in model.applyAnchors() }
                         }
                 } label: {
-                    labelled("Apps that count", "Time in these counts toward the project")
+                    labelled("Apps that count by default",
+                             "What a new project starts with. Each project keeps its own list — edit it on the project.")
                 }
                 LabeledContent {
                     Button("\(model.engine.satellitePrefixes.count) apps…") { editingSatellites = true }

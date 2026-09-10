@@ -219,7 +219,7 @@ struct DayTimelineView: View {
             ForEach(blocks) { block in
                 Button { if !block.isLive { edit(block) } } label: {
                     HStack(spacing: DT.within) {
-                        Text(AppModel.sessionTimeRange(start: block.start, end: block.end))
+                        Text(rangeText(block))
                             .foregroundStyle(DT.text2)
                         if block.isAdjusted {
                             Image(systemName: "pencil")
@@ -255,6 +255,21 @@ struct DayTimelineView: View {
                     .padding(.top, DT.s1)
             }
         }
+    }
+
+    /// The hours a session covers — or an honest silence where it has none.
+    ///
+    /// "Set day total…" grows a day by inserting a session with start == end,
+    /// pinned to the day's last activity or to noon on a day with nothing on
+    /// it. That moment was invented to give the time somewhere to sit; it was
+    /// never observed. The strip has always drawn it honestly, as a fixed
+    /// hatched chip rather than a span — but this list printed it as
+    /// "18:00 – 18:00", or "12:00 – 12:00" for a day typed in from scratch,
+    /// which reads as a precise claim about a noon nobody mentioned.
+    private func rangeText(_ block: DayTimeline.Block) -> String {
+        block.span < 60
+            ? String(localized: "No time of day")
+            : AppModel.sessionTimeRange(start: block.start, end: block.end)
     }
 
     /// "1 session", not "1 sessions".
@@ -374,7 +389,7 @@ struct DayTimelineView: View {
     }
 
     private func tooltip(_ block: DayTimeline.Block) -> String {
-        let range = AppModel.sessionTimeRange(start: block.start, end: block.end)
+        let range = rangeText(block)
         let money = money(block)
         let unbilled = block.unbilledSeconds > 60
             ? String(localized: " · \(AppModel.hoursText(block.unbilledSeconds)) of the span not billed") : ""
@@ -382,7 +397,7 @@ struct DayTimelineView: View {
     }
 
     private func spoken(_ block: DayTimeline.Block) -> String {
-        let range = AppModel.sessionTimeRange(start: block.start, end: block.end)
+        let range = rangeText(block)
         let worked = PillView.spokenDuration(block.activeSeconds)
         let money = money(block)
         let kind = block.isLive ? String(localized: ", running")

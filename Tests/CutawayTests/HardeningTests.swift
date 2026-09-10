@@ -97,7 +97,7 @@ final class HardeningTests: XCTestCase {
 
         XCTAssertThrowsError(try store.restore(before, for: p, calendar: cal),
                              "an issued invoice outranks an undo")
-        XCTAssertEqual(store.unbilledTotal(for: p), 0, "and the work stays locked")
+        XCTAssertEqual(try store.unbilledTotal(for: p), 0, "and the work stays locked")
     }
 
     /// A snapshot carries identity and the lock, or restoring orphans the

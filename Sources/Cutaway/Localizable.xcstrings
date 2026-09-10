@@ -431,6 +431,16 @@
         }
       }
     },
+    "Apps that count by default": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardmäßig zählende Apps"
+          }
+        }
+      }
+    },
     "Are you working?": {
       "localizations": {
         "de": {
@@ -1551,6 +1561,16 @@
         }
       }
     },
+    "No time of day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Uhrzeit"
+          }
+        }
+      }
+    },
     "No, stay paused": {
       "localizations": {
         "de": {
@@ -2321,6 +2341,16 @@
         }
       }
     },
+    "Switch to this project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu diesem Projekt wechseln"
+          }
+        }
+      }
+    },
     "Tax": {
       "localizations": {
         "de": {
@@ -2511,16 +2541,6 @@
         }
       }
     },
-    "Time in these counts toward the project": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zeit in diesen Apps zählt für das Projekt"
-          }
-        }
-      }
-    },
     "Time worked": {
       "localizations": {
         "de": {
@@ -2667,6 +2687,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was Cutaway braucht, und warum"
+          }
+        }
+      }
+    },
+    "What a new project starts with. Each project keeps its own list — edit it on the project.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Womit ein neues Projekt startet. Jedes Projekt hat seine eigene Liste — bearbeite sie am Projekt."
           }
         }
       }

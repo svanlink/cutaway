@@ -228,7 +228,7 @@ DE = {
  "Includes manual adjustment": "Enthält manuelle Anpassung", "includes manual adjustment": "enthält manuelle Anpassung",
  "Export CSV": "CSV exportieren", "Export project data as CSV": "Projektdaten als CSV exportieren", "Export failed": "Export fehlgeschlagen",
  "Tracking": "Erfassung",
- "1 minute": "1 Minute", "2 minutes": "2 Minuten", "5 minutes": "5 Minuten", "10 minutes": "10 Minuten", "Time in these counts toward the project": "Zeit in diesen Apps zählt für das Projekt",
+ "1 minute": "1 Minute", "2 minutes": "2 Minuten", "5 minutes": "5 Minuten", "10 minutes": "10 Minuten",
  "Research & comms": "Recherche & Kommunikation",
  "Default hourly rate": "Standard-Stundensatz", "Auto-detected projects start with this rate": "Automatisch erkannte Projekte starten mit diesem Satz",
  "Default currency": "Standardwährung", "New projects start with this currency": "Neue Projekte starten mit dieser Währung",
@@ -281,6 +281,11 @@ EXTRA = {
  "%@ today on %@ — %@": "%@ heute an %@ — %@",
  "Total  %@": "Gesamt  %@",
  "%@ in gaps": "%@ in Lücken",
+ "No time of day": "Keine Uhrzeit",
+ "Apps that count by default": "Standardmäßig zählende Apps",
+ "What a new project starts with. Each project keeps its own list — edit it on the project.":
+     "Womit ein neues Projekt startet. Jedes Projekt hat seine eigene Liste — bearbeite sie am Projekt.",
+ "Switch to this project": "Zu diesem Projekt wechseln",
  "On invoice %@ — void it to make changes": "Auf Rechnung %@ — storniere sie, um zu ändern",
  "Billable": "Abrechenbar", "The whole span": "Die ganze Spanne",
  "Scales with the span; excluded idle stays excluded":

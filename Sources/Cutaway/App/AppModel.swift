@@ -529,7 +529,10 @@ final class AppModel {
         projectsModel.update(p, name: name, client: client, mode: mode, rate: rate, budget: budget,
                              currency: currency, apps: apps)
     }
-    func delete(_ p: Project, reassignTo t: Project?) { projectsModel.delete(p, reassignTo: t) }
+    @discardableResult
+    func delete(_ p: Project, reassignTo t: Project?) -> Bool {
+        projectsModel.delete(p, reassignTo: t)
+    }
     func applyAnchors() { projectsModel.applyAnchors() }
     static var globalWorkApps: [String] { ProjectsModel.globalWorkApps }
     static var defaultCurrency: BillingCurrency { ProjectsModel.defaultCurrency }
@@ -616,8 +619,10 @@ final class AppModel {
     /// month — "what have I not billed yet" — which no other surface answered.
     var unbilledLine: String? {
         guard let p = selectedProject else { return nil }
-        let unbilled = store.unbilledTotal(for: p)
-        guard unbilled > 0 else { return nil }
+        // Say nothing rather than guess. A `try?` here would print "CHF 0
+        // unbilled" for a store that could not be read, which reads as
+        // "you have billed everything".
+        guard let unbilled = try? store.unbilledTotal(for: p), unbilled > 0 else { return nil }
         return p.currency.format(NSDecimalNumber(decimal: unbilled).doubleValue)
     }
 

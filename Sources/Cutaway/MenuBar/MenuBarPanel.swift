@@ -26,12 +26,20 @@ struct MenuBarPanel: View {
     static func blocks(zeroState: Bool, offersAccessibility: Bool,
                        workDetectedWhilePaused: Bool, researchLabel: Bool,
                        receipt: Bool, storeProblem: Bool = false,
-                       projectMismatch: Bool = false) -> [PanelBlock] {
+                       projectMismatch: Bool = false,
+                       hasOtherProjects: Bool = false) -> [PanelBlock] {
         var b: [PanelBlock] = [.hero]
         // A failed save outranks everything: it is the one line that can
         // save the user money if they read it.
         if storeProblem { b.append(.storeProblem) }
-        if zeroState { return b + [.zeroState, .footer] }
+        // "Nothing tracked yet" is a zero state a project can be IN, not
+        // only one the app can be in — a project created a minute ago has no
+        // time on it. Dropping the list there left the panel with no way to
+        // switch back to the project that does have the day's work on it,
+        // because the list shows the ones you are NOT tracking.
+        if zeroState {
+            return b + (hasOtherProjects ? [.zeroState, .projects] : [.zeroState]) + [.footer]
+        }
         if offersAccessibility { b.append(.accessibilityOffer) }
         b.append(.projects)
         // A held clock outranks the research line: while it is true, the
@@ -50,7 +58,8 @@ struct MenuBarPanel: View {
                                  researchLabel: model.engine.recordingSource?.label != nil,
                                  receipt: model.lastSessionLine != nil || model.unbilledLine != nil,
                                  storeProblem: model.storeErrors.banner != nil,
-                                 projectMismatch: model.projectMismatch)
+                                 projectMismatch: model.projectMismatch,
+                                 hasOtherProjects: model.projects.count > 1)
         VStack(spacing: 0) {
             ForEach(blocks, id: \.self) { block in
                 switch block {
@@ -186,10 +195,7 @@ struct MenuBarPanel: View {
                         id: \.persistentModelID) { p in
                     PanelRow(
                         project: p,
-                        isRunning: p.persistentModelID == model.selectedProjectID && isRecording,
-                        isSelected: p.persistentModelID == model.selectedProjectID,
                         todaySeconds: model.todaySecondsFor(p),
-                        sessionSeconds: model.engine.accumulator.activeSeconds,
                         installed: model.installedApps
                     ) {
                         model.selectManually(p)
@@ -370,15 +376,31 @@ struct MenuBarPanel: View {
     /// The app's primary control, on the surface that is open all day.
     private var pauseButton: some View {
         let paused = model.engine.manuallyPaused
+        // Two different facts, and the footer used only one of them.
+        //
+        // `manuallyPaused` says whether the owner pressed this button. It
+        // does NOT say whether anything is being recorded — the engine is
+        // also stopped when Resolve is not frontmost, when input has gone
+        // idle, while a project is awaited, with no project at all, and
+        // through sleep. In every one of those the footer drew a filled teal
+        // "Pause", the app's primary control in its active styling, for a
+        // clock that was already stopped, while the hero six points above
+        // correctly showed nothing running. The pill agrees with the hero;
+        // the footer was the one surface out of step.
+        //
+        // The ACTION is unchanged — this is the manual pause control, and
+        // pausing ahead of time is a real thing to want. Only the claim is:
+        // the filled accent now means "something is being recorded and this
+        // stops it".
         return Button { model.engine.togglePause() } label: {
             HStack(spacing: DT.s1) {
                 Image(systemName: paused ? "play.fill" : "pause.fill").font(DT.buttonGlyph)
                 Text(paused ? "Resume" : "Pause").font(DT.smallSemibold)
             }
-            .foregroundStyle(paused ? DT.text : DT.onSignal)
+            .foregroundStyle(isRecording ? DT.onSignal : DT.text)
             .padding(.horizontal, DT.s3)
             .frame(height: 26)
-            .background(paused ? AnyShapeStyle(Color.white.opacity(0.12)) : AnyShapeStyle(DT.signal),
+            .background(isRecording ? AnyShapeStyle(DT.signal) : AnyShapeStyle(Color.white.opacity(0.12)),
                         in: RoundedRectangle(cornerRadius: 7))
         }
         .buttonStyle(.plain)
@@ -441,12 +463,27 @@ struct MenuBarPanel: View {
     }
 }
 
+/// One project you are NOT tracking, and could switch to.
+///
+/// The list filters the selected project out — the hero above is that
+/// project — so this row's `isRunning` and `isSelected` were false by
+/// construction, and every branch they guarded was unreachable: the running
+/// ring, the live session chip, the active fonts, the recording background,
+/// the ", running" suffix, the `.isSelected` trait. All deleted rather than
+/// repaired; a row that cannot be the running one should not carry the code
+/// for being it.
+///
+/// The visible cost of that dead code was a ▶ on every row. It is not a
+/// button — nothing inside the row is; the row itself is one — and its
+/// action switches the billing target without starting anything. With the
+/// engine manually paused, or Resolve not frontmost, pressing it moved which
+/// client was being billed and the clock stayed at zero. The accessible
+/// label said "Switches the active project" all along, so a screen-reader
+/// user was better informed than a sighted one. Now the glyph says what the
+/// label says.
 private struct PanelRow: View {
     let project: Project
-    let isRunning: Bool
-    let isSelected: Bool
     let todaySeconds: TimeInterval
-    let sessionSeconds: TimeInterval
     let installed: [InstalledApp]
     let action: () -> Void
     @State private var hovering = false
@@ -455,25 +492,17 @@ private struct PanelRow: View {
         Button(action: action) {
             HStack(spacing: DT.s3) {
                 ZStack {
-                    Circle().fill(isRunning ? AnyShapeStyle(DT.recording) : AnyShapeStyle(Color.white.opacity(0.08)))
-                    if isRunning {
-                        Circle()
-                            .trim(from: 0, to: 0.75)
-                            .stroke(DT.onSignal, style: StrokeStyle(lineWidth: 2.4, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                            .frame(width: 11, height: 11)
-                    } else {
-                        Image(systemName: "play.fill")
-                            .font(DT.glyphTiny)
-                            .foregroundStyle(DT.text3)
-                    }
+                    Circle().fill(Color.white.opacity(0.08))
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(DT.glyphTiny)
+                        .foregroundStyle(DT.text3)
                 }
                 .frame(width: 26, height: 26)
 
                 VStack(alignment: .leading, spacing: DT.s1) {
                     Text(project.name)
-                        .font(isRunning ? DT.panelRowActive : DT.body)
-                        .foregroundStyle(isRunning ? DT.text : DT.text2)
+                        .font(DT.body)
+                        .foregroundStyle(DT.text2)
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)
                         .truncationMode(.tail)
@@ -483,40 +512,27 @@ private struct PanelRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                if isRunning, sessionSeconds >= 1 {
-                    Text(shortTime(sessionSeconds))
-                        .font(DT.panelChip)
-                        .foregroundStyle(DT.recording)
-                        .monospacedDigit()
-                        .padding(.horizontal, DT.within)
-                        .padding(.vertical, DT.s1)
-                        .background(Color.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 5))
-                }
-
                 Text(hoursMinutes(todaySeconds))
-                    .font(isRunning ? DT.panelTotalActive : DT.panelTotal)
-                    .foregroundStyle(isRunning ? DT.text : DT.text2)
+                    .font(DT.panelTotal)
+                    .foregroundStyle(DT.text2)
                     .monospacedDigit()
             }
             .padding(.horizontal, DT.rowInset)
             // A stated height, so the list's own height is arithmetic rather
             // than a guess. See PanelLayout.
             .frame(height: PanelLayout.rowHeight)
-            .background(
-                isRunning ? AnyShapeStyle(DT.recording.opacity(0.12)) :
-                    hovering ? AnyShapeStyle(Color.white.opacity(0.04)) : AnyShapeStyle(.clear)
-            )
+            .background(hovering ? AnyShapeStyle(Color.white.opacity(0.04)) : AnyShapeStyle(.clear))
             .overlay(alignment: .top) {
                 Rectangle().fill(Color.white.opacity(0.05)).frame(height: 1)
             }
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
+        .help("Switch to this project")
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(project.name), \(PillView.spokenDuration(todaySeconds)) today"
-                            + (isRunning ? ", running" : ""))
+        .accessibilityLabel("\(project.name), \(PillView.spokenDuration(todaySeconds)) today")
         .accessibilityHint("Switches the active project")
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityAddTraits(.isButton)
     }
 
     private func hoursMinutes(_ t: TimeInterval) -> String {

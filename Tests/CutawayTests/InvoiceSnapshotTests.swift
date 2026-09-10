@@ -255,8 +255,8 @@ final class InvoiceSnapshotTests: XCTestCase {
         let p = try project(rate: 90)
         try store.record(SessionRecord(start: date(4, 9), end: date(4, 11), activeSeconds: 7200),
                          to: p, calendar: cal)
-        XCTAssertEqual(store.unbilledTotal(for: p), Decimal(string: "180.00"))
+        XCTAssertEqual(try store.unbilledTotal(for: p), Decimal(string: "180.00"))
         _ = try issue(p)
-        XCTAssertEqual(store.unbilledTotal(for: p), 0, "invoiced work is no longer owed to you")
+        XCTAssertEqual(try store.unbilledTotal(for: p), 0, "invoiced work is no longer owed to you")
     }
 }

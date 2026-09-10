@@ -37,8 +37,13 @@ struct DeleteProjectSheet: View {
                 Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
                 Button("Delete", role: .destructive) {
                     let target = others.first { $0.persistentModelID == reassignID }
-                    model.delete(project, reassignTo: target)
-                    dismiss()
+                    // Dismissing regardless meant a refused delete looked
+                    // exactly like a successful one — the sheet closed, the
+                    // project was still there, and the only word about it was
+                    // a generic banner in another window. The store refuses
+                    // whenever invoiced sessions would be destroyed, and that
+                    // refusal names the invoice.
+                    if model.delete(project, reassignTo: target) { dismiss() }
                 }
                 .buttonStyle(.borderedProminent)
             }

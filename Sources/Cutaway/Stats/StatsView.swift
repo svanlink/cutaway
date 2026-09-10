@@ -142,7 +142,11 @@ struct StatsView: View {
         // Round each day, then sum — the same order the CSV uses, so the
         // headline figure and the exported total are the same number.
         let earned = days.reduce(0) { $0 + Money.round2($1.earned) }
-        let avg = model.store.avgDailySeconds(for: p)
+        // From the same days as `total`. `avgDailySeconds` reads the store
+        // alone, so while the clock ran the headline said "27.4 h · 5 days"
+        // over an average computed from 27.0 — three figures on one line
+        // that did not divide.
+        let avg = dayCount > 0 ? total / Double(dayCount) : 0
         let avgEarned = days.isEmpty ? 0 : earned / Double(days.count)
 
         VStack(spacing: DT.within) {

@@ -215,10 +215,23 @@ extension SessionStore {
     }
 
     /// Unbilled money across every project — the figure the panel shows.
-    func unbilledTotal(for project: Project) -> Decimal {
-        Money.total(project.sessions
+    func unbilledTotal(for project: Project) throws -> Decimal {
+        let accrued = Money.total(project.sessions
             .filter { !$0.isInvoiced }
             .map { Money.rounded(Money.decimal($0.earned(projectRate: project.hourlyRate)),
                                  currency: project.currency) })
+        // A fixed price is a ceiling, and `InvoiceBuilder.budgetCapped`
+        // enforces it — so a budget job worked past its budget accrued time
+        // the invoice sheet will refuse to bill, and the panel advertised it
+        // as money owed. "CHF 2'329 unbilled" beside a job that will pay
+        // nothing more is the panel's most-read line telling its worst lie.
+        //
+        // Throws rather than swallowing: a figure this one is derived from
+        // cannot be read means the answer is unknown, and reporting unknown
+        // as a number is how a reporting failure becomes a billing decision.
+        guard project.mode == .budget, project.budget > 0 else { return accrued }
+        let headroom = Money.rounded(Money.decimal(project.budget), currency: project.currency)
+            - (try invoicedTotal(for: project))
+        return max(min(accrued, headroom), 0)
     }
 }

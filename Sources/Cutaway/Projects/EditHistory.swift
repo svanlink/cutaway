@@ -42,9 +42,14 @@ extension AppModel {
             MainActor.assumeIsolated {
                 // Snapshot the CURRENT state first so undo can be redone.
                 let after = model.store.dayEdit(before.day, for: project, named: before.name)
-                model.storeErrors.attempt("undo the day edit") {
+                // Only if it actually happened. `restore` refuses a day that
+                // has been invoiced SINCE the edit, and the announcement and
+                // the redo registration used to run regardless — so VoiceOver
+                // said "Undid Edit 4 September" over a day that had not
+                // changed, and offered a redo of an undo that never occurred.
+                guard model.storeErrors.attempt("undo the day edit", {
                     try model.store.restore(before, for: project)
-                }
+                }) != nil else { return }
                 model.registerUndo(of: after, for: project)
                 model.announce(String(localized: "Undid \(before.name)"))
             }
@@ -88,10 +93,36 @@ extension AppModel {
         undoManager.setActionName(beforeSource.name)
         undoManager.registerUndo(withTarget: self) { model in
             MainActor.assumeIsolated {
-                model.storeErrors.attempt("undo the move") {
+                // Two restores, two attempts. They shared one closure, so a
+                // refusal on the target's day — that day invoiced since the
+                // move — skipped the source's restore entirely and left the
+                // session gone from the target AND absent from the source.
+                // An undo that loses the work it was undoing.
+                let targetOK = model.storeErrors.attempt("undo the move", {
                     try model.store.restore(beforeTarget, for: target)
+                }) != nil
+                let sourceOK = model.storeErrors.attempt("undo the move", {
                     try model.store.restore(beforeSource, for: source)
-                }
+                }) != nil
+                guard targetOK, sourceOK else { return }
+                // And a redo, which this never registered: a move could be
+                // undone once and never put back.
+                model.reassignRedo(session: session, from: target, to: source,
+                                   day: day, name: beforeSource.name)
+                model.announce(String(localized: "Undid \(beforeSource.name)"))
+            }
+        }
+    }
+
+    /// The other half of the reassignment undo: put it back where it was
+    /// sent. Registered from inside the undo so redo exists exactly as long
+    /// as an undo has been performed.
+    fileprivate func reassignRedo(session: WorkSession, from source: Project, to target: Project,
+                                  day: Date, name: String) {
+        undoManager.setActionName(name)
+        undoManager.registerUndo(withTarget: self) { model in
+            MainActor.assumeIsolated {
+                try? model.reassignSession(session, from: source, to: target)
             }
         }
     }

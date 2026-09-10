@@ -38,9 +38,9 @@ final class BillingStatusTests: XCTestCase {
 
     func testUnbilledFallsAsWorkIsInvoiced() throws {
         let p = try projectWithTwoDays()
-        XCTAssertEqual(store.unbilledTotal(for: p), Decimal(string: "200.00"))
+        XCTAssertEqual(try store.unbilledTotal(for: p), Decimal(string: "200.00"))
         _ = try issue(p, from: 3, to: 3)
-        XCTAssertEqual(store.unbilledTotal(for: p), Decimal(string: "100.00"),
+        XCTAssertEqual(try store.unbilledTotal(for: p), Decimal(string: "100.00"),
                        "only the invoiced day leaves the unbilled figure")
     }
 
@@ -61,10 +61,10 @@ final class BillingStatusTests: XCTestCase {
     func testWorkAddedAfterIssuingStaysBillable() throws {
         let p = try projectWithTwoDays()
         _ = try issue(p, from: 1, to: 30)
-        XCTAssertEqual(store.unbilledTotal(for: p), 0)
+        XCTAssertEqual(try store.unbilledTotal(for: p), 0)
         try store.record(SessionRecord(start: day(5), end: day(5).addingTimeInterval(1800),
                                        activeSeconds: 1800), to: p, calendar: cal)
-        XCTAssertEqual(store.unbilledTotal(for: p), Decimal(string: "50.00"),
+        XCTAssertEqual(try store.unbilledTotal(for: p), Decimal(string: "50.00"),
                        "it bills next time, never into a document the client already holds")
     }
 
@@ -98,7 +98,7 @@ final class BillingStatusTests: XCTestCase {
 
         XCTAssertEqual(first.status, .void)
         XCTAssertEqual(first.number.isEmpty, false)
-        XCTAssertEqual(store.unbilledTotal(for: p), Decimal(string: "200.00"), "billable again")
+        XCTAssertEqual(try store.unbilledTotal(for: p), Decimal(string: "200.00"), "billable again")
         XCTAssertNil(store.invoiceNumber(coveringDay: day(3), for: p), "and editable again")
         XCTAssertNoThrow(try store.setActiveSeconds(7200, on: day(3), for: p, calendar: cal))
 

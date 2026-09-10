@@ -237,7 +237,9 @@ final class ProjectsModel {
         applyAnchors()
     }
 
-    func delete(_ project: Project, reassignTo target: Project?) {
+    /// True when the project is actually gone.
+    @discardableResult
+    func delete(_ project: Project, reassignTo target: Project?) -> Bool {
         let wasSelected = project.persistentModelID == selectedProjectID
         if wasSelected {
             // The open span belongs to the project being deleted (or its heir).
@@ -249,12 +251,13 @@ final class ProjectsModel {
         // retargeting every subsequent minute at whichever client was created
         // earliest. The only signal was a generic banner in another window.
         guard errors.attempt("delete the project", recovery: false,
-                             { try store.delete(project, reassignTo: target) }) != nil else { return }
+                             { try store.delete(project, reassignTo: target) }) != nil else { return false }
         invalidateProjectCache()
         if wasSelected {
             selectedProjectID = (target ?? projects.first)?.persistentModelID
             Prefs.set(selectedProject?.name, forKey: "selectedProjectName")
             engine.hasActiveProject = selectedProjectID != nil
         }
+        return true
     }
 }
