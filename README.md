@@ -121,7 +121,7 @@ xcodegen generate
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway -configuration Release build
 ```
 
-Run the verification loop (371 unit tests, 10 UI tests including an accessibility audit, plus an end-to-end scenario harness that replays scripted work sessions against the full app):
+Run the verification loop (598 unit tests, 11 UI tests including an accessibility audit, plus an end-to-end scenario harness that replays eight scripted work sessions against the full app):
 
 ```bash
 xcodebuild -project Cutaway.xcodeproj -scheme Cutaway test

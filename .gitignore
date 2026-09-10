@@ -13,11 +13,6 @@ xcuserdata/
 # Local design working files stay; heavy exports don't
 *.icns.tmp
 
-# autoresearch ledger — local run state, never committed (program.md rule)
-LOOP_RESULTS.tsv
-loop.log
-STOP
-
 # coverage droppings from a local test run
 default.profraw
 
