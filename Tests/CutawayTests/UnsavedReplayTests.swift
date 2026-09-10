@@ -42,9 +42,9 @@ final class UnsavedReplayTests: XCTestCase {
     /// A save that throws can still have written the row. Replaying it must
     /// not produce a second one.
     func testReplayingTheSameWorkTwiceStoresItOnce() throws {
-        let p = try store.createProject(name: "Richemont", client: "Richemont EC",
+        let p = try store.createProject(name: "Aurora", client: "Aurora EC",
                                         mode: .hourly, hourlyRate: 120, currency: .chf)
-        let entry = UnsavedSessions.Entry(record: record(12_600), projectName: "Richemont",
+        let entry = UnsavedSessions.Entry(record: record(12_600), projectName: "Aurora",
                                           hourlyRate: 120, uid: "fixed-uid-1")
         try store.record(entry.record, to: p, uid: entry.uid)
         try store.record(entry.record, to: p, uid: entry.uid)
@@ -55,12 +55,12 @@ final class UnsavedReplayTests: XCTestCase {
 
     /// The journal remembers whose work it is.
     func testTheJournalCarriesTheProjectAndTheRate() {
-        let entry = UnsavedSessions.Entry(record: record(3600), projectName: "Richemont",
+        let entry = UnsavedSessions.Entry(record: record(3600), projectName: "Aurora",
                                           hourlyRate: 120, uid: "u1")
         XCTAssertTrue(journal.append(entry))
         let back = journal.pending()
         XCTAssertEqual(back.count, 1)
-        XCTAssertEqual(back[0].projectName, "Richemont")
+        XCTAssertEqual(back[0].projectName, "Aurora")
         XCTAssertEqual(back[0].hourlyRate, 120, "priced at what it was worked at, not at replay time")
         XCTAssertEqual(back[0].uid, "u1")
     }
@@ -71,7 +71,7 @@ final class UnsavedReplayTests: XCTestCase {
     func testWorkForAMissingProjectIsHeldRatherThanGuessedAt() throws {
         _ = try store.createProject(name: "Alpina", client: "Alpina", mode: .hourly,
                                     hourlyRate: 90, currency: .chf)
-        let entry = UnsavedSessions.Entry(record: record(3600), projectName: "Richemont",
+        let entry = UnsavedSessions.Entry(record: record(3600), projectName: "Aurora",
                                           hourlyRate: 120, uid: "u2")
         let target = UnsavedSessions.owner(of: entry, among: try store.projects())
         XCTAssertNil(target, "a name nobody answers to must not become somebody's invoice")

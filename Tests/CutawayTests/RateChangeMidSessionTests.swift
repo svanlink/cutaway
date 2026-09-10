@@ -33,7 +33,7 @@ final class RateChangeMidSessionTests: XCTestCase {
     }
 
     func testBankingAnOpenSessionKeepsTheHoursAtTheRateTheyWereWorkedAt() throws {
-        let project = try store.createProject(name: "Maisons", client: "Richemont",
+        let project = try store.createProject(name: "Atelier", client: "Aurora",
                                               mode: .hourly, hourlyRate: 120, currency: .chf)
         var closed: [SessionRecord] = []
         engine.onSessionClosed = { record in

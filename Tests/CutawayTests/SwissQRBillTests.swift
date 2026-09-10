@@ -25,7 +25,7 @@ final class SwissQRBillTests: XCTestCase {
         name: "Sebastian van Eickelen", street: "Badenerstrasse", buildingNumber: "12",
         postalCode: "8004", town: "Zürich", country: "CH")
     private let debtor = SwissQRBill.Address(
-        name: "Richemont EC", street: "Route des Biches", buildingNumber: "10",
+        name: "Aurora EC", street: "Route des Biches", buildingNumber: "10",
         postalCode: "1752", town: "Villars-sur-Glâne", country: "CH")
 
     /// A real published example IBAN from the scheme's own documentation.

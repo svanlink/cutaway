@@ -93,7 +93,7 @@ final class StoreBootstrapTests: XCTestCase {
 
     private func makeUsableStore(at url: URL) throws {
         let store = try SessionStore(inMemory: false, url: url)
-        _ = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        _ = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                     hourlyRate: 120, currency: .chf)
     }
 }
@@ -139,17 +139,17 @@ final class DetectionScheduleTests: XCTestCase {
 final class SessionRecoveryTests: XCTestCase {
 
     func testASnapshotNamingAKnownProjectGoesThere() {
-        XCTAssertEqual(SessionRecovery.target(snapshotProject: "Richemont EC",
-                                              existing: ["Nyx", "Richemont EC"]),
-                       .project("Richemont EC"))
+        XCTAssertEqual(SessionRecovery.target(snapshotProject: "Aurora EC",
+                                              existing: ["Nyx", "Aurora EC"]),
+                       .project("Aurora EC"))
     }
 
     /// Tiers disagree about case and diacritics; two spellings of one project
     /// would split its billing.
     func testMatchingIgnoresCaseAndAccents() {
-        XCTAssertEqual(SessionRecovery.target(snapshotProject: "maisons présentation",
-                                              existing: ["Maisons Presentation"]),
-                       .project("Maisons Presentation"))
+        XCTAssertEqual(SessionRecovery.target(snapshotProject: "atelier présentation",
+                                              existing: ["Atelier Presentation"]),
+                       .project("Atelier Presentation"))
     }
 
     func testAnOlderSnapshotWithNoNameUsesTheSelection() {

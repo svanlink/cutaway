@@ -10,20 +10,20 @@ import XCTest
 /// job it is.
 final class AttributionPolicyTests: XCTestCase {
 
-    private let richemont = (project: "Richemont", names: ["Richemont", "Maisons_v03", "26_08_RichemontEC"])
+    private let aurora = (project: "Aurora", names: ["Aurora", "Atelier_v03", "26_08_AuroraEC"])
     private let nyx = (project: "Nyx", names: ["Nyx"])
 
     func testAKnownNameSwitchesWithoutAsking() {
-        let d = AttributionPolicy.decide(name: "Maisons_v03", source: .adobe(app: "After Effects"),
-                                         known: [richemont, nyx], current: "Nyx",
+        let d = AttributionPolicy.decide(name: "Atelier_v03", source: .adobe(app: "After Effects"),
+                                         known: [aurora, nyx], current: "Nyx",
                                          ignored: [], asked: [])
-        XCTAssertEqual(d, .select(name: "Richemont"),
+        XCTAssertEqual(d, .select(name: "Aurora"),
                        "answered once, remembered forever — that is the point")
     }
 
     func testTheNameOfTheProjectYouAreAlreadyOnIsSilent() {
-        let d = AttributionPolicy.decide(name: "Richemont", source: .resolve,
-                                         known: [richemont], current: "Richemont",
+        let d = AttributionPolicy.decide(name: "Aurora", source: .resolve,
+                                         known: [aurora], current: "Aurora",
                                          ignored: [], asked: [])
         XCTAssertEqual(d, .stay, "no card, no announcement, nothing")
     }
@@ -31,14 +31,14 @@ final class AttributionPolicyTests: XCTestCase {
     /// The case that caused the mess: an unknown name must ASK.
     func testAnUnknownNameAsksInsteadOfCreating() {
         let d = AttributionPolicy.decide(name: "Untitled Project", source: .resolve,
-                                         known: [richemont], current: "Richemont",
+                                         known: [aurora], current: "Aurora",
                                          ignored: [], asked: [])
-        XCTAssertEqual(d, .ask(name: "Untitled Project", source: .resolve, current: "Richemont"))
+        XCTAssertEqual(d, .ask(name: "Untitled Project", source: .resolve, current: "Aurora"))
     }
 
     func testANameToldNotToTrackIsNeverAskedAboutAgain() {
         let d = AttributionPolicy.decide(name: "Holiday video", source: .resolve,
-                                         known: [richemont], current: "Richemont",
+                                         known: [aurora], current: "Aurora",
                                          ignored: ["Holiday video"], asked: [])
         XCTAssertEqual(d, .ignore)
     }
@@ -46,7 +46,7 @@ final class AttributionPolicyTests: XCTestCase {
     /// A card someone dismissed must not reappear on the next app switch.
     func testANameAlreadyAskedAboutThisRunIsNotAskedTwice() {
         let d = AttributionPolicy.decide(name: "Untitled Project", source: .resolve,
-                                         known: [richemont], current: "Richemont",
+                                         known: [aurora], current: "Aurora",
                                          ignored: [], asked: ["Untitled Project"])
         XCTAssertEqual(d, .stay)
     }
@@ -54,23 +54,23 @@ final class AttributionPolicyTests: XCTestCase {
     /// Tiers disagree about case and accents; two spellings of one job would
     /// split its billing.
     func testMatchingIgnoresCaseAndAccents() {
-        let d = AttributionPolicy.decide(name: "maisons_V03", source: .adobe(app: "Photoshop"),
-                                         known: [richemont], current: nil,
+        let d = AttributionPolicy.decide(name: "atelier_V03", source: .adobe(app: "Photoshop"),
+                                         known: [aurora], current: nil,
                                          ignored: [], asked: [])
-        XCTAssertEqual(d, .select(name: "Richemont"))
+        XCTAssertEqual(d, .select(name: "Aurora"))
     }
 
     func testAnEmptyNameIsNotAQuestion() {
-        XCTAssertEqual(AttributionPolicy.decide(name: "   ", source: .resolve, known: [richemont],
-                                                current: "Richemont", ignored: [], asked: []), .stay)
+        XCTAssertEqual(AttributionPolicy.decide(name: "   ", source: .resolve, known: [aurora],
+                                                current: "Aurora", ignored: [], asked: []), .stay)
     }
 
     /// A document is asked about differently from a project.
     func testTheQuestionFitsWhereTheNameCameFrom() {
-        let adobe = AttributionPolicy.question(name: "Maisons_v03", source: .adobe(app: "After Effects"),
-                                               current: "Richemont")
+        let adobe = AttributionPolicy.question(name: "Atelier_v03", source: .adobe(app: "After Effects"),
+                                               current: "Aurora")
         XCTAssertTrue(adobe.title.contains("After Effects"))
-        XCTAssertTrue(adobe.line.contains("Richemont"), "offers the job you are already on")
+        XCTAssertTrue(adobe.line.contains("Aurora"), "offers the job you are already on")
 
         let resolve = AttributionPolicy.question(name: "Nyx Film", source: .resolve, current: nil)
         XCTAssertTrue(resolve.title.contains("Nyx Film"))
@@ -81,7 +81,7 @@ final class AttributionPolicyTests: XCTestCase {
 /// Three cards now; still never two at once.
 final class ThreeCardArbiterTests: XCTestCase {
 
-    private let ask = (name: "Untitled", source: AttributionPolicy.Source.resolve, current: "Richemont")
+    private let ask = (name: "Untitled", source: AttributionPolicy.Source.resolve, current: "Aurora")
 
     func testAnIdleWarningOutranksAnAttributionQuestion() {
         let p = PromptArbiter.visible(idle: IdleWarning(secondsLeft: 20), resumeAsked: false,
@@ -99,7 +99,7 @@ final class ThreeCardArbiterTests: XCTestCase {
     func testTheQuestionShowsWhenNothingElseIsAsking() {
         let p = PromptArbiter.visible(idle: nil, resumeAsked: false, manuallyPaused: false,
                                       state: .recording, attribution: ask)
-        XCTAssertEqual(p, .attribution(name: "Untitled", source: .resolve, current: "Richemont"))
+        XCTAssertEqual(p, .attribution(name: "Untitled", source: .resolve, current: "Aurora"))
     }
 
     func testNoQuestionMeansNoCard() {
@@ -114,25 +114,25 @@ final class ProjectNameMemoryTests: XCTestCase {
 
     func testAProjectAnswersToItsOwnNameAndToWhatItWasTold() throws {
         let store = try SessionStore(inMemory: true)
-        let p = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        let p = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
-        XCTAssertTrue(p.answersTo("richemont"))
-        XCTAssertFalse(p.answersTo("Maisons_v03"))
+        XCTAssertTrue(p.answersTo("aurora"))
+        XCTAssertFalse(p.answersTo("Atelier_v03"))
 
-        p.remember("Maisons_v03")
-        XCTAssertTrue(p.answersTo("Maisons_v03"))
-        XCTAssertTrue(p.answersTo("maisons_v03"), "case is not a different job")
+        p.remember("Atelier_v03")
+        XCTAssertTrue(p.answersTo("Atelier_v03"))
+        XCTAssertTrue(p.answersTo("atelier_v03"), "case is not a different job")
     }
 
     func testRememberingIsIdempotentAndIgnoresNoise() throws {
         let store = try SessionStore(inMemory: true)
-        let p = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        let p = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
-        p.remember("Maisons_v03")
-        p.remember("Maisons_v03")
+        p.remember("Atelier_v03")
+        p.remember("Atelier_v03")
         p.remember("  ")
-        p.remember("Richemont")
-        XCTAssertEqual(p.detectedNames, ["Maisons_v03"],
+        p.remember("Aurora")
+        XCTAssertEqual(p.detectedNames, ["Atelier_v03"],
                        "no duplicates, no blanks, and not its own name twice")
     }
 }

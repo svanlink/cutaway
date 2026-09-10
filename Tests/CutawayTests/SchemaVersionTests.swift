@@ -58,11 +58,11 @@ final class SchemaVersionTests: XCTestCase {
         do {
             let legacy = try ModelContainer(for: Project.self, WorkSession.self,
                                             configurations: ModelConfiguration(url: url))
-            legacy.mainContext.insert(Project(name: "Richemont", client: "", mode: .hourly,
+            legacy.mainContext.insert(Project(name: "Aurora", client: "", mode: .hourly,
                                               hourlyRate: 120, currency: .chf))
             try legacy.mainContext.save()
         }
         let reopened = try SessionStore(inMemory: false, url: url)
-        XCTAssertEqual(try reopened.projects().map(\.name), ["Richemont"])
+        XCTAssertEqual(try reopened.projects().map(\.name), ["Aurora"])
     }
 }

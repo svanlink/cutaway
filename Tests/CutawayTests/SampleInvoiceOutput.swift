@@ -13,7 +13,7 @@ final class SampleInvoiceOutput: XCTestCase {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "Europe/Zurich")!
         let store = try SessionStore(inMemory: true)
-        let p = try store.createProject(name: "Maisons Presentation 2026", client: "Richemont EC",
+        let p = try store.createProject(name: "Atelier Presentation 2026", client: "Aurora EC",
                                         mode: .hourly, hourlyRate: 120, currency: .chf)
         p.clientAddress = "Route des Biches 10\n1752 Villars-sur-Glâne"
         p.clientVATNumber = "CHE-116.281.710"

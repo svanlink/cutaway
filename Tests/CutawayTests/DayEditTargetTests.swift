@@ -12,7 +12,7 @@ final class DayEditTargetTests: XCTestCase {
         let store = try SessionStore(inMemory: true)
         let a = try store.createProject(name: "Nyx", client: "", mode: .hourly,
                                         hourlyRate: 90, currency: .chf)
-        let b = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        let b = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         let target = DayEditTarget(day: Date(), project: a)
         XCTAssertIdentical(target.project, a)

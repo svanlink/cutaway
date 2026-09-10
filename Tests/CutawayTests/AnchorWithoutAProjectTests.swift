@@ -76,7 +76,7 @@ final class AnchorWithoutAProjectTests: XCTestCase {
         XCTAssertNil(ProjectDetector.meaningfulName("Untitled Project"))
         XCTAssertNil(ProjectDetector.meaningfulName("  untitled project  "))
         XCTAssertNil(ProjectDetector.meaningfulName(""))
-        XCTAssertEqual(ProjectDetector.meaningfulName("26_08_RichemontEC"), "26_08_RichemontEC")
+        XCTAssertEqual(ProjectDetector.meaningfulName("26_08_AuroraEC"), "26_08_AuroraEC")
     }
 }
 
@@ -156,9 +156,9 @@ final class ScriptingReachabilityTests: XCTestCase {
     }
 
     func testConnectedWithAProject() {
-        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\t26_08_RichemontEC\n")
+        let out = ProjectDetector.parse(banner + "CUTAWAY-REACHED\nCUTAWAY-NAME\t26_08_AuroraEC\n")
         XCTAssertTrue(out.ran)
-        XCTAssertEqual(out.name, "26_08_RichemontEC")
+        XCTAssertEqual(out.name, "26_08_AuroraEC")
     }
 
     /// The sentinel also fixes the old positional parse: a project name is

@@ -22,7 +22,7 @@ final class InvoiceSnapshotTests: XCTestCase {
 
     private func project(rate: Double = 90, mode: BillingMode = .hourly,
                          budget: Double = 0) throws -> Project {
-        try store.createProject(name: "Richemont", client: "Richemont EC", mode: mode,
+        try store.createProject(name: "Aurora", client: "Aurora EC", mode: mode,
                                 hourlyRate: rate, budget: budget, currency: .chf)
     }
 
@@ -30,7 +30,7 @@ final class InvoiceSnapshotTests: XCTestCase {
                        taxMode: TaxMode = .notRegistered) throws -> Invoice {
         try store.issueInvoice(for: p, from: date(from, 12), to: date(to, 12),
                                taxMode: taxMode, supplier: "Sebastian", supplierVATNumber: "",
-                               clientBlock: "Richemont EC", now: date(30, 12), calendar: cal)
+                               clientBlock: "Aurora EC", now: date(30, 12), calendar: cal)
     }
 
     /// The property the whole snapshot design exists for.
@@ -209,7 +209,7 @@ final class InvoiceSnapshotTests: XCTestCase {
                              to: p, calendar: cal)
         }
         _ = try issue(p, from: 1, to: 6)
-        try store.rename(p, to: "Richemont EC — Maisons 2026")
+        try store.rename(p, to: "Aurora EC — Atelier 2026")
 
         try store.record(SessionRecord(start: date(15, 9), end: date(15, 15), activeSeconds: 21_600),
                          to: p, calendar: cal)
@@ -227,7 +227,7 @@ final class InvoiceSnapshotTests: XCTestCase {
                          to: p, calendar: cal)
         XCTAssertThrowsError(try store.issueInvoice(
             for: p, from: date(1, 12), to: date(30, 12), taxMode: .swissVAT,
-            supplier: "Sebastian", supplierVATNumber: "", clientBlock: "Richemont",
+            supplier: "Sebastian", supplierVATNumber: "", clientBlock: "Aurora",
             now: date(30, 12), calendar: cal))
         XCTAssertTrue(p.sessions.allSatisfy { !$0.isInvoiced },
                       "a refused issue locks nothing")

@@ -22,7 +22,7 @@ final class SessionSpanTests: XCTestCase {
     }
 
     private func project(rate: Double = 120) throws -> Project {
-        try store.createProject(name: "Maisons", client: "Richemont", mode: .hourly,
+        try store.createProject(name: "Atelier", client: "Aurora", mode: .hourly,
                                 hourlyRate: rate, currency: .chf)
     }
 
@@ -175,7 +175,7 @@ final class SplitAndReassignTests: XCTestCase {
 
     /// The whole point of splitting: two halves bill exactly what the one did.
     func testSplittingKeepsTheDayTotalExactly() throws {
-        let p = try store.createProject(name: "Maisons", client: "", mode: .hourly,
+        let p = try store.createProject(name: "Atelier", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         try store.record(SessionRecord(start: at(9), end: at(11), activeSeconds: 90 * 60),
                          to: p, calendar: cal)
@@ -202,7 +202,7 @@ final class SplitAndReassignTests: XCTestCase {
     /// Moving half a day to another client: the money follows, and the rate
     /// it was worked at travels with it.
     func testReassigningMovesTheMoneyAndKeepsTheStampedRate() throws {
-        let a = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        let a = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         let b = try store.createProject(name: "Nyx", client: "", mode: .hourly,
                                         hourlyRate: 80, currency: .chf)

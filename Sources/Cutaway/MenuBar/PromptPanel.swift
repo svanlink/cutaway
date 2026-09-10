@@ -56,7 +56,7 @@ struct PromptPrimaryButtonStyle: ButtonStyle {
 /// The one shape the prompts take: a line of text, then its actions beneath.
 ///
 /// It used to be a single row — icon, text, buttons — at a fixed 400 pt. With
-/// a real project name in it ("26_08_RichemontEC_HFMaisonsPresentations2026")
+/// a real project name in it ("26_08_AuroraEC_HFAtelierPresentations2026")
 /// the text took the width it wanted, broke four times mid-word, and squeezed
 /// the buttons into grey slivers. Text and controls competing for one row is
 /// a layout that only works for the short strings it was tested with.
@@ -199,9 +199,9 @@ final class PromptPanel {
         // to open something unknown. A real project name, because the long ones
         // are what break the layout.
         case "attribution":
-            pinned = .attribution(name: "Maisons_v03",
+            pinned = .attribution(name: "Atelier_v03",
                                   source: .adobe(app: "After Effects"),
-                                  current: "26_08_RichemontEC_HFMaisonsPresentations2026")
+                                  current: "26_08_AuroraEC_HFAtelierPresentations2026")
         default: pinned = nil
         }
         if let pinned { show(pinned) }

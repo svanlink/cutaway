@@ -259,7 +259,7 @@ is what distinguishes an enterprise identification number from a VAT registratio
 `taxMode.issueRefusal`. Neither looks at the client. `Project.clientBlock`
 (`Models.swift:56-60`) drops empty parts, so a project with a name and no address yields a
 one-line block. `issueInvoice` accepts any `clientBlock`, including `""`.
-**Produced:** an invoice whose "Billed to" is `Richemont EC` and nothing else — which is
+**Produced:** an invoice whose "Billed to" is `Aurora EC` and nothing else — which is
 precisely what `InvoiceSnapshotTests` issues throughout.
 **Should be:** refused. Art. 26 para. 2 let. b requires the recipient's name **and
 location**.

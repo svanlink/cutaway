@@ -61,7 +61,7 @@ test class (`-only-testing:CutawayTests/MoneyRoundingTests`):
 >     lastBackupAt = "2026-09-08 16:34:50 +0000";
 17,20d16
 <     "openSession.active" = "770.829305768013";
-<     "openSession.project" = "26_08_RichemontEC_HFMaisonsPresentations2026";
+<     "openSession.project" = "26_08_AuroraEC_HFAtelierPresentations2026";
 <     "openSession.start" = "1788884497.694915";
 <     "openSession.updatedAt" = "1788885278.323583";
 ```
@@ -81,7 +81,7 @@ Two things happened, both bad:
 
 2. **`openSession.*` was deleted.** That was the crash-recovery snapshot of a
    *live, in-progress, 12.8-minute* session (`openSession.active = 770.8`) on
-   `26_08_RichemontEC_HFMaisonsPresentations2026`. The test host's own engine
+   `26_08_AuroraEC_HFAtelierPresentations2026`. The test host's own engine
    closed its own (temp-store) session, `onSessionClosed` returned true, and
    `DetectionEngine.clearOpenSessionSnapshot()` (`DetectionEngine.swift:374-379`)
    removed the keys **from `.standard`**, because
@@ -343,7 +343,7 @@ by the test host itself:
 
 ```
 {"detail":"recording","event":"transition","frontmost":"com.blackmagic-design.DaVinciResolve","idle":"0.0",...}
-{"t":"2026-09-08T12:45:22Z","event":"tier1","detail":"name=26_08_RichemontEC_HFMaisonsPresentations2026 took=0.57s"}
+{"t":"2026-09-08T12:45:22Z","event":"tier1","detail":"name=26_08_AuroraEC_HFAtelierPresentations2026 took=0.57s"}
 ```
 
 **During a unit-test run, the test host attaches to the owner's live DaVinci

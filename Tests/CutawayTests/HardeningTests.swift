@@ -22,7 +22,7 @@ final class HardeningTests: XCTestCase {
 
     private func project(_ mode: BillingMode = .hourly, rate: Double = 100,
                          budget: Double = 0) throws -> Project {
-        try store.createProject(name: "Maisons", client: "Richemont", mode: mode,
+        try store.createProject(name: "Atelier", client: "Aurora", mode: mode,
                                 hourlyRate: rate, budget: budget, currency: .chf)
     }
 

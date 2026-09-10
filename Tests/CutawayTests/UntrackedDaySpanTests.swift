@@ -29,7 +29,7 @@ final class UntrackedDaySpanTests: XCTestCase {
     }
 
     func testASpanCanBeRecordedOnADayThatHasNothing() throws {
-        let p = try store.createProject(name: "Maisons", client: "Richemont", mode: .hourly,
+        let p = try store.createProject(name: "Atelier", client: "Aurora", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         XCTAssertTrue(store.sessions(for: p, on: at(8, 0), calendar: cal).isEmpty,
                       "Tuesday starts with nothing tracked — the case that had no route")
@@ -47,7 +47,7 @@ final class UntrackedDaySpanTests: XCTestCase {
     /// And the day now exists in the ledger, so everything else — the strip,
     /// the invoice line, the CSV row — has something to show.
     func testTheDayThenAppearsInTheBreakdown() throws {
-        let p = try store.createProject(name: "Maisons", client: "Richemont", mode: .hourly,
+        let p = try store.createProject(name: "Atelier", client: "Aurora", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         XCTAssertNil(store.dayTotals(for: p, calendar: cal).first { cal.isDate($0.day, inSameDayAs: at(8, 0)) },
                      "no row before — this is why the sheet was unreachable")
@@ -64,7 +64,7 @@ final class UntrackedDaySpanTests: XCTestCase {
     /// The overlap guard still applies from this route: a span added to an
     /// untracked day is fine, a second one over the top of it is not.
     func testTheOverlapGuardStillHoldsFromTheNewRoute() throws {
-        let p = try store.createProject(name: "Maisons", client: "Richemont", mode: .hourly,
+        let p = try store.createProject(name: "Atelier", client: "Aurora", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
         try store.addSession(from: at(8, 9, 30), to: at(8, 19), for: p, calendar: cal)
         XCTAssertThrowsError(try store.addSession(from: at(8, 14), to: at(8, 16), for: p, calendar: cal),

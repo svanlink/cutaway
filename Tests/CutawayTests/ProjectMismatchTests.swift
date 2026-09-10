@@ -68,10 +68,10 @@ final class ResolveIsTheSourceOfTruthTests: XCTestCase {
 
     func testAProjectThatAnswersToTheNameIsNotAMismatch() throws {
         let store = try SessionStore(inMemory: true)
-        let p = try store.createProject(name: "Richemont", client: "", mode: .hourly,
+        let p = try store.createProject(name: "Aurora", client: "", mode: .hourly,
                                         hourlyRate: 120, currency: .chf)
-        p.remember("26_08_RichemontEC")
-        XCTAssertTrue(p.answersTo("26_08_RichemontEC"), "a remembered name is the same job")
+        p.remember("26_08_AuroraEC")
+        XCTAssertTrue(p.answersTo("26_08_AuroraEC"), "a remembered name is the same job")
         XCTAssertFalse(p.answersTo("2026-08-2_BuildingBridges_OpeningFilm"),
                        "a different job is a different job")
     }
@@ -81,9 +81,9 @@ final class ResolveIsTheSourceOfTruthTests: XCTestCase {
     func testTheIncidentShape() {
         let decision = AttributionPolicy.decide(
             name: "2026-08-2_BuildingBridges_OpeningFilm", source: .resolve,
-            known: [(project: "26_08_RichemontEC_HFMaisonsPresentations2026",
-                     names: ["26_08_RichemontEC_HFMaisonsPresentations2026"])],
-            current: "26_08_RichemontEC_HFMaisonsPresentations2026",
+            known: [(project: "26_08_AuroraEC_HFAtelierPresentations2026",
+                     names: ["26_08_AuroraEC_HFAtelierPresentations2026"])],
+            current: "26_08_AuroraEC_HFAtelierPresentations2026",
             ignored: [], asked: [])
         guard case .ask = decision else {
             return XCTFail("an unplaced Resolve project must ask, never be silently ignored")
@@ -101,7 +101,7 @@ final class MismatchReleaseTests: XCTestCase {
         // Modelled at the level the app decides it: no Resolve name, no
         // mismatch, whatever was on screen before.
         let resolveProject: String? = nil
-        let selected = "26_08_RichemontEC"
+        let selected = "26_08_AuroraEC"
         let mismatch = resolveProject.map { !$0.isEmpty && $0 != selected } ?? false
         XCTAssertFalse(mismatch, "no Resolve, no mismatch")
     }
@@ -109,7 +109,7 @@ final class MismatchReleaseTests: XCTestCase {
     /// And while Resolve IS open on something else, the hold stands.
     func testAnOpenResolveOnAnotherProjectHolds() {
         let resolveProject: String? = "2026-08-2_BuildingBridges_OpeningFilm"
-        let selected = "26_08_RichemontEC"
+        let selected = "26_08_AuroraEC"
         let mismatch = resolveProject.map { $0 != selected } ?? false
         XCTAssertTrue(mismatch)
     }

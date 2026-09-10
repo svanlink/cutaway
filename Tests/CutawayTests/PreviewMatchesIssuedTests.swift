@@ -48,7 +48,7 @@ final class PreviewMatchesIssuedTests: XCTestCase {
     }
 
     func testAPartlyInvoicedDayPreviewsAtWhatItWillBill() throws {
-        let p = try store.createProject(name: "Richemont", client: "Richemont EC",
+        let p = try store.createProject(name: "Aurora", client: "Aurora EC",
                                         mode: .hourly, hourlyRate: 120, currency: .chf)
         // Two hours on the 3rd, invoiced. One more hour on the 3rd, after.
         try store.record(SessionRecord(start: at(3, 9), end: at(3, 11), activeSeconds: 7200),

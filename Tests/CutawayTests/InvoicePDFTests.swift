@@ -27,7 +27,7 @@ final class InvoicePDFTests: XCTestCase {
     }
 
     private func invoiceWithADay(taxMode: TaxMode = .notRegistered, vat: String = "") throws -> Invoice {
-        let p = try store.createProject(name: "Maisons Presentation", client: "Richemont",
+        let p = try store.createProject(name: "Atelier Presentation", client: "Aurora",
                                         mode: .hourly, hourlyRate: 120, currency: .chf)
         p.clientAddress = "Rue du Rhône 1\n1204 Genève"
         try store.record(SessionRecord(start: date(4, 9), end: date(4, 13), activeSeconds: 14_400),
@@ -62,14 +62,14 @@ final class InvoicePDFTests: XCTestCase {
         let doc = try XCTUnwrap(pageText(url: url))
 
         XCTAssertTrue(doc.contains(invoice.number), "the invoice number")
-        XCTAssertTrue(doc.contains("Richemont"), "the client")
+        XCTAssertTrue(doc.contains("Aurora"), "the client")
         XCTAssertTrue(doc.contains("Sebastian"), "the supplier")
         XCTAssertTrue(doc.contains("480.00"), "4 h at 120 = 480.00")
     }
 
     func testTheFilenameNamesTheClientAndTheNumber() throws {
         let invoice = try invoiceWithADay()
-        XCTAssertEqual(InvoicePDF.filename(for: invoice), "\(invoice.number) Richemont.pdf")
+        XCTAssertEqual(InvoicePDF.filename(for: invoice), "\(invoice.number) Aurora.pdf")
     }
 
     /// Under MWSTG Art. 27 stating a tax means owing it. A VAT invoice
@@ -136,7 +136,7 @@ final class PaymentPartTests: XCTestCase {
     }
 
     private func project() throws -> Project {
-        let p = try store.createProject(name: "Maisons", client: "Richemont",
+        let p = try store.createProject(name: "Atelier", client: "Aurora",
                                         mode: .hourly, hourlyRate: 120, currency: .chf)
         let start = cal.date(from: DateComponents(year: 2026, month: 9, day: 4, hour: 9))!
         try store.record(SessionRecord(start: start, end: start.addingTimeInterval(14_400),

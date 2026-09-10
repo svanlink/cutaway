@@ -21,7 +21,7 @@ final class BillingStatusTests: XCTestCase {
     }
 
     private func projectWithTwoDays() throws -> Project {
-        let p = try store.createProject(name: "Maisons", client: "Richemont",
+        let p = try store.createProject(name: "Atelier", client: "Aurora",
                                         mode: .hourly, hourlyRate: 100, currency: .chf)
         for d in [3, 4] {
             try store.record(SessionRecord(start: day(d), end: day(d).addingTimeInterval(3600),

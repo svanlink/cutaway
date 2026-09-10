@@ -28,7 +28,7 @@ final class UnsavedSessionsTests: XCTestCase {
         let start = Date(timeIntervalSince1970: 1_800_000_000)
         return UnsavedSessions.Entry(
             record: SessionRecord(start: start, end: start + seconds, activeSeconds: seconds),
-            projectName: "Richemont", hourlyRate: 120, uid: "uid-\(Int(seconds))")
+            projectName: "Aurora", hourlyRate: 120, uid: "uid-\(Int(seconds))")
     }
 
     func testAFailedSaveIsStillThereAfterAnotherOne() {
