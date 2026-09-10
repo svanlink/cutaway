@@ -259,15 +259,32 @@ struct StatsView: View {
                 Text("Daily Breakdown").font(DT.smallSemibold).foregroundStyle(DT.text)
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
-                Button { model.editDay = DayEditTarget(day: nil, project: p) } label: {
-                    Label("Set day", systemImage: "pencil").labelStyle(.titleAndIcon)
+                // A SPAN, from the header, for any day.
+                //
+                // "Add session…" existed only inside an expanded day row, and
+                // dayTotals groups the sessions that exist — so a day Cutaway
+                // never saw produced no row, could not be expanded, and had no
+                // route to the sheet that records a span. "I worked 9:30 to
+                // 19:00 on Tuesday" took two passes: invent a day total to
+                // conjure the row, expand it, add the real session, then
+                // reconcile the two.
+                //
+                // The sheet's own Day picker was already editable when adding
+                // (`.disabled(editing != nil)`), so one entry point that does
+                // not depend on an existing row closes the whole gap.
+                //
+                // A span, not a total, because a span says WHEN — and the day
+                // total sheet stays where it was, inside a day that exists,
+                // which is the only place replacing a total makes sense.
+                Button { model.editSessionTarget = SessionEditTarget(session: nil, day: Date(), project: p) } label: {
+                    Label("Add session", systemImage: "plus").labelStyle(.titleAndIcon)
                         .font(DT.captionMedium).foregroundStyle(DT.text2)
                         .padding(.horizontal, DT.within).padding(.vertical, DT.s1)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
                 }
                 .buttonStyle(.plain)
-                .help("Set a day's total — this replaces it")
-                .accessibilityLabel("Set a day's total")
+                .help("Record a session on any day — pick the day in the sheet")
+                .accessibilityLabel("Add a session on any day")
             }
             .padding(.horizontal, DT.rowInset)
             .padding(.vertical, DT.s3)

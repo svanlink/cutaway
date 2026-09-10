@@ -271,6 +271,26 @@
         }
       }
     },
+    "Add a session on any day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Sitzung an einem beliebigen Tag hinzufügen"
+          }
+        }
+      }
+    },
+    "Add session": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sitzung hinzufügen"
+          }
+        }
+      }
+    },
     "Add session…": {
       "localizations": {
         "de": {
@@ -1841,6 +1861,16 @@
         }
       }
     },
+    "Record a session on any day — pick the day in the sheet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfasse eine Sitzung an einem beliebigen Tag — den Tag wählst du im Formular"
+          }
+        }
+      }
+    },
     "Redo": {
       "localizations": {
         "de": {
@@ -2061,26 +2091,6 @@
         }
       }
     },
-    "Set a day's total": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tagessumme setzen"
-          }
-        }
-      }
-    },
-    "Set a day's total — this replaces it": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tagessumme setzen — ersetzt den bisherigen Wert"
-          }
-        }
-      }
-    },
     "Set a day's total…": {
       "localizations": {
         "de": {
@@ -2097,16 +2107,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lege im Projekt einen Stundensatz fest, um nach Betrag zu bearbeiten"
-          }
-        }
-      }
-    },
-    "Set day": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tag setzen"
           }
         }
       }
