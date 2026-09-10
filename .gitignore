@@ -27,3 +27,7 @@ default.profraw
 
 # graphify knowledge graph — derived from the source tree, regenerate with `graphify .`
 graphify-out/
+
+# stray build artefacts — a bare `swiftc file.swift` drops `main` here
+main
+.build/
