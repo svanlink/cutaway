@@ -189,14 +189,14 @@ struct MainWindowView: View {
 
     var body: some View {
         VStack(spacing: DT.s3) {
-            if model.storeIsEphemeral {
-                Text("⚠︎ Data can't be saved this run — time tracked now disappears on quit. Restart Cutaway; if this persists, check disk space.")
-                    .font(DT.captionMedium)
-                    .foregroundStyle(DT.text)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    .background(DT.red.opacity(0.25))
-            }
+            // One banner, not two. `storeIsEphemeral` and
+            // `storeErrors.banner` are both true on the ephemeral path —
+            // StoreBootstrap appends the flag that becomes the banner right
+            // beside the isEphemeral it returns — so the window stacked two
+            // red bars saying the same thing. The reporter's sentence is the
+            // better one anyway: it says "nothing tracked this run will be
+            // kept", which is the consequence, where the hand-written bar
+            // described the state.
             if let problem = model.storeErrors.banner {
                 Text(problem)
                     .font(DT.captionMedium)
@@ -208,7 +208,7 @@ struct MainWindowView: View {
                     .onTapGesture { model.storeErrors.clear() }
             }
             stats
-                .padding(.top, model.storeIsEphemeral ? 0 : DT.s4)
+                .padding(.top, model.storeErrors.banner == nil ? DT.s4 : 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(DT.window)

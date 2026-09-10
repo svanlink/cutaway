@@ -20,7 +20,7 @@ final class StoreErrorReporterTests: XCTestCase {
         r.log = { logged.append($0) }
         let v: Int? = r.attempt("save session") { throw Boom() }
         XCTAssertNil(v)
-        XCTAssertEqual(r.problem, "Couldn't save session. Your time since the last save is at risk — quit and relaunch Cutaway.")
+        XCTAssertEqual(r.problem, "Couldn't save session. Quit and relaunch Cutaway — time since the last save is at risk.")
         XCTAssertEqual(logged.count, 1)
         XCTAssertTrue(logged[0].contains("save session"))
         r.clear()

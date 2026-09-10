@@ -15,6 +15,13 @@ enum DetectionTier: String, Sendable {
 /// only select an existing project; Tier 3 is the guaranteed manual fallback.
 /// Tier 1 returns nil whenever Resolve is not running — that is the early
 /// return in detectViaScriptingAPI, not a stub.
+/// `@Observable` for one reason: `accessibilityGranted` reads
+/// `AXIsProcessTrusted()`, and SwiftUI cannot know it changed. Without
+/// observation the owner grants Accessibility in System Settings, comes back
+/// to Cutaway, and the row still reads "Enable…" — teaching them the grant
+/// did not work, when it did. Whether it eventually refreshed was incidental,
+/// depending on some other observed property happening to change.
+@Observable
 @MainActor
 final class ProjectDetector {
 

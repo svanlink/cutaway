@@ -118,7 +118,13 @@ struct InvoiceSheet: View {
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button("Issue & Save PDF…") { issue() }
+                // "Issue Invoice…", not "Issue & Save PDF…". issueInvoice() runs
+                // BEFORE the save panel opens, so cancelling the panel leaves
+                // the invoice issued, its number consumed and its days locked,
+                // with no file written — and the old label made those two read
+                // as one action the user had just cancelled. The save panel's
+                // own message already says the invoice is issued.
+                Button("Issue Invoice…") { issue() }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     // Also disabled when the budget is spent: issuing throws

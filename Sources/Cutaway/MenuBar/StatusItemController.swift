@@ -99,6 +99,20 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         // fires dozens of times a day, and it happens in peripheral vision
         // next to the menu bar.
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // ...and again whenever it changes. This was read once at launch and
+        // stored, so someone who switched Reduce Motion on mid-afternoon —
+        // which is when a person switches it on — kept the popover's scale-in
+        // until they quit. Cutaway launches at login and runs for weeks. The
+        // SwiftUI side already tracks the environment live; it was only the
+        // AppKit half that was frozen.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil, queue: .main
+        ) { [weak popover] _ in
+            MainActor.assumeIsolated {
+                popover?.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            }
+        }
         // A popover takes its appearance from the view it is anchored to —
         // here the system menu bar, which follows the wallpaper, not the app.
         // Inherit the one decision made in AppDelegate; decide nothing here.
@@ -274,6 +288,10 @@ struct PillView: View {
 /// Pure pill rendering — extracted from PillView so tests can render each
 /// traffic-light state in isolation (no AppModel, no engine).
 struct PillBody: View {
+    /// 2pt of clearance above and below, inside whatever the bar happens to
+    /// be on this display.
+    static var height: CGFloat { NSStatusBar.system.thickness - 4 }
+
     let stateColor: Color
     let isRecording: Bool
     /// Paused WITH a project — pause bars in the ring. Shape encodes state
@@ -308,7 +326,14 @@ struct PillBody: View {
         }
         .padding(.leading, DT.s1)
         .padding(.trailing, DT.s3)
-        .frame(height: 24)
+        // Derived from the bar, not typed. This was 24 in a status bar that
+        // measures 22 on this Mac, so the pill's 1pt border — the tally light
+        // the owner reads out of the corner of their eye — was drawn 1pt
+        // above and below the bar's edge. NSView.clipsToBounds defaults to
+        // FALSE on macOS 14 and later, so nothing was clipping it. Apple
+        // documents the bar as 24 on notched displays and 22 elsewhere, which
+        // is exactly why a constant is the wrong answer.
+        .frame(height: PillBody.height)
         .background(
             RoundedRectangle(cornerRadius: 7)
                 .fill(stateColor.opacity(0.09))

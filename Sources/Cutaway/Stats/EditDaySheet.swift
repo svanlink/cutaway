@@ -20,7 +20,7 @@ struct EditDaySheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            (isAdding ? Text("Set time for a day") : Text("Edit \(dayLabel)"))
+            (isAdding ? Text("Set the total for a day") : Text("Edit \(dayLabel)"))
                 .font(.headline)
                 .padding(.top)
             Form {
@@ -33,7 +33,7 @@ struct EditDaySheet: View {
                     .focused($focus, equals: .amount)
                     .disabled(project.hourlyRate <= 0)
                 (project.hourlyRate > 0
-                     ? Text("@ \(String(format: "%.2f", project.hourlyRate)) \(project.currency.rawValue) / h — one value, two views")
+                     ? Text("@ \(String(format: "%.2f", project.hourlyRate)) \(project.currency.rawValue) / h")
                      : Text("Set an hourly rate on the project to edit by amount"))
                     .font(.caption).foregroundStyle(.secondary)
                 if seconds == nil, !hoursText.isEmpty {

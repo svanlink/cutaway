@@ -260,14 +260,14 @@ struct StatsView: View {
                 Spacer()
                 Text(rangeLabel(days)).font(DT.captionMedium).foregroundStyle(DT.text3)
                 Button { model.editDay = DayEditTarget(day: nil, project: p) } label: {
-                    Label("Add", systemImage: "plus").labelStyle(.titleAndIcon)
+                    Label("Set day", systemImage: "pencil").labelStyle(.titleAndIcon)
                         .font(DT.captionMedium).foregroundStyle(DT.text2)
                         .padding(.horizontal, DT.within).padding(.vertical, DT.s1)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
                 }
                 .buttonStyle(.plain)
-                .help("Add time for a day")
-                .accessibilityLabel("Add time for a day")
+                .help("Set a day's total — this replaces it")
+                .accessibilityLabel("Set a day's total")
             }
             .padding(.horizontal, DT.rowInset)
             .padding(.vertical, DT.s3)
@@ -287,7 +287,7 @@ struct StatsView: View {
                                 .font(DT.captionMedium).foregroundStyle(DT.text3)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: 300)
-                            Button("Add time for a day…") {
+                            Button("Set a day's total…") {
                                 model.editDay = DayEditTarget(day: nil, project: p)
                             }
                             .buttonStyle(DayActionButtonStyle())
@@ -401,7 +401,7 @@ struct StatsView: View {
             if let number = model.invoiceNumber(for: d.day, project: p) {
                 Text("On invoice \(number)")
             } else {
-                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+                Button("Set day total…") { model.editDay = DayEditTarget(day: d.day, project: p) }
             }
         }
         .accessibilityAddTraits(.isButton)
@@ -430,7 +430,7 @@ struct StatsView: View {
                     model.editSessionTarget = SessionEditTarget(session: nil, day: d.day, project: p)
                 }
                 .buttonStyle(DayActionButtonStyle())
-                Button("Edit day…") { model.editDay = DayEditTarget(day: d.day, project: p) }
+                Button("Set day total…") { model.editDay = DayEditTarget(day: d.day, project: p) }
                     .buttonStyle(DayActionButtonStyle())
             }
             .padding(.horizontal, DT.rowInset)

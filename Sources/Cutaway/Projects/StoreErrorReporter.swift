@@ -19,9 +19,16 @@ final class StoreErrorReporter {
     /// `recovery` adds the relaunch advice — right for a lost session, wrong
     /// for a failed project delete, where quitting would drop the open session.
     static func message(for what: String, recovery: Bool = true) -> String {
+        // String(localized:), not a bare literal. The FRAGMENTS were in the
+        // catalog and the sentence around them was not, so a German build
+        // would have wrapped a translated verb phrase in an English frame.
+        //
+        // The fragments arrive without terminal punctuation — several already
+        // ended in "." and produced "…will be kept.. Your time since…" — and
+        // the recovery clause no longer repeats what the flag just said.
         recovery
-            ? "Couldn't \(what). Your time since the last save is at risk — quit and relaunch Cutaway."
-            : "Couldn't \(what)."
+            ? String(localized: "Couldn't \(what). Quit and relaunch Cutaway — time since the last save is at risk.")
+            : String(localized: "Couldn't \(what).")
     }
 
     @discardableResult

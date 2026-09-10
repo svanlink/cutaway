@@ -46,7 +46,7 @@ enum TaxMode: String, Codable, Sendable, CaseIterable {
     func issueRefusal(supplierVATNumber: String) -> String? {
         switch self {
         case .swissVAT where supplierVATNumber.trimmingCharacters(in: .whitespaces).isEmpty:
-            return String(localized: "A Swiss VAT invoice must print your UID. Add it in Settings, or choose a different tax mode.")
+            return String(localized: "A Swiss VAT invoice must print your UID. Add it in the From block above, or choose a different tax mode.")
         case .euReverseCharge where supplierVATNumber.trimmingCharacters(in: .whitespaces).isEmpty:
             return String(localized: "A reverse-charge invoice must print your UID alongside the client's.")
         default:

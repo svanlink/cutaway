@@ -109,7 +109,7 @@ enum StoreBootstrap {
                 // banner, which is exactly right for a restore that is
                 // half done.
                 holdBack = true
-                flags.append(String(localized: "finish restoring the backup you chose — the store was left as it is. Nothing tracked this run will be kept."))
+                flags.append(String(localized: "finish restoring the backup you chose — the store was left as it is"))
             }
             StoreBackup.reapLitter(storeURL: storeURL, backupsDir: backupsDir)
 
@@ -132,7 +132,7 @@ enum StoreBootstrap {
                 // unreadable store would only push good generations out of
                 // rotation — and let SwiftData try, which usually works.
                 NSLog("Cutaway: store not readable right now — %@", reason)
-                flags.append(String(localized: "read the billing store — \(reason). Nothing has been changed; try again after a restart."))
+                flags.append(String(localized: "read the billing store — \(reason), and nothing has been changed"))
             case .askBeforeRestoring(let reason, let candidate):
                 switch ask(reason, candidate) {
                 case .restore:
@@ -166,7 +166,7 @@ enum StoreBootstrap {
             // alive for this run. Say so in the PANEL — a menu-bar user may
             // never open the window where the ephemeral banner lives.
             if case HeldBack.damaged = error {
-                flags.append(String(localized: "use the billing store — it is damaged and was left untouched. Nothing tracked this run will be kept."))
+                flags.append(String(localized: "use the billing store — it is damaged and was left untouched"))
             } else {
                 NSLog("Cutaway: store failed to open, running in memory — %@", String(describing: error))
                 flags.append(String(localized: "open the billing store — nothing tracked this run will be kept"))
