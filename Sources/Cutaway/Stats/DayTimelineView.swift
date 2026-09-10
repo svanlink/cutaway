@@ -35,9 +35,10 @@ struct DayTimelineView: View {
 
     private struct Drag {
         let id: String
-        let edge: Edge
         var start: Date
         var end: Date
+        /// Recomputed from the touch-down point on every change, so it is
+        /// never read back off the value — it is a local, not state.
         enum Edge { case body, leading, trailing }
     }
 
@@ -306,7 +307,7 @@ struct DayTimelineView: View {
                     end = max(DayTimeline.snap(block.end.addingTimeInterval(seconds), toMinutes: step),
                               block.start.addingTimeInterval(300))
                 }
-                dragging = Drag(id: block.id, edge: edge, start: start, end: end)
+                dragging = Drag(id: block.id, start: start, end: end)
             }
             .onEnded { _ in
                 defer { dragging = nil }

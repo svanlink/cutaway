@@ -332,11 +332,6 @@ final class SessionStore {
         }
     }
 
-    /// Manual correction of one day's total. Growing the day appends a single
-    /// zero-span adjustment pinned to the day's last activity; shrinking it
-    /// trims the newest sessions first and deletes any that reach zero. The
-    /// day's first/last activity survives, so the CSV still tells the truth
-    /// about WHEN the work happened.
     // MARK: - Undo support
 
     /// Every session on one day, as plain values — safe to hold across the
@@ -378,6 +373,13 @@ final class SessionStore {
         invalidateTodayCache()
     }
 
+    /// Manual correction of one day's total.
+    ///
+    /// Growing the day appends a single zero-span adjustment pinned to the
+    /// day's last activity; shrinking it trims the newest sessions first and
+    /// deletes any that reach zero. The day's first/last activity survives,
+    /// so the CSV still tells the truth about WHEN the work happened.
+    ///
     /// ponytail: adjustments count as a session in the CSV's session column.
     func setActiveSeconds(_ target: TimeInterval, on day: Date, for project: Project,
                           calendar: Calendar = .current, now: Date = Date()) throws {
@@ -451,8 +453,9 @@ final class SessionStore {
     /// Anything that changes what a day contains drops the memo. Wholesale
     /// rather than per-project: writes are rare, renders are not, and a
     /// too-clever invalidation is how a billing figure goes quietly stale.
-    // Not private: the invoice extension lives in its own file and locks
-    // sessions, which changes what today's figures mean.
+    ///
+    /// Not private: the invoice extension lives in its own file and locks
+    /// sessions, which changes what today's figures mean.
     func invalidateTodayCache() {
         todayCache.removeAll()
     }

@@ -108,7 +108,7 @@ extension AppModel {
                 // And a redo, which this never registered: a move could be
                 // undone once and never put back.
                 model.reassignRedo(session: session, from: target, to: source,
-                                   day: day, name: beforeSource.name)
+                                   name: beforeSource.name)
                 model.announce(String(localized: "Undid \(beforeSource.name)"))
             }
         }
@@ -118,7 +118,7 @@ extension AppModel {
     /// sent. Registered from inside the undo so redo exists exactly as long
     /// as an undo has been performed.
     fileprivate func reassignRedo(session: WorkSession, from source: Project, to target: Project,
-                                  day: Date, name: String) {
+                                  name: String) {
         undoManager.setActionName(name)
         undoManager.registerUndo(withTarget: self) { model in
             MainActor.assumeIsolated {

@@ -47,8 +47,6 @@ enum StoreBootstrap {
         }
     }
 
-    /// Newest backup whose store is actually usable — torn, foreign and empty
-    /// ones are skipped rather than offered.
     // MARK: - Acting on the plan
 
     enum DamagedStoreChoice { case restore, revealBackups, continueWithout }
@@ -178,6 +176,8 @@ enum StoreBootstrap {
         }
     }
 
+    /// Newest backup whose store is actually usable — torn, foreign and empty
+    /// ones are skipped rather than offered.
     static func newestCandidate(in backupsDir: URL, preferring preferredName: String?,
                                 fm: FileManager = .default) -> Candidate? {
         guard let folder = StorePath.newestUsableBackup(in: backupsDir, preferring: preferredName, fm: fm),

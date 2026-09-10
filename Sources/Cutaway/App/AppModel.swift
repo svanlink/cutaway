@@ -91,6 +91,10 @@ final class AppModel {
     /// DamagedStoreAlert.
     nonisolated(unsafe) static var askAboutDamagedStore = DamagedStoreAlert.ask
 
+    /// Resolve moving is what moves attribution; its steady state is not.
+    /// See `detected(_:source:)`.
+    private var follower = DetectionFollower()
+
     /// One undo stack for the app's edits. Not the environment's: the panel
     /// and the Stats window are different scenes, and a correction made in
     /// one has to be undoable from the other.
@@ -194,7 +198,12 @@ final class AppModel {
         autoSwitcher = ProjectAutoSwitcher(
             detector: detector, engine: engine,
             intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },
-            onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) },
+            // `canCreate` is ignored, and deliberately: creating without
+            // asking is what produced two stray projects in one afternoon.
+            // Every unknown name goes to the owner instead. The switcher
+            // still distinguishes the tiers, so the day this app is allowed
+            // to create again, the tier that may is already known.
+            onDetected: { [weak self] name, _ in self?.detected(name, source: .resolve) },
             onNoProject: { [weak self] in self?.anchorHasNoProjectOpen() })
         engine.onTick = { [weak self] in
             guard let self else { return }
@@ -212,7 +221,10 @@ final class AppModel {
             // project would hold the clock for the rest of the evening —
             // the rule is meant to stop the wrong work being billed, not to
             // stop work being billed at all.
-            if !self.detector.isResolveRunning { self.resolveProject = nil }
+            if !self.detector.isResolveRunning, self.resolveProject != nil {
+                self.follower.reset()
+                self.resolveProject = nil
+            }
             // The engine cannot see Resolve; it is told, every tick.
             self.engine.projectMismatch = self.projectMismatch
             self.autoSwitcher?.tick()
@@ -350,13 +362,19 @@ final class AppModel {
         // so picking a different project by hand survived about five seconds
         // before Resolve's unchanged project re-asserted itself. Each flip
         // also closed the open session, shredding the day into five-second
-        // records. Same shape as the `anchorAppRunning` defect: a guard
-        // written, and wired to nothing.
+        // records.
         //
-        // Derived here rather than passed, so it cannot be forgotten again.
+        // Asked of `DetectionFollower`, which is the type that owns this
+        // rule and has a test suite for it. It was written for exactly this,
+        // instantiated in ProjectsModel, and bypassed — the codebase's own
+        // wiring test calls that out as the third time the shape had
+        // appeared. A first pass here fixed the bug with an inline
+        // `resolveProject != clean`, which made it the fourth: exact string
+        // comparison, so "Nyx" from Tier 1 and "nyx" from Tier 2 would have
+        // read as a move. The follower folds case and diacritics.
         var isTransition = true
         if case .resolve = source {
-            isTransition = resolveProject != clean
+            isTransition = follower.observe(clean) != nil
             resolveProject = clean
         }
 
@@ -482,17 +500,12 @@ final class AppModel {
     /// that was closed hours ago.
     func anchorHasNoProjectOpen() {
         guard resolveProject != nil else { return }
+        follower.reset()
         resolveProject = nil
         pendingAttribution = nil
         engine.projectMismatch = projectMismatch
     }
 
-    private func autoDetected(_ name: String, canCreate: Bool) {
-        // `canCreate` is history: creating without asking is what produced
-        // two stray projects in one afternoon. Every unknown name now goes
-        // to the owner instead.
-        detected(name, source: .resolve)
-    }
 
     /// Sets a day's TOTAL (what the Stats row shows). For today while
     /// recording, the running session is part of that total and keeps
@@ -529,11 +542,6 @@ final class AppModel {
         return nil
     }
 
-    /// Kept for callers that only need to know whether it worked.
-    @discardableResult
-    func setDaySeconds(_ seconds: TimeInterval, on day: Date, for p: Project) -> Bool {
-        setDayRefusal(seconds, on: day, for: p) == nil
-    }
 
     nonisolated static func persistedTarget(requested: TimeInterval, live: TimeInterval) -> TimeInterval? {
         let t = requested - live
@@ -568,7 +576,6 @@ final class AppModel {
     var selectedProject: Project? { projectsModel.selectedProject }
     var projects: [Project] { projectsModel.projects }
     func selectManually(_ p: Project) { projectsModel.selectManually(p) }
-    func select(_ p: Project) { projectsModel.select(p) }
     func createProject(name: String, client: String, mode: BillingMode, rate: Double, budget: Double,
                        currency: BillingCurrency, apps: [String], isManual: Bool = false) {
         projectsModel.createProject(name: name, client: client, mode: mode, rate: rate, budget: budget,

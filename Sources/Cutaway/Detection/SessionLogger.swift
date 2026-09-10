@@ -91,5 +91,4 @@ final class SessionLogger: @unchecked Sendable {
         }
     }
 
-    var logPath: String { fileURL.path }
 }

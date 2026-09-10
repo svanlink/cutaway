@@ -199,7 +199,10 @@ extension SessionStore {
         invalidateTodayCache()
     }
 
-    func markPaid(_ invoice: Invoice, on date: Date = Date()) throws {
+    /// No date is recorded, because `Invoice` has no field for one. The
+    /// parameter took a date and dropped it, which reads like the app
+    /// remembers when a client paid. It does not.
+    func markPaid(_ invoice: Invoice) throws {
         guard invoice.status == .issued else { return }
         invoice.status = .paid
         try commit()

@@ -25,7 +25,6 @@ enum InvoiceBuilder {
         var subtotal: Decimal
         var taxAmount: Decimal
         var total: Decimal
-        var adjustedHours: Decimal
     }
 
     /// One line per worked day, in date order.
@@ -75,11 +74,10 @@ enum InvoiceBuilder {
         let tax = taxMode.showsTaxLine
             ? Money.rounded(subtotal * Money.decimal(taxMode.rate) / 100, currency: currency)
             : 0
-        return Draft(lines: lines,
-                     subtotal: subtotal,
-                     taxAmount: tax,
-                     total: subtotal + tax,
-                     adjustedHours: lines.reduce(Decimal(0)) { $0 + $1.adjustedHours })
+        // No `adjustedHours` here: the document computes its own from the
+        // lines it persisted (`Invoice.adjustedHours`), so a second copy on
+        // the draft was written every time and read never.
+        return Draft(lines: lines, subtotal: subtotal, taxAmount: tax, total: subtotal + tax)
     }
 
     /// A budget project bills the budget or the accrued time, whichever is

@@ -16,7 +16,6 @@ final class ProjectsModel {
     var selectedProjectID: PersistentIdentifier?
     /// Turns Resolve's steady state into transitions, so a manual switch is
     /// not overwritten by the next poll of a window that never moved.
-    private var follower = DetectionFollower()
     /// Counts explicit choices, so an in-flight Tier-1 answer can tell
     /// whether the user moved on while it was running. Read by AppModel's
     /// Tier-1 loop; only this class bumps it.
@@ -137,37 +136,6 @@ final class ProjectsModel {
     private func invalidateProjectCache() {
         cachedProjects = nil
         cachedProject = nil
-    }
-
-    // MARK: - Detection
-
-    /// What Resolve just reported. Only a CHANGE moves attribution — polling
-    /// the same project again is not new information, and treating it as new
-    /// is what let a five-second timer overrule the user. Returns whether
-    /// attribution moved, so the caller can say so out loud.
-    @discardableResult
-    func autoDetected(_ name: String, canCreate: Bool) -> Bool {
-        guard let changed = follower.observe(name) else { return false }
-        let before = selectedProjectID
-        switchOrCreate(changed, canCreate: canCreate)
-        return selectedProjectID != before
-    }
-
-    /// Switch attribution to the detected Resolve project — creating it (Tier 1
-    /// only) with the default rate/currency if Cutaway has not seen it before.
-    /// Matching is normalized (trim + case/diacritic-insensitive) so tier
-    /// disagreements can't spawn duplicate projects.
-    private func switchOrCreate(_ detectedName: String, canCreate: Bool) {
-        let name = detectedName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-        if let match = projects.first(where: { ProjectName.matches($0.name, name) }) {
-            if match.persistentModelID != selectedProjectID { select(match) }
-            return
-        }
-        guard canCreate else { return }
-        createProject(name: name, client: "", mode: .hourly,
-                      rate: Self.defaultHourlyRate, budget: 0, currency: Self.defaultCurrency,
-                      apps: Self.globalWorkApps)
     }
 
     // MARK: - Choosing

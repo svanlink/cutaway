@@ -166,10 +166,6 @@ enum DT {
     static let red: Color = alarm
     static let strokeSubtle: Color = contrastAware(normal: strokeSubtleAlphas.normal,
                                                    increased: strokeSubtleAlphas.increased)
-    static let strokeWindow: Color = contrastAware(normal: strokeWindowAlphas.normal,
-                                                   increased: strokeWindowAlphas.increased)
-    static let ringTrack: Color = contrastAware(normal: ringTrackAlphas.normal,
-                                                increased: ringTrackAlphas.increased)
     /// The paused ring is a status indicator, so it wants 3:1 even normally —
     /// 0.30 gets it there, and Increase Contrast takes it further.
     static let ringPaused: Color = contrastAware(normal: ringPausedAlphas.normal,
@@ -294,10 +290,7 @@ enum DT {
     static let panelHeroSeconds = Font.system(size: Step.l, weight: .regular)
     static let panelClient = Font.system(size: Step.xs, weight: .bold)
     static let panelProject = Font.system(size: Step.m, weight: .semibold)
-    static let panelRowActive = Font.system(size: Step.base, weight: .semibold)
     static let panelTotal = Font.system(size: Step.base, weight: .semibold)
-    static let panelTotalActive = Font.system(size: Step.base, weight: .bold)
-    static let panelChip = Font.system(size: Step.xs, weight: .bold)
 
     // canvas
     /// What the window opens at, and the smallest it may become.

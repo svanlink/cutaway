@@ -152,7 +152,7 @@ struct StatsView: View {
         VStack(spacing: DT.within) {
             if p.mode == .budget {
                 budgetRow(p, used: earned)
-                summaryLine(p, total: total, dayCount: dayCount, avg: avg, avgEarned: avgEarned)
+                summaryLine(total: total, dayCount: dayCount, avg: avg)
                     .padding(.horizontal, DT.s1)
             } else {
                 earnedLead(p, earned: earned, total: total, dayCount: dayCount,
@@ -169,8 +169,8 @@ struct StatsView: View {
     /// act on separately; these are one thought: what the project has earned
     /// and the evidence behind it. Boxes around each made the window read as
     /// a dashboard of unrelated readouts.
-    private func summaryLine(_ p: Project, total: TimeInterval, dayCount: Int,
-                             avg: TimeInterval, avgEarned: Double) -> some View {
+    private func summaryLine(total: TimeInterval, dayCount: Int,
+                             avg: TimeInterval) -> some View {
         let days = dayCount == 1 ? String(localized: "1 day") : String(localized: "\(dayCount) days")
         return HStack(spacing: DT.within) {
             Text(hours(total)).foregroundStyle(DT.text2)
@@ -201,7 +201,7 @@ struct StatsView: View {
                 Text("@ \(String(format: "%.2f", p.hourlyRate)) / h")
                     .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
             }
-            summaryLine(p, total: total, dayCount: dayCount, avg: avg, avgEarned: avgEarned)
+            summaryLine(total: total, dayCount: dayCount, avg: avg)
                 .padding(.top, DT.s1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -481,34 +481,7 @@ struct StatsView: View {
         .background(Color.white.opacity(0.02))
     }
 
-    private func sessionLine(range: String, seconds: TimeInterval, earned: Double,
-                             project p: Project, isLive: Bool) -> some View {
-        HStack(spacing: DT.s3) {
-            Text(range)
-                .font(DT.captionMedium)
-                .foregroundStyle(isLive ? DT.recording : DT.textSecondary)
-                .monospacedDigit()
-            if isLive {
-                Text("running").font(DT.tag).foregroundStyle(DT.recording)
-            }
-            Spacer(minLength: DT.s2)
-            Text(String(format: "%.1fh", seconds / 3600))
-                .font(DT.captionMedium).foregroundStyle(DT.text3).monospacedDigit()
-            Text(p.currency.format(earned))
-                .font(DT.captionMedium).foregroundStyle(DT.text2).monospacedDigit()
-                .frame(minWidth: 96, alignment: .trailing)
-        }
-        .padding(.vertical, DT.s1)
-    }
 
-    /// What VoiceOver hears for one day of the ledger. Pure, so the claim
-    /// "every row states its own figures" is testable without a screen reader.
-    static func sessionRowLabel(_ s: WorkSession, project p: Project) -> String {
-        let range = AppModel.sessionTimeRange(start: s.start, end: s.end)
-        let worked = PillView.spokenDuration(s.activeSeconds)
-        let entered = s.isAdjusted ? String(localized: ", entered by hand") : ""
-        return "\(range), \(worked), \(p.currency.format(s.earned(projectRate: p.hourlyRate)))\(entered)"
-    }
 
     static func dayRowLabel(_ d: DayTotal, project p: Project, isToday: Bool,
                             invoice: String? = nil) -> String {

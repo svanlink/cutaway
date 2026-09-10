@@ -540,10 +540,4 @@ private struct PanelRow: View {
         return String(format: "%d:%02d", s / 3600, (s % 3600) / 60)
     }
 
-    private func shortTime(_ t: TimeInterval) -> String {
-        let s = Int(t)
-        return s >= 3600
-            ? String(format: "%d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60)
-            : String(format: "%d:%02d", s / 60, s % 60)
-    }
 }
