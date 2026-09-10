@@ -179,6 +179,7 @@ DE = {
  "Issue Invoice…": "Rechnung ausstellen …",
  "Stats": "Statistik",
  "Open Cutaway": "Cutaway öffnen",
+ "Couldn't read this project's earlier invoices, so the remaining budget is unknown. Nothing here can be trusted until that is fixed.": "Die früheren Rechnungen dieses Projekts konnten nicht gelesen werden, daher ist das verbleibende Budget unbekannt. Bis das behoben ist, ist hier keine Zahl verlässlich.",
  "Project name": "Projektname",
  "No project yet": "Noch kein Projekt",
  "New project…": "Neues Projekt …",

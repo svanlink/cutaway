@@ -651,6 +651,16 @@
         }
       }
     },
+    "Couldn't read this project's earlier invoices, so the remaining budget is unknown. Nothing here can be trusted until that is fixed.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die früheren Rechnungen dieses Projekts konnten nicht gelesen werden, daher ist das verbleibende Budget unbekannt. Bis das behoben ist, ist hier keine Zahl verlässlich."
+          }
+        }
+      }
+    },
     "Couldn't stage that backup": {
       "localizations": {
         "de": {

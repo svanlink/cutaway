@@ -25,6 +25,9 @@ struct InvoiceSheet: View {
     /// the sheet used to show a figure and a live Issue button for money that
     /// could not exist.
     @State private var budgetSpent = false
+    /// The already-invoiced total could not be read, so the remaining budget
+    /// is unknown and no figure on this sheet can be trusted.
+    @State private var budgetReadFailed = false
     /// Bumped after a status change so the list re-reads the store.
     @State private var bump = 0
 
@@ -131,7 +134,7 @@ struct InvoiceSheet: View {
                     // budgetFullyInvoiced, and a live button for an amount
                     // that cannot be invoiced is a promise the app breaks on
                     // the click.
-                    .disabled(budgetSpent || (preview.map { $0.lines.isEmpty } ?? true))
+                    .disabled(budgetSpent || budgetReadFailed || (preview.map { $0.lines.isEmpty } ?? true))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, DT.s4)
@@ -259,7 +262,22 @@ struct InvoiceSheet: View {
             // What is LEFT of the budget, not the whole budget again — the
             // second invoice on a budget job previewed uncapped and issued
             // capped, with an adjustment line the owner had never seen.
-            let alreadyBilled = (try? model.store.invoicedTotal(for: project)) ?? 0
+            // NOT `(try? …) ?? 0`. A failed read is not "nothing billed
+            // yet" — it is "we do not know", and substituting zero showed the
+            // FULL budget as remaining and left Issue enabled, while the
+            // issue path calls the same function with `try` and refuses. The
+            // preview promised money that could not be invoiced.
+            let alreadyBilled: Decimal
+            do {
+                alreadyBilled = try model.store.invoicedTotal(for: project)
+                budgetReadFailed = false
+            } catch {
+                alreadyBilled = 0
+                budgetReadFailed = true
+                // A disabled button with no sentence is indistinguishable
+                // from a bug. Say what happened and what it means.
+                refusal = String(localized: "Couldn't read this project's earlier invoices, so the remaining budget is unknown. Nothing here can be trusted until that is fixed.")
+            }
             let remaining = Money.decimal(project.budget) - alreadyBilled
             budgetSpent = project.budget > 0 && remaining <= 0
             draft = InvoiceBuilder.budgetCapped(draft, budget: remaining,

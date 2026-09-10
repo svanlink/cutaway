@@ -80,8 +80,23 @@ struct UnsavedSessions {
     /// Every record still waiting, oldest first. A malformed line is skipped
     /// rather than throwing the rest away.
     func pending() -> [Entry] {
-        existingData().split(separator: 0x0A).compactMap {
-            try? JSONDecoder().decode(Entry.self, from: Data($0))
+        let decoder = JSONDecoder()
+        return existingData().split(separator: 0x0A).compactMap { line in
+            let data = Data(line)
+            if let entry = try? decoder.decode(Entry.self, from: data) { return entry }
+            // A line from the format that shipped this morning: a bare
+            // {start, end, activeSeconds} with no project, rate or identity.
+            // Decoding only Entry dropped these silently, and the next
+            // replace() rewrote the file without them — the fix for failed
+            // saves would have deleted the work that survived a failed save.
+            //
+            // Read them, and keep the project UNKNOWN rather than inventing
+            // one: an empty name matches no project, so `owner(of:)` returns
+            // nil and the record is held rather than billed to whoever
+            // happens to be selected.
+            guard let record = try? decoder.decode(SessionRecord.self, from: data) else { return nil }
+            return Entry(record: record, projectName: "", hourlyRate: 0,
+                         uid: "legacy-\(Int(record.start.timeIntervalSince1970))")
         }
     }
 

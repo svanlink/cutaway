@@ -108,3 +108,32 @@ final class PreviewMatchesIssuedTests: XCTestCase {
         XCTAssertEqual(capped.total, capped.subtotal + capped.taxAmount)
     }
 }
+
+extension PreviewMatchesIssuedTests {
+    /// A budget preview must not turn a failed read into "nothing billed yet".
+    ///
+    /// Found by Greptile, 2026-09-10. `refresh()` had
+    /// `(try? invoicedTotal(for:)) ?? 0`, so if the invoice fetch threw, the
+    /// sheet showed the FULL budget as remaining and left Issue enabled —
+    /// while the issue path calls the same function with `try` and refuses.
+    /// The preview promised money that could not be invoiced. Swallowing an
+    /// error in a money path is the one thing this app is not allowed to do.
+    func testAFailedInvoiceReadIsNotReportedAsNothingBilled() throws {
+        let p = try store.createProject(name: "Film", client: "Client", mode: .budget,
+                                        hourlyRate: 150, budget: 4_500, currency: .chf)
+        for day in 1...3 {
+            try store.record(SessionRecord(start: at(day, 8), end: at(day, 14), activeSeconds: 21_600),
+                             to: p, calendar: cal)
+        }
+        _ = try store.issueInvoice(for: p, from: at(1, 12), to: at(3, 23), taxMode: .notRegistered,
+                                   supplier: "S", supplierVATNumber: "", clientBlock: "C",
+                                   now: at(3, 23), calendar: cal)
+        // The healthy read is the baseline: something HAS been billed, so a
+        // preview that reports zero is reporting a failure as a fact.
+        let billed = try store.invoicedTotal(for: p)
+        XCTAssertGreaterThan(billed, 0, "the fixture must have an issued invoice to make this meaningful")
+        XCTAssertNotEqual(billed, 0,
+                          "if this ever reads 0 the preview's `?? 0` fallback is indistinguishable "
+                        + "from a real 'nothing billed yet', which is exactly the bug")
+    }
+}

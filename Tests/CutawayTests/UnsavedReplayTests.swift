@@ -81,3 +81,38 @@ final class UnsavedReplayTests: XCTestCase {
         XCTAssertEqual(UnsavedSessions.owner(of: known, among: try store.projects())?.name, "Alpina")
     }
 }
+
+extension UnsavedReplayTests {
+    /// A journal written by the previous release must still be readable.
+    ///
+    /// Found by Greptile, 2026-09-10. The journal shipped this morning storing
+    /// a bare {start, end, activeSeconds}; hours later it became an Entry
+    /// carrying the project, the rate and an identity. `pending()` decodes
+    /// only Entry and compactMaps the failures away — so an upgrade over a
+    /// journal holding parked work read it as EMPTY, and the next
+    /// `replace(with:)` rewrote the file without those lines. Work that
+    /// survived a failed save was deleted by the fix for failed saves.
+    func testAJournalFromTheOlderFormatIsStillRead() throws {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        let legacy = SessionRecord(start: start, end: start + 12_600, activeSeconds: 12_600)
+        let line = try JSONEncoder().encode(legacy)
+        var blob = Data(); blob.append(line); blob.append(0x0A)
+        try blob.write(to: journal.url)
+
+        let pending = journal.pending()
+        XCTAssertEqual(pending.count, 1, "the morning is still in the journal, not silently gone")
+        XCTAssertEqual(pending[0].record.activeSeconds, 12_600)
+        XCTAssertTrue(pending[0].projectName.isEmpty,
+                      "the old format carried no project — that must stay unknown, not be guessed")
+    }
+
+    /// And unknown-project work is HELD, never billed to whoever is selected.
+    func testWorkFromTheOlderFormatIsNeverBilledToAGuess() throws {
+        let p = try store.createProject(name: "Alpina", client: "Alpina", mode: .hourly,
+                                        hourlyRate: 90, currency: .chf)
+        let orphan = UnsavedSessions.Entry(record: record(3600), projectName: "",
+                                           hourlyRate: 0, uid: "legacy-1")
+        XCTAssertNil(UnsavedSessions.owner(of: orphan, among: [p]),
+                     "no project answers to an empty name, so nobody gets billed for it")
+    }
+}
