@@ -33,6 +33,16 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.vaneickelen.cutaway
         PRODUCT_NAME: Cutaway
         SWIFT_VERSION: "6.0"
+        # The build emits zero warnings today, so this costs nothing now and
+        # is the only moment it ever will. A warning is the compiler saying
+        # it has understood something the author probably did not mean; this
+        # app's whole failure history is things that compiled and were wrong.
+        #
+        # Deliberately NOT accompanied by SWIFT_STRICT_CONCURRENCY. Swift 6
+        # language mode already enables full data-race checking, and Apple's
+        # own build spec makes that setting inert above Swift 5 — setting it
+        # here would be a line that looks like rigour and does nothing.
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         GENERATE_INFOPLIST_FILE: false
