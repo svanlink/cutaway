@@ -37,6 +37,29 @@ targets:
         CODE_SIGN_STYLE: Manual
         GENERATE_INFOPLIST_FILE: false
       configs:
+        Debug:
+          # A Debug build is a DIFFERENT APP to macOS.
+          #
+          # The UI tests drive XCUIApplication, which attaches to a bundle
+          # identifier — and the test host shipped the same one as the app in
+          # /Applications, so every UI-test run reached out and terminated the
+          # owner's running tracker. That happened repeatedly on 2026-09-10;
+          # sessions closed cleanly with a backup, so no hours were lost, but
+          # the clock stopped each time and had to be restarted by hand.
+          #
+          # Separating the identifier fixes that at the root, and takes three
+          # other kinds of cross-contamination with it: the Debug build now
+          # has its OWN TCC record (a test run cannot consume or revoke the
+          # real app's Accessibility grant), its own UserDefaults domain
+          # (window frames and any bare @AppStorage stop landing in the live
+          # one — the hole that rewrote lastBackupAt on 2026-09-08), and its
+          # own LaunchServices registration, so two Cutaways can no longer
+          # collide over one status item.
+          #
+          # Prefs' own quarantine suites are unchanged and still do their job;
+          # this closes the paths that never went through Prefs.
+          PRODUCT_BUNDLE_IDENTIFIER: com.vaneickelen.cutaway.debug
+          PRODUCT_NAME: Cutaway
         Release:
           # Release ONLY, deliberately. Hardened runtime turns on library
           # validation, and an ad-hoc signature carries no Team ID for nested
