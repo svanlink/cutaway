@@ -22,8 +22,25 @@ struct DetectionSchedule: Equatable {
 
     var runsTier2: Bool { tick % Self.tier2Every == 0 }
 
-    func runsTier1(accessibilityGranted: Bool) -> Bool {
-        let interval = accessibilityGranted ? Self.tier1WithAccessibility : Self.tier1WithoutAccessibility
+    /// - Parameter anchorIsFrontmost: Resolve is the app in front, so Tier 1
+    ///   is the only tier that can answer the question the clock turns on.
+    ///
+    /// Backing off to two minutes whenever Accessibility was granted had the
+    /// dependency backwards: `anchorNamedAProject` has exactly one writer,
+    /// this poll, and Tier 2 cannot substitute — a Resolve window titled just
+    /// "DaVinci Resolve" parses to nil, so the cheap tier is silent on the
+    /// one question at issue. Closing a project and leaving Resolve open
+    /// therefore billed up to two minutes of nothing to the project just
+    /// closed, and opening one held the clock for up to two minutes of real
+    /// editing. Granting the permission that makes the cheap tier work
+    /// slowed the only tier that could answer, by four times.
+    ///
+    /// So the back-off applies only when Resolve is NOT in front — which is
+    /// when the flag is not load-bearing and when the owner is not editing
+    /// anyway. `fuscript` spawns land during active use, not at idle.
+    func runsTier1(accessibilityGranted: Bool, anchorIsFrontmost: Bool = false) -> Bool {
+        let interval = accessibilityGranted && !anchorIsFrontmost
+            ? Self.tier1WithAccessibility : Self.tier1WithoutAccessibility
         return tick == Self.tier1FirstAt || tick % interval == 0
     }
 }
@@ -37,17 +54,21 @@ final class ProjectAutoSwitcher {
     private let intent: () -> ManualIntent
     /// (name, mayCreateProject)
     private let onDetected: (String, Bool) -> Void
+    /// Tier 1 answered, and the answer was "no project is open".
+    private let onNoProject: () -> Void
 
     private var schedule = DetectionSchedule()
     private var tier1InFlight = false
 
     init(detector: ProjectDetector, engine: DetectionEngine,
          intent: @escaping () -> ManualIntent,
-         onDetected: @escaping (String, Bool) -> Void) {
+         onDetected: @escaping (String, Bool) -> Void,
+         onNoProject: @escaping () -> Void = {}) {
         self.detector = detector
         self.engine = engine
         self.intent = intent
         self.onDetected = onDetected
+        self.onNoProject = onNoProject
     }
 
     /// Deliberately gone: Adobe apps do not name projects.
@@ -97,7 +118,8 @@ final class ProjectAutoSwitcher {
             // silently split one job's billing.
             onDetected(detected, false)
         }
-        guard schedule.runsTier1(accessibilityGranted: detector.accessibilityGranted),
+        guard schedule.runsTier1(accessibilityGranted: detector.accessibilityGranted,
+                                 anchorIsFrontmost: engine.anchorIsFrontmost),
               !tier1InFlight else { return }
         tier1InFlight = true
         // Stamped BEFORE the request: fuscript takes seconds, and an answer
@@ -141,6 +163,11 @@ final class ProjectAutoSwitcher {
                     Prefs.set(false, forKey: "anchorCanNameProjects")
                 }
                 self.engine.anchorNamedAProject = named != nil
+                // A reachable Resolve saying "nothing loaded" is evidence,
+                // and it was thrown away: only a NAME reached the app, so the
+                // last one stood until Resolve quit. See
+                // `AppModel.anchorHasNoProjectOpen`.
+                if self.detector.scriptingReachable, named == nil { self.onNoProject() }
                 guard !self.intent().hasMovedSince(startedAt) else { return }
                 // Tier 1 is the exact API name — it may create.
                 if let named { self.onDetected(named, true) }

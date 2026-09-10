@@ -56,10 +56,18 @@ final class SystemProbes: SystemProbing {
     /// no scripting, cheap enough for the tick that asks it.
     @MainActor
     func anchorAppRunning(matching prefixes: [String]) -> Bool {
-        let all = prefixes + DetectionInput.resolveBundleIDs
-        return NSWorkspace.shared.runningApplications.contains { app in
+        // The caller's list, and nothing else. This used to union Resolve's
+        // bundle IDs on unconditionally, which quietly overruled a project
+        // that had deliberately left Resolve out — an InDesign-only job would
+        // report an anchor running purely because Resolve happened to be open
+        // rendering something else, and the satellite window then sustained
+        // the clock for its full twenty minutes after the real anchor closed.
+        // That is the "Resolve quit at 16:37, clock ran to 16:44" defect
+        // arriving through a second door. `AnchorSet.resolve` already decides
+        // what this project's anchors are; a probe does not get a vote.
+        NSWorkspace.shared.runningApplications.contains { app in
             guard let id = app.bundleIdentifier else { return false }
-            return all.contains { id.hasPrefix($0) }
+            return prefixes.contains { id.hasPrefix($0) }
         }
     }
 

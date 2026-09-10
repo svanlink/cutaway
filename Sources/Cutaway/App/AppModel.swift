@@ -194,7 +194,8 @@ final class AppModel {
         autoSwitcher = ProjectAutoSwitcher(
             detector: detector, engine: engine,
             intent: { [weak self] in self?.projectsModel.intent ?? ManualIntent() },
-            onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) })
+            onDetected: { [weak self] name, canCreate in self?.autoDetected(name, canCreate: canCreate) },
+            onNoProject: { [weak self] in self?.anchorHasNoProjectOpen() })
         engine.onTick = { [weak self] in
             guard let self else { return }
             // Before the scenario guard: the pill is live during verification
@@ -337,10 +338,27 @@ final class AppModel {
 
     /// Detection saw a name. Where it goes is the OWNER's call the first
     /// time, and the app's from then on.
-    func detected(_ name: String, source: AttributionPolicy.Source, isTransition: Bool = true) {
+    func detected(_ name: String, source: AttributionPolicy.Source) {
         let clean = name.trimmingCharacters(in: .whitespaces)
         guard !clean.isEmpty else { return }
-        if case .resolve = source { resolveProject = clean }
+        // Did Resolve MOVE, or is this the same name again?
+        //
+        // `isTransition` used to be a parameter with a default of `true`, and
+        // neither caller ever passed it — so every steady-state poll was a
+        // transition. Tier 2 runs every fifth tick and `freshProjectName`
+        // answers on every successful read whether or not the name changed,
+        // so picking a different project by hand survived about five seconds
+        // before Resolve's unchanged project re-asserted itself. Each flip
+        // also closed the open session, shredding the day into five-second
+        // records. Same shape as the `anchorAppRunning` defect: a guard
+        // written, and wired to nothing.
+        //
+        // Derived here rather than passed, so it cannot be forgotten again.
+        var isTransition = true
+        if case .resolve = source {
+            isTransition = resolveProject != clean
+            resolveProject = clean
+        }
 
         let known = projects.map { (project: $0.name, names: [$0.name] + $0.detectedNames) }
         switch AttributionPolicy.decide(name: clean, source: source, known: known,
@@ -377,6 +395,20 @@ final class AppModel {
     /// come back, or the hold is a trap.
     func raiseAttributionIfHeld() {
         guard projectMismatch, pendingAttribution == nil, let unplaced = resolveProject else { return }
+        // …unless the owner has already said this one is not billable.
+        //
+        // "Not billable" is meant to be asked once, ever. This re-raise did
+        // not consult `ignoredNames`, and it runs from every branch of
+        // `detected`, so the card came back about five seconds after being
+        // dismissed and then every five seconds afterwards. The only two
+        // buttons that ended it were "New project" and "Yes, this is <the
+        // selected project>" — which aliases a personal edit onto a paying
+        // job and bills it from then on. A prompt loop whose exit is the
+        // over-billing button is worse than no prompt.
+        //
+        // The panel already carries the held-and-ignored banner and its
+        // "Bill it after all" door, which is the intended way back.
+        guard !ignoredNames.contains(where: { ProjectName.matches($0, unplaced) }) else { return }
         pendingAttribution = Attribution(name: unplaced, source: .resolve,
                                          current: selectedProject?.name,
                                          currentID: selectedProjectID)
@@ -437,6 +469,24 @@ final class AppModel {
 
     /// Detection moved attribution by itself — say so. A manual switch needs
     /// no announcement — the user is the one who just did it.
+    /// Tier 1 reached Resolve and Resolve has no project open.
+    ///
+    /// `resolveProject` was only ever cleared when Resolve QUIT, so closing a
+    /// project and leaving the app open left the last name standing as the
+    /// truth about what Resolve is showing. Working in Photoshop on another
+    /// job then read as a mismatch and held the clock — escapable only by
+    /// quitting Resolve mid-render, or by answering a card that offers to
+    /// alias a closed project onto the open one, which mis-routes every
+    /// future detection. The mirror case is worse: when the selected project
+    /// DOES answer to the stale name, satellite work keeps billing to a job
+    /// that was closed hours ago.
+    func anchorHasNoProjectOpen() {
+        guard resolveProject != nil else { return }
+        resolveProject = nil
+        pendingAttribution = nil
+        engine.projectMismatch = projectMismatch
+    }
+
     private func autoDetected(_ name: String, canCreate: Bool) {
         // `canCreate` is history: creating without asking is what produced
         // two stray projects in one afternoon. Every unknown name now goes

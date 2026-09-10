@@ -232,13 +232,51 @@ final class ProjectDetector {
         return trimmed
     }
 
+    /// Resolve's pages. A title ending in one of these is naming a SCREEN,
+    /// not a project.
+    nonisolated private static let pageNames: Set<String> =
+        ["media", "cut", "edit", "fusion", "color", "colour", "fairlight", "deliver"]
+
     /// Pure, testable title parser.
+    ///
+    /// Everything after the FIRST separator, minus a trailing page name.
+    ///
+    /// Taking everything after the first separator is right — a project may
+    /// legally contain " - " and the whole of it is the name — but Resolve
+    /// also appends the current page, so "DaVinci Resolve - Nyx - Color"
+    /// parsed to "Nyx - Color". Tier 1 asks the API and gets "Nyx", and
+    /// `ProjectName.matches` folds case, whitespace and diacritics but not
+    /// structure, so the two tiers could never agree: each poll flipped the
+    /// detected name between two spellings, and the Tier-2 spelling matched
+    /// no project, held the clock on a mismatch, and offered "New project" —
+    /// one click from a duplicate that silently splits one job's billing.
+    ///
+    /// Only a KNOWN page name is stripped. A project genuinely called
+    /// "Nyx - Color" is indistinguishable from one on the Color page and
+    /// loses its suffix; the alternative is every multi-part project name
+    /// disagreeing with Tier 1, which is the more common and more expensive
+    /// mistake. Tier 1 remains the source of truth either way.
     nonisolated static func projectName(fromWindowTitle title: String) -> String? {
         let separators = [" - ", " — "]
         for sep in separators {
             if let range = title.range(of: sep) {
-                let candidate = String(title[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-                if !candidate.isEmpty, candidate.lowercased() != "davinci resolve" {
+                var candidate = String(title[range.upperBound...]).trimmingCharacters(in: .whitespaces)
+                for tail in separators {
+                    guard let last = candidate.range(of: tail, options: .backwards) else { continue }
+                    let suffix = candidate[last.upperBound...]
+                        .trimmingCharacters(in: .whitespaces).lowercased()
+                    if pageNames.contains(suffix) {
+                        candidate = String(candidate[..<last.lowerBound])
+                            .trimmingCharacters(in: .whitespaces)
+                        break
+                    }
+                }
+                // A candidate that IS a page name names nothing — "DaVinci
+                // Resolve - Color" is the Project Manager with the Color
+                // page selected, not a project called Color. Returning it
+                // would put a phantom project into attribution.
+                if !candidate.isEmpty, candidate.lowercased() != "davinci resolve",
+                   !pageNames.contains(candidate.lowercased()) {
                     return candidate
                 }
             }

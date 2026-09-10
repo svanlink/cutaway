@@ -58,6 +58,9 @@ final class DetectionEngine {
     /// Paused by hand, yet the editor is clearly working — panel and pill
     /// surface this so the Resume is one click away.
     private(set) var workDetectedWhilePaused = false
+    /// Resolve is the frontmost app. Read by `ProjectAutoSwitcher` to decide
+    /// how often Tier 1 is worth spawning — see `DetectionSchedule`.
+    private(set) var anchorIsFrontmost = false
     /// Ask mode: fired when work is detected during a manual pause.
     var onResumePrompt: (() -> Void)?
     var idleThreshold: TimeInterval = Prefs.object(forKey: "idleThreshold") as? TimeInterval ?? 120
@@ -218,6 +221,9 @@ final class DetectionEngine {
         if input.frontmostIsAnchor, input.secondsSinceInput < idleThreshold {
             lastAnchorActive = now()
         }
+        if input.frontmostCanNameProject != anchorIsFrontmost {
+            anchorIsFrontmost = input.frontmostCanNameProject
+        }
         input.satelliteWindowOpen = lastAnchorActive.map {
             now().timeIntervalSince($0) <= satelliteWindow
         } ?? false
@@ -239,14 +245,22 @@ final class DetectionEngine {
                 // An automatic pause closes the session where the billing
                 // stopped; the billed idle tolerance before it stays billed.
                 closeSessionIfOpen(reason: describe(newState))
-            case .paused(.inputIdle) where awayGapStart != nil:
-                // The bridge was still holding a session open when the idle
-                // pause landed — the frontmost app became an anchor with
-                // nobody typing (the detour app quit, say). This transition
-                // used to fall through: nothing closed, and the expiry check
-                // below only fires on notFrontmost, so the session stayed
-                // open until midnight.
-                closeSessionIfOpen(reason: "bridge-idle")
+            case .paused where awayGapStart != nil:
+                // ANY pause landing on an open bridge gap closes the session.
+                //
+                // This was `.paused(.inputIdle)` only, and that left a hole
+                // the same size as the one it was written to fix: recording →
+                // detour to Finder (gap opens) → Resolve switches project →
+                // `.paused(.projectMismatch)` matched no case at all. Nothing
+                // closed, nothing cleared the gap, and the expiry sweep below
+                // is gated on `notFrontmost`, so the session stayed open until
+                // the midnight force-close. `activeSeconds` stayed right, but
+                // the record's `end` landed hours after its last active
+                // second — and `DaySplitter` distributes active seconds by
+                // wall-clock span, which its own header calls load-bearing.
+                // Enumerating the pauses that need this was the mistake;
+                // "a bridge is open and we are not recording" is the rule.
+                closeSessionIfOpen(reason: "bridge-" + describe(newState))
                 awayGapStart = nil
             default:
                 break
@@ -295,8 +309,15 @@ final class DetectionEngine {
         if warning != idleWarning { idleWarning = warning }
         if accumulate {
             // Real wall-clock delta, not an assumed 1s — RunLoop stalls and
-            // App Nap would otherwise silently undercount. Capped so a
-            // pathological stall can't over-credit either.
+            // App Nap would otherwise silently undercount.
+            //
+            // Capped at 5s, which is a REAL limit and not a formality: a
+            // stall longer than that (App Nap, a heavy fetch, a synchronous
+            // AX call into a busy Resolve) credits 5s and loses the rest.
+            // The doc above claiming a late tick "credits exactly the elapsed
+            // time" was true only up to this cap. Under-billing is the
+            // direction this app resolves toward, so the cap stays and the
+            // claim goes.
             let t = now()
             let delta = lastTick.map { min(max(t.timeIntervalSince($0), 0), 5) } ?? 1
             lastTick = t
@@ -469,6 +490,39 @@ final class DetectionEngine {
             }
         }
         nc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.isAsleep = false
+                self?.tick(accumulate: false)
+            }
+        }
+        // Fast user switching, treated exactly like sleep.
+        //
+        // Nothing observed it, and every signal the engine has lies during
+        // another user's session: `FrontmostTracker` updates on
+        // `didActivateApplication`, which does not fire for an inactive
+        // session, so the cached frontmost stays Resolve; `anchorAppRunning`
+        // still sees our own Resolve; and `secondsSinceLastInput` reads the
+        // machine-wide HID counter, which the OTHER person's keystrokes keep
+        // near zero. Every input to `evaluate` said "anchor frontmost, fresh
+        // input" and the clock recorded, unbounded, while someone else used
+        // the Mac. Screen lock has an incidental signal — loginwindow
+        // activating posts `didActivateApplication` and the bridge closes it
+        // after three minutes — but a switched-away session has none.
+        //
+        // Folded into `isAsleep` rather than given a pause reason of its
+        // own: it is the same fact (this Mac is not ours right now), it wants
+        // the same hard boundary, and the owner cannot be looking at the
+        // panel to read a different word. Needs no permission and cannot be
+        // denied.
+        nc.addObserver(forName: NSWorkspace.sessionDidResignActiveNotification,
+                       object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.isAsleep = true
+                self?.tick(accumulate: false)
+            }
+        }
+        nc.addObserver(forName: NSWorkspace.sessionDidBecomeActiveNotification,
+                       object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.isAsleep = false
                 self?.tick(accumulate: false)
