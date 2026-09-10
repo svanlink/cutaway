@@ -30,6 +30,17 @@ final class AppModel {
     let detector = ProjectDetector()
     /// Every store write reports here; the panel and Stats show its sentence.
     let storeErrors = StoreErrorReporter()
+    /// Raised by the Invoice command and by the toolbar button alike. The
+    /// sheet lives on the window, so both routes open the same one — a menu
+    /// item that cannot reach a button's private @State is how commands end
+    /// up existing only on the toolbar.
+    var showInvoiceSheet = false
+
+    /// Export, callable from the menu bar as well as the toolbar menu.
+    func exportCSV(_ period: InvoicePeriod) {
+        CSVExportButton.run(period, model: self)
+    }
+
     /// Where a session goes when the store refuses it. See UnsavedSessions.
     let unsaved = UnsavedSessions()
 

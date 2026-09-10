@@ -97,25 +97,35 @@ struct StatsView: View {
                 )
             }
             Spacer()
+            // Edit project, Invoice and Export CSV used to sit here, three
+            // window-level verbs crowded against the name of the thing they
+            // act on. They are in the window's toolbar now, which is where
+            // macOS keeps commands (HIG: "Toolbars are the secondary command
+            // surface after the menu bar"), and it gives this row back to the
+            // one thing it should carry: what you are billing.
+        }
+    }
+
+    /// The window's commands. Icon AND label — HIG asks for both, and a bare
+    /// pencil between two worded buttons was a guess for everyone who had
+    /// not already learned it.
+    @ToolbarContentBuilder
+    var toolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
             if let p = project {
-                // Visible affordance — a context menu alone is a secret.
                 Button { model.editTarget = p } label: {
-                    Image(systemName: "pencil")
-                        .font(DT.glyph)
-                        .foregroundStyle(DT.text2)
-                        .frame(width: 28, height: 26)
-                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: DT.rSm))
+                    Label("Edit project", systemImage: "pencil")
                 }
-                .buttonStyle(.plain)
                 .help("Edit project: rate, budget, currency…")
-                // A bare glyph between two worded buttons is a guess. Tooltips
-                // are for the curious; the label is for everyone, and it is
-                // what VoiceOver reads.
-                .accessibilityLabel("Edit project")
-                .accessibilityLabel("Edit project")
             }
-            InvoiceButton(model: model)
-            CSVExportButton(model: model)
+            InvoiceButton(model: model, inToolbar: true)
+            // Export CSV is NOT here. A SwiftUI Menu in a toolbar renders as
+            // a control the accessibility audit reports as having no action,
+            // and announces itself by its SF Symbol's identifier — no
+            // modifier fixes either. It is also the wrong home: a toolbar
+            // carries frequent actions, and exporting a spreadsheet is
+            // occasional. File ▸ Export CSV is where macOS keeps exports,
+            // and that is now the one place it lives.
         }
     }
 

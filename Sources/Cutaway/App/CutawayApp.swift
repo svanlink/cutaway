@@ -103,8 +103,18 @@ struct CutawayApp: App {
                 .sheet(item: Bindable(model).deleteTarget) { p in
                     DeleteProjectSheet(model: model, project: p)
                 }
+                .sheet(isPresented: Bindable(model).showInvoiceSheet) {
+                    if let p = model.selectedProject {
+                        InvoiceSheet(model: model, project: p)
+                    }
+                }
         }
-        .windowStyle(.hiddenTitleBar)
+        // A real title bar, because a hidden one has no toolbar — and the
+        // window's three commands were living in the content instead, beside
+        // the project name they act on. `.unified` keeps them in the title
+        // bar row rather than adding a second band (HIG 3.1), so the window
+        // gains a command surface without losing content height.
+        .windowToolbarStyle(.unified)
         .windowResizability(.contentMinSize)
         .defaultSize(width: DT.windowSize.width, height: DT.windowSize.height)
 
@@ -121,6 +131,31 @@ struct CutawayApp: App {
         }
         .windowResizability(.contentSize)
         .commands {
+            // HIG 1.1/1.2: every action has a place in the menu bar and a
+            // keyboard equivalent. These three lived only as buttons, so
+            // moving them into the toolbar — where macOS renders them
+            // icon-only at this window width — would have left them with no
+            // labelled, keyboard-reachable path at all.
+            CommandGroup(replacing: .newItem) {
+                Button("New Project…") { model.showNewProjectSheet = true }
+                    .keyboardShortcut("n", modifiers: .command)
+                Divider()
+                Button("Invoice…") { model.showInvoiceSheet = true }
+                    .keyboardShortcut("i", modifiers: .command)
+                    .disabled(model.selectedProject == nil)
+                Menu("Export CSV") {
+                    ForEach(InvoicePeriod.allCases, id: \.self) { period in
+                        Button(period.rawValue) { model.exportCSV(period) }
+                    }
+                }
+                .disabled(model.selectedProject == nil)
+                Divider()
+                Button("Edit Project…") {
+                    if let p = model.selectedProject { model.editTarget = p }
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+                .disabled(model.selectedProject == nil)
+            }
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { model.openSettingsWindow?() }
                     .keyboardShortcut(",", modifiers: .command)
@@ -145,6 +180,13 @@ struct MainWindowView: View {
     @Bindable var model: AppModel
     @Environment(\.openWindow) private var openWindow
 
+    /// Held separately so the window can host its toolbar: the commands
+    /// belong to the WINDOW, not to a view nested two stacks down.
+    private var stats: some View {
+        let view = StatsView(model: model)
+        return view.toolbar { view.toolbar }
+    }
+
     var body: some View {
         VStack(spacing: DT.s3) {
             if model.storeIsEphemeral {
@@ -165,7 +207,7 @@ struct MainWindowView: View {
                     .contentShape(Rectangle())
                     .onTapGesture { model.storeErrors.clear() }
             }
-            StatsView(model: model)
+            stats
                 .padding(.top, model.storeIsEphemeral ? 0 : DT.s4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

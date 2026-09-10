@@ -51,7 +51,6 @@ SKIP = {"", " · ", "＋", "▼", "h:mm", "com.example.app", "%d:%02d", "0.00", 
 
 DE = {
  "Cancel": "Abbrechen", "Save": "Sichern", "Delete": "Löschen", "Delete…": "Löschen …", "Edit…": "Bearbeiten …",
- "Edit day…": "Tag bearbeiten …", "Edit project": "Projekt bearbeiten", "Edit project…": "Projekt bearbeiten …",
  "Edit project: rate, budget, currency…": "Projekt bearbeiten: Satz, Budget, Währung …",
  "New Project…": "Neues Projekt …", "New Project": "Neues Projekt", "Create Project": "Projekt anlegen",
  "Create your first project": "Erstes Projekt anlegen",
@@ -170,6 +169,9 @@ DE = {
  "\u2016 still paused": "\u2016 immer noch pausiert",
  "\u2016 which project?": "\u2016 welches Projekt?",
  "clear the record of unsaved work": "die Liste ungespeicherter Arbeit zu leeren",
+ "Create an invoice from tracked work": "Aus erfasster Arbeit eine Rechnung erstellen",
+ "Edit Project…": "Projekt bearbeiten …",
+ "New Project…": "Neues Projekt …",
  "Project name": "Projektname",
  "No project yet": "Noch kein Projekt",
  "New project…": "Neues Projekt …",

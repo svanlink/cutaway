@@ -7,7 +7,25 @@ struct InvoiceButton: View {
     @State private var hovering = false
     @State private var sheetOpen = false
 
+    /// Rendered by the toolbar rather than by us. A toolbar supplies its own
+    /// background, border, hover and pressed states; a button that brings its
+    /// own arrives as a pill sitting inside a well.
+    var inToolbar = false
+
     var body: some View {
+        if inToolbar {
+            Button { model.showInvoiceSheet = true } label: {
+                Label("Invoice…", systemImage: "doc.text")
+            }
+            .help("Create an invoice from tracked work")
+            .disabled(model.selectedProject == nil)
+            .accessibilityLabel("Create an invoice")
+        } else {
+            custom
+        }
+    }
+
+    private var custom: some View {
         Button { sheetOpen = true } label: {
             HStack(spacing: 6) {
                 Image(systemName: "doc.text").font(DT.buttonGlyph)

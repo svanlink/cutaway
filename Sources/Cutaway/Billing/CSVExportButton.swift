@@ -6,6 +6,7 @@ struct CSVExportButton: View {
     @State private var hovering = false
 
     var body: some View {
+
         Menu {
             ForEach(InvoicePeriod.allCases, id: \.self) { period in
                 Button(period.rawValue) { export(period) }
@@ -37,7 +38,9 @@ struct CSVExportButton: View {
         .accessibilityLabel("Export project data as CSV")
     }
 
-    private func export(_ period: InvoicePeriod) {
+    private func export(_ period: InvoicePeriod) { model.exportCSV(period) }
+
+    static func run(_ period: InvoicePeriod, model: AppModel) {
         guard let p = model.selectedProject else { return }
         // Live seconds included so the file always matches the screen.
         let csv = CSVExporter.export(
